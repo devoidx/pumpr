@@ -21,7 +21,7 @@ async def list_chargers(
         chargers = [c for c in chargers if c["max_power_kw"] and c["max_power_kw"] >= min_power_kw]
 
     if connector_type:
-        chargers = [c for c in chargers if connector_type.lower() in [t.lower() for t in c["connector_types"]]]
+        chargers = [c for c in chargers if any(connector_type.lower() in t.lower() for t in c["connector_types"])]
 
     chargers.sort(key=lambda c: c["distance_km"])
     return chargers[:limit]

@@ -6,6 +6,7 @@ import StationCard from '../components/StationCard'
 import ChargerCard from '../components/ChargerCard'
 import FuelSelector from '../components/FuelSelector'
 import ModeToggle from '../components/ModeToggle'
+import EvFilters from '../components/EvFilters'
 import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
 import './Home.css'
@@ -18,8 +19,11 @@ export default function Home() {
   const [mode, setMode] = useState(() => localStorage.getItem('pumpr_mode') || 'fuel')
   const [stations, setStations] = useState([])
   const [chargers, setChargers] = useState([])
+  const [allChargers, setAllChargers] = useState([])
   const [fuel, setFuel] = useState(() => localStorage.getItem('pumpr_fuel') || 'E10')
   const [radius, setRadius] = useState(() => Number(localStorage.getItem('pumpr_radius')) || 5)
+  const [connector, setConnector] = useState('')
+  const [minPower, setMinPower] = useState(0)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
@@ -60,11 +64,27 @@ export default function Home() {
         .then(r => setStations(r.data))
         .finally(() => setLoading(false))
     } else {
-      getChargers({ lat: location.lat, lng: location.lng, radius_km: radius, limit: 50 })
-        .then(r => setChargers(r.data))
+      getChargers({ lat: location.lat, lng: location.lng, radius_km: radius, limit: 100 })
+        .then(r => {
+          setAllChargers(r.data)
+        })
         .finally(() => setLoading(false))
     }
   }, [location, mode, fuel, radius])
+
+  // Apply EV filters client-side for instant response
+  useEffect(() => {
+    let filtered = allChargers
+    if (connector) {
+      filtered = filtered.filter(c =>
+        c.connector_types.some(t => t.toLowerCase().includes(connector.toLowerCase()))
+      )
+    }
+    if (minPower > 0) {
+      filtered = filtered.filter(c => c.max_power_kw && c.max_power_kw >= minPower)
+    }
+    setChargers(filtered)
+  }, [allChargers, connector, minPower])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -113,11 +133,24 @@ export default function Home() {
           </div>
         </div>
 
+        {mode === 'ev' && (
+          <EvFilters
+            connector={connector}
+            onConnector={setConnector}
+            minPower={minPower}
+            onMinPower={setMinPower}
+          />
+        )}
+
         <div className="station-list">
           {count === 0 && !loading && (
             <div className="empty-state">
               <p>No {mode === 'fuel' ? 'stations' : 'chargers'} found within {radius}km</p>
-              <p>Try increasing the radius</p>
+              {mode === 'ev' && (connector || minPower > 0) && (
+                <p style={{ marginTop: 8, fontSize: 12 }}>
+                  Try clearing filters or increasing radius
+                </p>
+              )}
             </div>
           )}
 

@@ -1,0 +1,46 @@
+.ev-filters {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ev-filter-group {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.ev-filter-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.ev-filter-btn:hover { color: var(--text); border-color: var(--text3); }
+.ev-filter-btn.active {
+  background: rgba(46,204,113,0.15);
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+.ev-speed-select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
