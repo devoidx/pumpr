@@ -1,10 +1,13 @@
 import { FUEL_COLORS } from '../constants/fuels'
+import { isOpenNow, getTodayHours } from '../utils/openingHours'
 import './StationCard.css'
 
 const RANK_LABELS = ['Cheapest', '2nd', '3rd']
 
 export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover }) {
   const color = FUEL_COLORS[s.fuel_type] || 'var(--amber)'
+  const openStatus = isOpenNow(s.opening_times)
+  const todayHours = getTodayHours(s.opening_times)
 
   return (
     <div
@@ -16,11 +19,22 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
       onMouseLeave={() => onHover(null)}
     >
       <div className="card-left">
-        {rank < 3 && (
-          <div className="card-rank" style={{ color, borderColor: color + '44', background: color + '11' }}>
-            {RANK_LABELS[rank]}
-          </div>
-        )}
+        <div className="card-header">
+          {rank < 3 && (
+            <div className="card-rank" style={{ color, borderColor: color + '44', background: color + '11' }}>
+              {RANK_LABELS[rank]}
+            </div>
+          )}
+          {s.temporary_closure && (
+            <div className="card-tag card-tag-closed">Temp closed</div>
+          )}
+          {s.is_motorway && (
+            <div className="card-tag card-tag-motorway">Motorway</div>
+          )}
+          {s.is_supermarket && (
+            <div className="card-tag card-tag-supermarket">Supermarket</div>
+          )}
+        </div>
         <div className="card-name">{s.station_name}</div>
         <div className="card-meta">
           {s.brand && <span className="card-brand">{s.brand}</span>}
@@ -30,6 +44,17 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
             <><span className="card-dot">·</span><span>{s.distance_km}km</span></>
           )}
         </div>
+        {openStatus !== null && (
+          <div className="card-open-status">
+            <span className={`card-open-dot ${openStatus ? 'open' : 'closed'}`} />
+            <span className={`card-open-label ${openStatus ? 'open' : 'closed'}`}>
+              {openStatus ? 'Open' : 'Closed'}
+            </span>
+            {todayHours && (
+              <span className="card-open-hours">· {todayHours}</span>
+            )}
+          </div>
+        )}
       </div>
       <div className="card-price" style={{ color }}>
         {s.price_pence.toFixed(1)}

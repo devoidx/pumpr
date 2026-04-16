@@ -7,21 +7,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models.models import PriceRecord, Station
 from app.schemas.schemas import PriceHistoryOut, PriceHistoryPoint, StationDetail, StationLatestPrices, StationOut
+from app.services.opening_hours import is_open_now, get_week_hours
 
 router = APIRouter(prefix="/stations", tags=["stations"])
 
 
 @router.get("/", response_model=list[StationOut])
 async def list_stations(
-    fuel: str | None = Query(None, description="Filter by fuel type: E10, E5, B7, SDV"),
+    fuel: str | None = Query(None),
     brand: str | None = Query(None),
-    lat: float | None = Query(None),
-    lng: float | None = Query(None),
-    radius_km: float | None = Query(None),
     limit: int = Query(100, le=500),
     db: AsyncSession = Depends(get_db),
 ) -> list[StationOut]:
-    stmt = select(Station).limit(limit)
+    stmt = select(Station).where(Station.permanent_closure == False).limit(limit)
     if brand:
         stmt = stmt.where(Station.brand.ilike(f"%{brand}%"))
     result = await db.execute(stmt)
@@ -41,39 +39,58 @@ async def list_stations(
             postcode=station.postcode,
             latitude=station.latitude,
             longitude=station.longitude,
+            country=station.country,
+            county=station.county,
+            is_motorway=station.is_motorway or False,
+            is_supermarket=station.is_supermarket or False,
+            temporary_closure=station.temporary_closure or False,
+            amenities=station.amenities,
+            fuel_types=station.fuel_types,
             latest_prices=latest,
         ))
     return out
 
 
-@router.get("/{station_id}", response_model=StationDetail)
-async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> StationDetail:
+@router.get("/{station_id}")
+async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> dict:
     result = await db.execute(select(Station).where(Station.id == station_id))
     station = result.scalar_one_or_none()
     if not station:
         raise HTTPException(status_code=404, detail="Station not found")
     latest = await _get_latest_prices(db, station_id)
-    return StationDetail(
-        id=station.id,
-        name=station.name,
-        brand=station.brand,
-        operator=station.operator,
-        address=station.address,
-        postcode=station.postcode,
-        latitude=station.latitude,
-        longitude=station.longitude,
-        amenities=station.amenities,
-        opening_hours=station.opening_hours,
-        created_at=station.created_at,
-        updated_at=station.updated_at,
-        latest_prices=latest,
-    )
+
+    open_now = is_open_now(station.opening_times)
+    week_hours = get_week_hours(station.opening_times)
+
+    return {
+        "id": station.id,
+        "name": station.name,
+        "brand": station.brand,
+        "operator": station.operator,
+        "address": station.address,
+        "postcode": station.postcode,
+        "latitude": station.latitude,
+        "longitude": station.longitude,
+        "country": station.country,
+        "county": station.county,
+        "phone": station.phone,
+        "is_motorway": station.is_motorway or False,
+        "is_supermarket": station.is_supermarket or False,
+        "temporary_closure": station.temporary_closure or False,
+        "amenities": station.amenities or [],
+        "fuel_types": station.fuel_types or [],
+        "is_open_now": open_now,
+        "week_hours": week_hours,
+        "latest_prices": [{"fuel_type": p.fuel_type, "price_pence": p.price_pence, "recorded_at": p.recorded_at} for p in latest],
+        "created_at": station.created_at,
+        "updated_at": station.updated_at,
+    }
 
 
 @router.get("/{station_id}/history", response_model=PriceHistoryOut)
 async def get_price_history(
     station_id: str,
-    fuel: str = Query(..., description="Fuel type: E10, E5, B7, SDV"),
+    fuel: str = Query(...),
     from_dt: datetime | None = Query(None),
     to_dt: datetime | None = Query(None),
     db: AsyncSession = Depends(get_db),
@@ -87,7 +104,6 @@ async def get_price_history(
         stmt = stmt.where(PriceRecord.recorded_at >= from_dt)
     if to_dt:
         stmt = stmt.where(PriceRecord.recorded_at <= to_dt)
-
     result = await db.execute(stmt)
     records = result.scalars().all()
     return PriceHistoryOut(

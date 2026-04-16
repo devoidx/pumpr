@@ -10,19 +10,18 @@ from app.services.fuel_finder_client import fuel_finder_client
 logger = logging.getLogger(__name__)
 
 FUEL_TYPE_MAP = {
-    "E10":        "E10",
-    "E5":         "E5",
+    "E10":         "E10",
+    "E5":          "E5",
     "B7_STANDARD": "B7",
-    "B7_Standard": "B7",  # fallback for old casing
+    "B7_Standard": "B7",
     "B7_PREMIUM":  "SDV",
-    "B7_Premium":  "SDV",  # fallback
-    "B10":        "B10",
-    "HVO":        "HVO",
+    "B7_Premium":  "SDV",
+    "B10":         "B10",
+    "HVO":         "HVO",
 }
 
 
 async def sync_stations() -> int:
-    """Fetch station metadata from API and upsert into DB. Returns count."""
     stations = await fuel_finder_client.get_stations()
     if not stations:
         logger.warning("No stations returned from API")
@@ -30,6 +29,10 @@ async def sync_stations() -> int:
 
     async with AsyncSessionLocal() as session:
         for raw in stations:
+            # Skip permanently closed stations
+            if raw.get("permanent_closure"):
+                continue
+
             location = raw.get("location", {})
             stmt = insert(Station).values(
                 id=raw["node_id"],
@@ -44,8 +47,16 @@ async def sync_stations() -> int:
                 postcode=location.get("postcode"),
                 latitude=location.get("latitude"),
                 longitude=location.get("longitude"),
-                amenities=str(raw.get("amenities", [])),
-                opening_hours=str(raw.get("opening_times", {})),
+                country=location.get("country"),
+                county=location.get("county"),
+                phone=raw.get("public_phone_number"),
+                amenities=raw.get("amenities", []),
+                opening_times=raw.get("opening_times", {}),
+                fuel_types=raw.get("fuel_types", []),
+                is_motorway=raw.get("is_motorway_service_station", False),
+                is_supermarket=raw.get("is_supermarket_service_station", False),
+                temporary_closure=raw.get("temporary_closure", False),
+                permanent_closure=raw.get("permanent_closure", False),
             ).on_conflict_do_update(
                 index_elements=["id"],
                 set_={
@@ -60,8 +71,16 @@ async def sync_stations() -> int:
                     "postcode": location.get("postcode"),
                     "latitude": location.get("latitude"),
                     "longitude": location.get("longitude"),
-                    "amenities": str(raw.get("amenities", [])),
-                    "opening_hours": str(raw.get("opening_times", {})),
+                    "country": location.get("country"),
+                    "county": location.get("county"),
+                    "phone": raw.get("public_phone_number"),
+                    "amenities": raw.get("amenities", []),
+                    "opening_times": raw.get("opening_times", {}),
+                    "fuel_types": raw.get("fuel_types", []),
+                    "is_motorway": raw.get("is_motorway_service_station", False),
+                    "is_supermarket": raw.get("is_supermarket_service_station", False),
+                    "temporary_closure": raw.get("temporary_closure", False),
+                    "permanent_closure": raw.get("permanent_closure", False),
                     "updated_at": datetime.utcnow(),
                 },
             )
@@ -73,7 +92,6 @@ async def sync_stations() -> int:
 
 
 async def ingest_prices() -> int:
-    """Fetch current prices from API and write to price_history. Returns count."""
     prices = await fuel_finder_client.get_prices()
     if not prices:
         logger.warning("No prices returned from API")
@@ -90,7 +108,6 @@ async def ingest_prices() -> int:
             api_fuel_type = fuel_entry.get("fuel_type")
             internal_fuel_type = FUEL_TYPE_MAP.get(api_fuel_type)
             if not internal_fuel_type:
-                logger.debug(f"Unknown fuel type: {api_fuel_type}")
                 continue
             price = fuel_entry.get("price")
             if price is not None and 50 <= float(price) <= 300:
@@ -116,7 +133,6 @@ def _parse_dt(value: str | None) -> datetime | None:
     if not value:
         return None
     try:
-        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        return dt.replace(tzinfo=None)
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
     except (ValueError, AttributeError):
         return None

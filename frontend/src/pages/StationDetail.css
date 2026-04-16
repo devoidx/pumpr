@@ -33,7 +33,12 @@
 .detail-back:hover { color: var(--text); }
 
 .detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
   margin-bottom: 28px;
+  flex-wrap: wrap;
 }
 
 .detail-name {
@@ -48,7 +53,14 @@
 .detail-address {
   font-size: 14px;
   color: var(--text2);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.detail-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .detail-brand {
@@ -57,6 +69,40 @@
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.detail-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+
+.detail-tag-motorway { color: #3498db; border-color: rgba(52,152,219,0.3); background: rgba(52,152,219,0.1); }
+.detail-tag-supermarket { color: #2ecc71; border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.1); }
+.detail-tag-closed { color: #e74c3c; border-color: rgba(231,76,60,0.3); background: rgba(231,76,60,0.1); }
+
+.detail-open-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.detail-open-badge.open { color: #2ecc71; border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.1); }
+.detail-open-badge.closed { color: #e74c3c; border-color: rgba(231,76,60,0.3); background: rgba(231,76,60,0.1); }
+
+.detail-open-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .detail-prices {
@@ -76,10 +122,7 @@
   cursor: pointer;
   transition: var(--transition);
 }
-
-.detail-price-card:hover {
-  background: var(--surface2);
-}
+.detail-price-card:hover { background: var(--surface2); }
 
 .dpc-label {
   font-size: 11px;
@@ -99,14 +142,16 @@
   align-items: baseline;
   gap: 2px;
 }
-
 .dpc-unit { font-size: 16px; opacity: 0.6; }
 
-.detail-chart-card {
+.detail-chart-card,
+.detail-hours-card,
+.detail-amenities-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
+  margin-bottom: 16px;
 }
 
 .detail-chart-header {
@@ -118,16 +163,14 @@
   gap: 12px;
 }
 
-.detail-chart-title {
+.detail-chart-title,
+.detail-section-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
 }
 
-.detail-fuel-tabs {
-  display: flex;
-  gap: 4px;
-}
+.detail-fuel-tabs { display: flex; gap: 4px; }
 
 .detail-fuel-tab {
   padding: 4px 10px;
@@ -140,7 +183,6 @@
   cursor: pointer;
   transition: var(--transition);
 }
-
 .detail-fuel-tab:hover { color: var(--text); }
 .detail-fuel-tab.active { background: var(--surface2); }
 
@@ -151,3 +193,76 @@
   text-align: center;
   font-family: var(--font-mono);
 }
+
+.detail-hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 12px;
+}
+
+.detail-hours-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.detail-hours-row.today {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+}
+
+.detail-hours-day {
+  color: var(--text2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  width: 100px;
+}
+
+.detail-hours-row.today .detail-hours-day { color: var(--text); font-weight: 600; }
+
+.detail-hours-val { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+.detail-hours-val.allday { color: #2ecc71; }
+
+.detail-amenities {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.detail-amenity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.detail-amenity-icon { font-size: 14px; }
+.detail-amenity-label { color: var(--text2); }
+
+.detail-contact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+.detail-contact-label { font-size: 16px; }
+.detail-contact-val {
+  color: var(--amber);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.detail-contact-val:hover { text-decoration: underline; }

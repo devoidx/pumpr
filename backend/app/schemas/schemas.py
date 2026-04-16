@@ -1,13 +1,13 @@
-from datetime import datetime
+from datetime import datetime, time
+from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 
 class PriceOut(BaseModel):
     fuel_type: str
     price_pence: float
     recorded_at: datetime
-
     model_config = {"from_attributes": True}
 
 
@@ -15,7 +15,6 @@ class StationLatestPrices(BaseModel):
     fuel_type: str
     price_pence: float
     recorded_at: datetime
-
     model_config = {"from_attributes": True}
 
 
@@ -28,14 +27,20 @@ class StationOut(BaseModel):
     postcode: str | None
     latitude: float | None
     longitude: float | None
+    country: str | None = None
+    county: str | None = None
+    is_motorway: bool = False
+    is_supermarket: bool = False
+    temporary_closure: bool = False
+    amenities: list | None = None
+    fuel_types: list | None = None
     latest_prices: list[StationLatestPrices] = []
-
     model_config = {"from_attributes": True}
 
 
 class StationDetail(StationOut):
-    amenities: str | None
-    opening_hours: str | None
+    phone: str | None = None
+    opening_times_data: dict | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -43,7 +48,6 @@ class StationDetail(StationOut):
 class PriceHistoryPoint(BaseModel):
     recorded_at: datetime
     price_pence: float
-
     model_config = {"from_attributes": True}
 
 

@@ -12,16 +12,18 @@
 }
 
 .station-card:hover,
-.station-card.hovered {
-  background: var(--surface2);
-  border-color: var(--border2);
-}
-
-.station-card.selected {
-  background: var(--surface2);
-}
+.station-card.hovered { background: var(--surface2); border-color: var(--border2); }
+.station-card.selected { background: var(--surface2); }
 
 .card-left { flex: 1; min-width: 0; }
+
+.card-header {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  align-items: center;
+}
 
 .card-rank {
   display: inline-block;
@@ -31,8 +33,33 @@
   padding: 2px 7px;
   border-radius: 4px;
   border: 1px solid;
-  margin-bottom: 5px;
   letter-spacing: 0.03em;
+}
+
+.card-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+
+.card-tag-closed {
+  color: #e74c3c;
+  border-color: rgba(231,76,60,0.3);
+  background: rgba(231,76,60,0.1);
+}
+
+.card-tag-motorway {
+  color: #3498db;
+  border-color: rgba(52,152,219,0.3);
+  background: rgba(52,152,219,0.1);
+}
+
+.card-tag-supermarket {
+  color: #2ecc71;
+  border-color: rgba(46,204,113,0.3);
+  background: rgba(46,204,113,0.1);
 }
 
 .card-name {
@@ -47,11 +74,12 @@
 
 .card-meta {
   font-size: 11px;
-  color: var(--text);
+  color: var(--text2);
   display: flex;
   align-items: center;
   gap: 5px;
   flex-wrap: wrap;
+  margin-bottom: 4px;
 }
 
 .card-brand {
@@ -64,6 +92,28 @@
 
 .card-dot { color: var(--text3); }
 
+.card-open-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.card-open-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.card-open-dot.open { background: #2ecc71; }
+.card-open-dot.closed { background: #e74c3c; }
+
+.card-open-label { font-family: var(--font-mono); font-size: 10px; }
+.card-open-label.open { color: #2ecc71; }
+.card-open-label.closed { color: #e74c3c; }
+
+.card-open-hours { color: var(--text3); font-size: 10px; font-family: var(--font-mono); }
+
 .card-price {
   font-family: var(--font-mono);
   font-size: 26px;
@@ -75,7 +125,4 @@
   gap: 1px;
 }
 
-.card-price-unit {
-  font-size: 14px;
-  opacity: 0.7;
-}
+.card-price-unit { font-size: 14px; opacity: 0.7; }
