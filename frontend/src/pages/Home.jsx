@@ -5,6 +5,7 @@ import Map from '../components/Map'
 import StationCard from '../components/StationCard'
 import FuelSelector from '../components/FuelSelector'
 import LocationPrompt from '../components/LocationPrompt'
+import PostcodeSearch from '../components/PostcodeSearch'
 import './Home.css'
 
 export default function Home() {
@@ -75,11 +76,18 @@ export default function Home() {
             {loading ? (
               <span className="loading-dot">Searching…</span>
             ) : (
-              <span>{stations.length} stations within {radius}km</span>
+              <span>
+                {location.postcode
+                  ? `${location.postcode} · `
+                  : ''}{stations.length} stations within {radius}km
+              </span>
             )}
-            <button className="location-btn" onClick={handleClearLocation}>
-              📍 Change
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <PostcodeSearch onLocation={handleSetLocation} />
+              <button className="location-btn" onClick={handleClearLocation}>
+                📍
+              </button>
+            </div>
           </div>
         </div>
 

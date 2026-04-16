@@ -1,0 +1,48 @@
+.postcode-search {
+  display: flex;
+  gap: 4px;
+}
+
+.ps-input {
+  width: 110px;
+  padding: 6px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  outline: none;
+  transition: var(--transition);
+}
+
+.ps-input:focus { border-color: var(--amber); }
+.ps-input.error { border-color: var(--red); }
+.ps-input::placeholder { text-transform: none; letter-spacing: 0; color: var(--text3); }
+
+.ps-btn {
+  padding: 6px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.ps-btn:hover:not(:disabled) { background: var(--amber); border-color: var(--amber); }
+.ps-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ps-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
