@@ -1,12 +1,12 @@
 import math
 from datetime import datetime
+from collections import defaultdict
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.models.models import PriceRecord, Station
 from app.schemas.schemas import StatsOut
 
 router = APIRouter(prefix="/prices", tags=["prices"])
@@ -30,94 +30,114 @@ async def get_cheapest(
     limit: int = Query(20, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
-    subq = (
-        select(PriceRecord.station_id, func.max(PriceRecord.recorded_at).label("max_ts"))
-        .where(PriceRecord.fuel_type == fuel)
-        .group_by(PriceRecord.station_id)
-        .subquery()
-    )
-    stmt = (
-        select(PriceRecord, Station)
-        .join(subq, (PriceRecord.station_id == subq.c.station_id) & (PriceRecord.recorded_at == subq.c.max_ts))
-        .join(Station, PriceRecord.station_id == Station.id)
-        .where(PriceRecord.fuel_type == fuel)
-        .where(Station.latitude.isnot(None))
-        .where(Station.longitude.isnot(None))
-        .where(Station.permanent_closure == False)
-        .order_by(PriceRecord.price_pence.asc())
-    )
-    result = await db.execute(stmt)
-    rows = result.all()
+    # Use bounding box in SQL to pre-filter by rough geography, then exact haversine in Python
+    if lat is not None and lng is not None:
+        # Rough bounding box: 1 degree lat ≈ 111km, 1 degree lng ≈ 111km * cos(lat)
+        lat_margin = radius_km / 111.0
+        lng_margin = radius_km / (111.0 * math.cos(math.radians(lat)))
+        geo_filter = """
+            AND s.latitude BETWEEN :lat_min AND :lat_max
+            AND s.longitude BETWEEN :lng_min AND :lng_max
+        """
+        params = {
+            "fuel": fuel,
+            "lat_min": lat - lat_margin,
+            "lat_max": lat + lat_margin,
+            "lng_min": lng - lng_margin,
+            "lng_max": lng + lng_margin,
+        }
+    else:
+        geo_filter = ""
+        params = {"fuel": fuel}
+
+    sql = text(f"""
+        SELECT DISTINCT ON (ph.station_id)
+            ph.station_id,
+            ph.price_pence,
+            ph.recorded_at,
+            s.name,
+            s.brand,
+            s.address,
+            s.postcode,
+            s.latitude,
+            s.longitude,
+            s.is_motorway,
+            s.is_supermarket,
+            s.temporary_closure,
+            s.amenities,
+            s.opening_times
+        FROM price_history ph
+        JOIN stations s ON ph.station_id = s.id
+        WHERE ph.fuel_type = :fuel
+          AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+          AND s.latitude IS NOT NULL
+          AND s.longitude IS NOT NULL
+          {geo_filter}
+        ORDER BY ph.station_id, ph.recorded_at DESC
+    """)
+
+    result = await db.execute(sql, params)
+    rows = result.fetchall()
 
     output = []
-    for price, station in rows:
+    for row in rows:
         if lat is not None and lng is not None:
-            dist = haversine_km(lat, lng, station.latitude, station.longitude)
+            dist = haversine_km(lat, lng, row.latitude, row.longitude)
             if dist > radius_km:
                 continue
         else:
             dist = None
 
         output.append({
-            "station_id": station.id,
-            "station_name": station.name,
-            "brand": station.brand,
-            "address": station.address,
-            "postcode": station.postcode,
-            "latitude": station.latitude,
-            "longitude": station.longitude,
-            "is_motorway": station.is_motorway or False,
-            "is_supermarket": station.is_supermarket or False,
-            "temporary_closure": station.temporary_closure or False,
-            "amenities": station.amenities or [],
-            "opening_times": station.opening_times,
+            "station_id": row.station_id,
+            "station_name": row.name,
+            "brand": row.brand,
+            "address": row.address,
+            "postcode": row.postcode,
+            "latitude": row.latitude,
+            "longitude": row.longitude,
+            "is_motorway": row.is_motorway or False,
+            "is_supermarket": row.is_supermarket or False,
+            "temporary_closure": row.temporary_closure or False,
+            "amenities": row.amenities or [],
+            "opening_times": row.opening_times,
             "fuel_type": fuel,
-            "price_pence": price.price_pence,
-            "recorded_at": price.recorded_at,
+            "price_pence": row.price_pence,
+            "recorded_at": row.recorded_at,
             "distance_km": round(dist, 2) if dist is not None else None,
         })
 
-        if len(output) >= limit:
-            break
-
     output.sort(key=lambda x: (x["price_pence"], x["distance_km"] if x["distance_km"] is not None else 9999))
-    return output
+    return output[:limit]
 
 
 @router.get("/stats", response_model=list[StatsOut])
 async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
-    subq = (
-        select(PriceRecord.station_id, PriceRecord.fuel_type, func.max(PriceRecord.recorded_at).label("max_ts"))
-        .group_by(PriceRecord.station_id, PriceRecord.fuel_type)
-        .subquery()
-    )
-    stmt = (
-        select(
-            PriceRecord.fuel_type,
-            func.avg(PriceRecord.price_pence).label("avg_price"),
-            func.min(PriceRecord.price_pence).label("min_price"),
-            func.max(PriceRecord.price_pence).label("max_price"),
-            func.count(PriceRecord.station_id).label("station_count"),
-        )
-        .join(
-            subq,
-            (PriceRecord.station_id == subq.c.station_id)
-            & (PriceRecord.fuel_type == subq.c.fuel_type)
-            & (PriceRecord.recorded_at == subq.c.max_ts),
-        )
-        .group_by(PriceRecord.fuel_type)
-    )
-    result = await db.execute(stmt)
-    rows = result.all()
+    sql = text("""
+        SELECT DISTINCT ON (ph.station_id, ph.fuel_type)
+            ph.fuel_type,
+            ph.price_pence
+        FROM price_history ph
+        JOIN stations s ON ph.station_id = s.id
+        WHERE s.permanent_closure = FALSE
+        ORDER BY ph.station_id, ph.fuel_type, ph.recorded_at DESC
+    """)
+    result = await db.execute(sql)
+    rows = result.fetchall()
+
+    by_fuel: dict = defaultdict(list)
+    for row in rows:
+        by_fuel[row.fuel_type].append(row.price_pence)
+
     now = datetime.utcnow()
     return [
         StatsOut(
-            fuel_type=row.fuel_type,
-            avg_price_pence=round(row.avg_price, 2),
-            min_price_pence=row.min_price,
-            max_price_pence=row.max_price,
-            station_count=row.station_count,
+            fuel_type=fuel,
+            avg_price_pence=round(sum(prices) / len(prices), 2),
+            min_price_pence=min(prices),
+            max_price_pence=max(prices),
+            station_count=len(prices),
             as_of=now,
         )
-        for row in rows
+        for fuel, prices in sorted(by_fuel.items())
     ]

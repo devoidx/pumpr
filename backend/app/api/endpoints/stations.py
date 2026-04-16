@@ -19,7 +19,7 @@ async def list_stations(
     limit: int = Query(100, le=500),
     db: AsyncSession = Depends(get_db),
 ) -> list[StationOut]:
-    stmt = select(Station).where(Station.permanent_closure == False).limit(limit)
+    stmt = select(Station).where((Station.permanent_closure == False) | Station.permanent_closure.is_(None)).limit(limit)
     if brand:
         stmt = stmt.where(Station.brand.ilike(f"%{brand}%"))
     result = await db.execute(stmt)
