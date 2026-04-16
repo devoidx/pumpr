@@ -15,11 +15,11 @@ export default function Home() {
     const saved = localStorage.getItem('pumpr_location')
     return saved ? JSON.parse(saved) : null
   })
-  const [mode, setMode] = useState('fuel')
+  const [mode, setMode] = useState(() => localStorage.getItem('pumpr_mode') || 'fuel')
   const [stations, setStations] = useState([])
   const [chargers, setChargers] = useState([])
-  const [fuel, setFuel] = useState('E10')
-  const [radius, setRadius] = useState(5)
+  const [fuel, setFuel] = useState(() => localStorage.getItem('pumpr_fuel') || 'E10')
+  const [radius, setRadius] = useState(() => Number(localStorage.getItem('pumpr_radius')) || 5)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
@@ -33,6 +33,21 @@ export default function Home() {
   const handleClearLocation = () => {
     localStorage.removeItem('pumpr_location')
     setLocation(null)
+  }
+
+  const handleSetMode = (m) => {
+    localStorage.setItem('pumpr_mode', m)
+    setMode(m)
+  }
+
+  const handleSetFuel = (f) => {
+    localStorage.setItem('pumpr_fuel', f)
+    setFuel(f)
+  }
+
+  const handleSetRadius = (r) => {
+    localStorage.setItem('pumpr_radius', r)
+    setRadius(r)
   }
 
   const fetchData = useCallback(() => {
@@ -53,7 +68,7 @@ export default function Home() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  const handleSelectStation = (item) => {
+  const handleSelectItem = (item) => {
     setSelected(item)
     const id = mode === 'fuel' ? item.station_id : item.id
     const el = document.getElementById(`card-${id}`)
@@ -70,12 +85,12 @@ export default function Home() {
       <div className="panel">
         <div className="panel-header">
           <div className="panel-controls">
-            <ModeToggle mode={mode} onChange={setMode} />
-            {mode === 'fuel' && <FuelSelector value={fuel} onChange={setFuel} />}
+            <ModeToggle mode={mode} onChange={handleSetMode} />
+            {mode === 'fuel' && <FuelSelector value={fuel} onChange={handleSetFuel} />}
             <select
               className="radius-select"
               value={radius}
-              onChange={e => setRadius(Number(e.target.value))}
+              onChange={e => handleSetRadius(Number(e.target.value))}
             >
               {[2, 5, 10, 15, 25].map(r => (
                 <option key={r} value={r}>{r} km</option>
@@ -140,7 +155,7 @@ export default function Home() {
           hoveredId={hoveredId}
           fuel={fuel}
           mode={mode}
-          onSelect={handleSelectStation}
+          onSelect={handleSelectItem}
           onHover={setHoveredId}
         />
       </div>
