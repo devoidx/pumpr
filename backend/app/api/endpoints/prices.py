@@ -77,7 +77,7 @@ async def get_cheapest(
             break
 
     # Sort by price within the radius
-    output.sort(key=lambda x: x["price_pence"])
+    output.sort(key=lambda x: (x["price_pence"], x["distance_km"] if x["distance_km"] is not None else 9999))
     return output
 
 
