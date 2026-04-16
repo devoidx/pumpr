@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:16
+    container_name: pumpr_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pumpr}
+      POSTGRES_USER: ${POSTGRES_USER:-pumpr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pumpr_db_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pumpr}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pumpr_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-pumpr}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pumpr}
+      FUEL_FINDER_CLIENT_ID: ${FUEL_FINDER_CLIENT_ID}
+      FUEL_FINDER_CLIENT_SECRET: ${FUEL_FINDER_CLIENT_SECRET}
+      FUEL_FINDER_TOKEN_URL: ${FUEL_FINDER_TOKEN_URL:-https://api.fuel-finder.service.gov.uk/oauth/token}
+      FUEL_FINDER_API_URL: ${FUEL_FINDER_API_URL:-https://api.fuel-finder.service.gov.uk}
+      POLL_INTERVAL_MINUTES: ${POLL_INTERVAL_MINUTES:-30}
+      SECRET_KEY: ${SECRET_KEY}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./backend:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+        #  frontend:
+        #build:
+        #context: ./frontend
+        #dockerfile: Dockerfile
+        #container_name: pumpr_frontend
+        #restart: unless-stopped
+        #depends_on:
+        #- api
+        #ports:
+        #- "3003:80"
+
+volumes:
+  pumpr_db_data:
+
+networks:
+  default:
+    name: pumpr_network
