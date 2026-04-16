@@ -2,9 +2,11 @@ import logging
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 
 from app.core.config import settings
 from app.services.ingestion import ingest_prices, sync_stations
+from app.services.retention import apply_retention_policy
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +22,14 @@ async def poll_prices() -> None:
         logger.error(f"Scheduler: price poll failed: {e}")
 
 
+async def run_retention() -> None:
+    logger.info("Scheduler: running retention policy")
+    try:
+        await apply_retention_policy()
+    except Exception as e:
+        logger.error(f"Scheduler: retention failed: {e}")
+
+
 def start_scheduler() -> None:
     scheduler.add_job(
         poll_prices,
@@ -27,8 +37,14 @@ def start_scheduler() -> None:
         id="poll_prices",
         replace_existing=True,
     )
+    scheduler.add_job(
+        run_retention,
+        trigger=CronTrigger(hour=3, minute=0),
+        id="retention",
+        replace_existing=True,
+    )
     scheduler.start()
-    logger.info(f"Scheduler started — polling every {settings.poll_interval_minutes} minutes")
+    logger.info(f"Scheduler started — polling every {settings.poll_interval_minutes} minutes, retention daily at 03:00")
 
 
 def stop_scheduler() -> None:

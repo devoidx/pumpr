@@ -55,7 +55,7 @@ export default function Stats() {
 
         <div className="stats-note">
           Prices updated every 30 minutes from the GOV.UK Fuel Finder API.
-          Data collected under the Motor Fuel Price (Open Data) Regulations 2025.
+          Data collected under the Motor Fuel Price (Open Data) Regulations 2025. LPG is not included in the scheme.
         </div>
       </div>
     </div>
