@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from fastapi import FastAPI
@@ -29,20 +30,32 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api/v1")
 
 
+async def _background_sync() -> None:
+    """Run initial sync in background so app starts immediately."""
+    await asyncio.sleep(2)  # let the app finish starting
+    try:
+        logger.info("Background sync: starting station sync...")
+        await sync_stations()
+        logger.info("Background sync: starting price ingest...")
+        await ingest_prices()
+        logger.info("Background sync: complete")
+    except Exception as e:
+        logger.error(f"Background sync failed: {e}")
+
+
 @app.on_event("startup")
 async def startup() -> None:
     logger.info("Creating database tables...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    logger.info("Running initial station sync...")
-    try:
-        await sync_stations()
-        await ingest_prices()
-    except Exception as e:
-        logger.error(f"Initial sync failed (API credentials may not be set): {e}")
-
+    # Start scheduler immediately
     start_scheduler()
+
+    # Run initial sync in background — app is available straight away
+    asyncio.create_task(_background_sync())
+
+    logger.info("App ready — background sync running")
 
 
 @app.on_event("shutdown")
