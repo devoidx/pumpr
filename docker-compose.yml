@@ -29,8 +29,8 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-pumpr}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pumpr}
       FUEL_FINDER_CLIENT_ID: ${FUEL_FINDER_CLIENT_ID}
       FUEL_FINDER_CLIENT_SECRET: ${FUEL_FINDER_CLIENT_SECRET}
-      FUEL_FINDER_TOKEN_URL: ${FUEL_FINDER_TOKEN_URL:-https://api.fuel-finder.service.gov.uk/oauth/token}
-      FUEL_FINDER_API_URL: ${FUEL_FINDER_API_URL:-https://api.fuel-finder.service.gov.uk}
+      FUEL_FINDER_TOKEN_URL: ${FUEL_FINDER_TOKEN_URL}
+      FUEL_FINDER_API_URL: ${FUEL_FINDER_API_URL}
       POLL_INTERVAL_MINUTES: ${POLL_INTERVAL_MINUTES:-30}
       SECRET_KEY: ${SECRET_KEY}
       ENVIRONMENT: ${ENVIRONMENT:-production}
@@ -44,16 +44,16 @@ services:
       timeout: 10s
       retries: 3
 
-        #  frontend:
-        #build:
-        #context: ./frontend
-        #dockerfile: Dockerfile
-        #container_name: pumpr_frontend
-        #restart: unless-stopped
-        #depends_on:
-        #- api
-        #ports:
-        #- "3003:80"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pumpr_frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3003:80"
 
 volumes:
   pumpr_db_data:
