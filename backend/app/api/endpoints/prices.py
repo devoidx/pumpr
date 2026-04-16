@@ -119,7 +119,7 @@ async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
             ph.price_pence
         FROM price_history ph
         JOIN stations s ON ph.station_id = s.id
-        WHERE s.permanent_closure = FALSE
+        WHERE (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
         ORDER BY ph.station_id, ph.fuel_type, ph.recorded_at DESC
     """)
     result = await db.execute(sql)
