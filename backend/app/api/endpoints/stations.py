@@ -79,6 +79,7 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
         "temporary_closure": station.temporary_closure or False,
         "amenities": station.amenities or [],
         "fuel_types": station.fuel_types or [],
+        "opening_times": station.opening_times,
         "is_open_now": open_now,
         "week_hours": week_hours,
         "latest_prices": [{"fuel_type": p.fuel_type, "price_pence": p.price_pence, "recorded_at": p.recorded_at} for p in latest],
