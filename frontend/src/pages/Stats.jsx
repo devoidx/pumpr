@@ -16,9 +16,6 @@ export default function Stats() {
       <div className="stats-inner">
         <div className="stats-header">
           <h1 className="stats-title">UK Fuel Prices</h1>
-          <p className="stats-sub">
-            Live averages across {stats[0]?.station_count?.toLocaleString() || '—'} reporting stations
-          </p>
         </div>
 
         {loading ? (
