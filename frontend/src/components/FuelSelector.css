@@ -1,0 +1,25 @@
+.fuel-selector {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.fuel-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.fuel-btn:hover:not(.active) {
+  border-color: var(--text3);
+  color: var(--text);
+}

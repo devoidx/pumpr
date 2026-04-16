@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
@@ -11,9 +12,19 @@ from app.schemas.schemas import StatsOut
 router = APIRouter(prefix="/prices", tags=["prices"])
 
 
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calculate distance in km between two lat/lng points."""
+    R = 6371.0
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
 @router.get("/cheapest")
 async def get_cheapest(
-    fuel: str = Query(..., description="Fuel type: E10, E5, B7, SDV"),
+    fuel: str = Query(..., description="Fuel type: E10, E5, B7, SDV, B10, HVO"),
     lat: float | None = Query(None),
     lng: float | None = Query(None),
     radius_km: float = Query(10.0),
@@ -32,15 +43,24 @@ async def get_cheapest(
         .join(subq, (PriceRecord.station_id == subq.c.station_id) & (PriceRecord.recorded_at == subq.c.max_ts))
         .join(Station, PriceRecord.station_id == Station.id)
         .where(PriceRecord.fuel_type == fuel)
+        .where(Station.latitude.isnot(None))
+        .where(Station.longitude.isnot(None))
         .order_by(PriceRecord.price_pence.asc())
-        .limit(limit)
     )
     result = await db.execute(stmt)
     rows = result.all()
 
-    return [
-        {
-            "station_id": price.station_id,
+    output = []
+    for price, station in rows:
+        if lat is not None and lng is not None and station.latitude and station.longitude:
+            dist = haversine_km(lat, lng, station.latitude, station.longitude)
+            if dist > radius_km:
+                continue
+        else:
+            dist = None
+
+        output.append({
+            "station_id": station.id,
             "station_name": station.name,
             "brand": station.brand,
             "address": station.address,
@@ -50,9 +70,15 @@ async def get_cheapest(
             "fuel_type": fuel,
             "price_pence": price.price_pence,
             "recorded_at": price.recorded_at,
-        }
-        for price, station in rows
-    ]
+            "distance_km": round(dist, 2) if dist is not None else None,
+        })
+
+        if len(output) >= limit:
+            break
+
+    # Sort by price within the radius
+    output.sort(key=lambda x: x["price_pence"])
+    return output
 
 
 @router.get("/stats", response_model=list[StatsOut])

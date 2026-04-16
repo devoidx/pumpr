@@ -1,0 +1,81 @@
+.station-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: var(--surface);
+  cursor: pointer;
+  transition: var(--transition);
+  gap: 12px;
+}
+
+.station-card:hover,
+.station-card.hovered {
+  background: var(--surface2);
+  border-color: var(--border2);
+}
+
+.station-card.selected {
+  background: var(--surface2);
+}
+
+.card-left { flex: 1; min-width: 0; }
+
+.card-rank {
+  display: inline-block;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid;
+  margin-bottom: 5px;
+  letter-spacing: 0.03em;
+}
+
+.card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.card-meta {
+  font-size: 11px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.card-brand {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+}
+
+.card-dot { color: var(--text3); }
+
+.card-price {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 500;
+  flex-shrink: 0;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.card-price-unit {
+  font-size: 14px;
+  opacity: 0.7;
+}

@@ -1,0 +1,115 @@
+.stats-page {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg);
+  background-image: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(245,166,35,0.05) 0%, transparent 60%);
+}
+
+.stats-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.stats-header { margin-bottom: 40px; }
+
+.stats-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.stats-sub {
+  font-size: 14px;
+  color: var(--text2);
+  font-family: var(--font-mono);
+}
+
+.stats-loading {
+  color: var(--text2);
+  font-family: var(--font-mono);
+  padding: 48px 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: var(--transition);
+}
+
+.stat-card:hover {
+  border-color: var(--fuel-color);
+  background: var(--surface2);
+}
+
+.stat-fuel-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.stat-avg {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  font-weight: 500;
+  line-height: 1;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stat-unit { font-size: 20px; opacity: 0.6; }
+
+.stat-range { margin-bottom: 12px; }
+
+.stat-range-bar {
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.stat-range-fill {
+  height: 100%;
+  width: 60%;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.stat-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+}
+
+.stat-stations {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+}
+
+.stats-note {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}

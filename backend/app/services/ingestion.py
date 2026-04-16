@@ -10,12 +10,14 @@ from app.services.fuel_finder_client import fuel_finder_client
 logger = logging.getLogger(__name__)
 
 FUEL_TYPE_MAP = {
-    "E10": "E10",
-    "E5": "E5",
-    "B7_Standard": "B7",
-    "B7_Premium": "SDV",
-    "B10": "B10",
-    "HVO": "HVO",
+    "E10":        "E10",
+    "E5":         "E5",
+    "B7_STANDARD": "B7",
+    "B7_Standard": "B7",  # fallback for old casing
+    "B7_PREMIUM":  "SDV",
+    "B7_Premium":  "SDV",  # fallback
+    "B10":        "B10",
+    "HVO":        "HVO",
 }
 
 
@@ -88,6 +90,7 @@ async def ingest_prices() -> int:
             api_fuel_type = fuel_entry.get("fuel_type")
             internal_fuel_type = FUEL_TYPE_MAP.get(api_fuel_type)
             if not internal_fuel_type:
+                logger.debug(f"Unknown fuel type: {api_fuel_type}")
                 continue
             price = fuel_entry.get("price")
             if price is not None:
