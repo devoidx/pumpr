@@ -93,7 +93,7 @@ async def ingest_prices() -> int:
                 logger.debug(f"Unknown fuel type: {api_fuel_type}")
                 continue
             price = fuel_entry.get("price")
-            if price is not None:
+            if price is not None and 50 <= float(price) <= 300:
                 records.append(
                     PriceRecord(
                         station_id=station_id,
