@@ -34,6 +34,7 @@ services:
       POLL_INTERVAL_MINUTES: ${POLL_INTERVAL_MINUTES:-30}
       SECRET_KEY: ${SECRET_KEY}
       ENVIRONMENT: ${ENVIRONMENT:-production}
+      OCM_API_KEY: ${OCM_API_KEY}
     ports:
       - "8002:8000"
     volumes:
