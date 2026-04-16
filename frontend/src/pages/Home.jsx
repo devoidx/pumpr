@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCheapest } from '../api/client'
+import { getCheapest, getChargers } from '../api/client'
 import Map from '../components/Map'
 import StationCard from '../components/StationCard'
+import ChargerCard from '../components/ChargerCard'
 import FuelSelector from '../components/FuelSelector'
+import ModeToggle from '../components/ModeToggle'
 import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
 import './Home.css'
@@ -13,7 +15,9 @@ export default function Home() {
     const saved = localStorage.getItem('pumpr_location')
     return saved ? JSON.parse(saved) : null
   })
+  const [mode, setMode] = useState('fuel')
   const [stations, setStations] = useState([])
+  const [chargers, setChargers] = useState([])
   const [fuel, setFuel] = useState('E10')
   const [radius, setRadius] = useState(5)
   const [loading, setLoading] = useState(false)
@@ -31,37 +35,43 @@ export default function Home() {
     setLocation(null)
   }
 
-  const fetchStations = useCallback(() => {
+  const fetchData = useCallback(() => {
     if (!location) return
     setLoading(true)
-    getCheapest(fuel, {
-      lat: location.lat,
-      lng: location.lng,
-      radius_km: radius,
-      limit: 50,
-    })
-      .then(r => setStations(r.data))
-      .finally(() => setLoading(false))
-  }, [location, fuel, radius])
+    setSelected(null)
 
-  useEffect(() => { fetchStations() }, [fetchStations])
+    if (mode === 'fuel') {
+      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50 })
+        .then(r => setStations(r.data))
+        .finally(() => setLoading(false))
+    } else {
+      getChargers({ lat: location.lat, lng: location.lng, radius_km: radius, limit: 50 })
+        .then(r => setChargers(r.data))
+        .finally(() => setLoading(false))
+    }
+  }, [location, mode, fuel, radius])
 
-  const handleSelectStation = (station) => {
-    setSelected(station)
-    const el = document.getElementById(`card-${station.station_id}`)
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const handleSelectStation = (item) => {
+    setSelected(item)
+    const id = mode === 'fuel' ? item.station_id : item.id
+    const el = document.getElementById(`card-${id}`)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 
-  if (!location) {
-    return <LocationPrompt onLocation={handleSetLocation} />
-  }
+  if (!location) return <LocationPrompt onLocation={handleSetLocation} />
+
+  const items = mode === 'fuel' ? stations : chargers
+  const count = items.length
 
   return (
     <div className="home">
       <div className="panel">
         <div className="panel-header">
           <div className="panel-controls">
-            <FuelSelector value={fuel} onChange={setFuel} />
+            <ModeToggle mode={mode} onChange={setMode} />
+            {mode === 'fuel' && <FuelSelector value={fuel} onChange={setFuel} />}
             <select
               className="radius-select"
               value={radius}
@@ -77,38 +87,44 @@ export default function Home() {
               <span className="loading-dot">Searching…</span>
             ) : (
               <span>
-                {location.postcode
-                  ? `${location.postcode} · `
-                  : ''}{stations.length} stations within {radius}km
+                {location.postcode ? `${location.postcode} · ` : ''}
+                {count} {mode === 'fuel' ? 'stations' : 'chargers'} within {radius}km
               </span>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <PostcodeSearch onLocation={handleSetLocation} />
-              <button className="location-btn" onClick={handleClearLocation}>
-                📍
-              </button>
+              <button className="location-btn" onClick={handleClearLocation} title="Change location">📍</button>
             </div>
           </div>
         </div>
 
         <div className="station-list">
-          {stations.length === 0 && !loading && (
+          {count === 0 && !loading && (
             <div className="empty-state">
-              <p>No stations found within {radius}km</p>
+              <p>No {mode === 'fuel' ? 'stations' : 'chargers'} found within {radius}km</p>
               <p>Try increasing the radius</p>
             </div>
           )}
-          {stations.map((s, i) => (
+
+          {mode === 'fuel' && stations.map((s, i) => (
             <StationCard
               key={s.station_id}
               station={s}
               rank={i}
               isSelected={selected?.station_id === s.station_id}
               isHovered={hoveredId === s.station_id}
-              onClick={() => {
-                setSelected(s)
-                navigate(`/stations/${s.station_id}`)
-              }}
+              onClick={() => { setSelected(s); navigate(`/stations/${s.station_id}`) }}
+              onHover={setHoveredId}
+            />
+          ))}
+
+          {mode === 'ev' && chargers.map(c => (
+            <ChargerCard
+              key={c.id}
+              charger={c}
+              isSelected={selected?.id === c.id}
+              isHovered={hoveredId === c.id}
+              onClick={() => { setSelected(c); navigate(`/ev/${c.id}`) }}
               onHover={setHoveredId}
             />
           ))}
@@ -118,10 +134,12 @@ export default function Home() {
       <div className="map-container">
         <Map
           stations={stations}
+          chargers={chargers}
           center={location}
-          selectedId={selected?.station_id}
+          selectedId={mode === 'fuel' ? selected?.station_id : selected?.id}
           hoveredId={hoveredId}
           fuel={fuel}
+          mode={mode}
           onSelect={handleSelectStation}
           onHover={setHoveredId}
         />

@@ -14,3 +14,8 @@ export const getPriceHistory = (id, fuel, params) =>
   client.get(`/api/v1/stations/${id}/history`, { params: { fuel, ...params } })
 
 export default client
+
+export const getChargers = (params) =>
+  client.get('/api/v1/ev/chargers', { params })
+export const getCharger = (id) =>
+  client.get(`/api/v1/ev/chargers/${id}`)

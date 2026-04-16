@@ -1,0 +1,24 @@
+.mode-toggle {
+  display: flex;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.mode-btn:hover { color: var(--text); background: var(--surface2); }
+.mode-btn.active { background: var(--surface2); color: var(--text); }
+.mode-btn.active.ev { color: #2ecc71; }

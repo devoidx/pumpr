@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import StationDetail from './pages/StationDetail'
+import EvDetail from './pages/EvDetail'
 import Home from './pages/Home'
 import Stats from './pages/Stats'
 
@@ -12,6 +13,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/stations/:id" element={<StationDetail />} />
+          <Route path="/ev/:id" element={<EvDetail />} />
           <Route path="/stats" element={<Stats />} />
         </Routes>
       </div>
