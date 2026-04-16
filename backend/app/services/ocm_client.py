@@ -60,7 +60,7 @@ def parse_charger(raw: dict) -> dict:
         "postcode": addr.get("Postcode"),
         "latitude": addr.get("Latitude"),
         "longitude": addr.get("Longitude"),
-        "distance_km": round(addr.get("Distance", 0), 2),
+        "distance_km": round(addr.get("Distance") or 0, 2),
         "network": operator.get("Title", "Unknown"),
         "operator_id": raw.get("OperatorID"),
         "is_operational": status.get("IsOperational", True),
