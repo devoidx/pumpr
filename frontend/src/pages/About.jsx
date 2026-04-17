@@ -11,7 +11,7 @@ export default function About() {
       <div className="about-inner">
 
         <div className="about-hero">
-          <div className="about-logo"><PumpIcon size={56} /><BoltIcon size={40} /></div>
+          <div className="about-logo"><PumpIcon size={48} color="#f5a623" /><BoltIcon size={36} color="#2ecc71" /></div>
           <h1 className="about-title">Pumpr</h1>
           <p className="about-tagline">Real-time UK fuel prices & EV charging</p>
           <span className="about-version">v{VERSION}</span>
