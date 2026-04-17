@@ -67,9 +67,9 @@ export default function About() {
               <span className="about-social-icon">𝕏</span>
               <span>@pumprapp</span>
             </a>
-            <a href="https://bsky.app/profile/pumprapp.bsky.social" target="_blank" rel="noopener noreferrer" className="about-social-link">
+            <a href="https://bsky.app/profile/pumpr-app.bsky.social" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">🦋</span>
-              <span>pumprapp.bsky.social</span>
+              <span>pumpr-app.bsky.social</span>
             </a>
             <a href="https://github.com/devoidx/pumpr" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">⌥</span>
