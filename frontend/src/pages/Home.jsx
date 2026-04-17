@@ -106,7 +106,6 @@ export default function Home() {
         <div className="panel-header">
           <div className="panel-controls">
             <ModeToggle mode={mode} onChange={handleSetMode} />
-            {mode === 'fuel' && <FuelSelector value={fuel} onChange={handleSetFuel} />}
             <select
               className="radius-select"
               value={radius}
