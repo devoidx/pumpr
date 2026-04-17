@@ -53,9 +53,9 @@ export default function About() {
           <h2 className="about-section-title">Support Pumpr</h2>
           <p className="about-body">
             Pumpr is free to use and built by one developer in their spare time.
-            If it saves you money at the pump, consider buying me a coffee!
+            If you find it useful, consider supporting my work on Ko-fi — it helps keep the servers running and new features coming.
           </p>
-          <a href="https://ko-fi.com/pumprapp" target="_blank" rel="noopener noreferrer" className="about-kofi-btn">
+          <a href="https://ko-fi.com/devoidx" target="_blank" rel="noopener noreferrer" className="about-kofi-btn">
             ☕ Support on Ko-fi
           </a>
         </div>
