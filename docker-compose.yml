@@ -37,10 +37,6 @@ services:
       OCM_API_KEY: ${OCM_API_KEY}
       BSKY_HANDLE: ${BSKY_HANDLE}
       BSKY_APP_PASSWORD: ${BSKY_APP_PASSWORD}
-      X_API_KEY: ${X_API_KEY}
-      X_API_SECRET: ${X_API_SECRET}
-      X_ACCESS_TOKEN: ${X_ACCESS_TOKEN}
-      X_ACCESS_TOKEN_SECRET: ${X_ACCESS_TOKEN_SECRET}
     ports:
       - "8002:8000"
     volumes:
