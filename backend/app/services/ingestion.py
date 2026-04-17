@@ -54,7 +54,7 @@ async def sync_stations() -> int:
                 opening_times=raw.get("opening_times", {}),
                 fuel_types=raw.get("fuel_types", []),
                 is_motorway=raw.get("is_motorway_service_station", False),
-                is_supermarket=raw.get("is_supermarket_service_station", False),
+                is_supermarket=_is_supermarket(raw),
                 temporary_closure=raw.get("temporary_closure", False),
                 permanent_closure=raw.get("permanent_closure", False),
             ).on_conflict_do_update(
@@ -78,7 +78,7 @@ async def sync_stations() -> int:
                     "opening_times": raw.get("opening_times", {}),
                     "fuel_types": raw.get("fuel_types", []),
                     "is_motorway": raw.get("is_motorway_service_station", False),
-                    "is_supermarket": raw.get("is_supermarket_service_station", False),
+                    "is_supermarket": _is_supermarket(raw),
                     "temporary_closure": raw.get("temporary_closure", False),
                     "permanent_closure": raw.get("permanent_closure", False),
                     "updated_at": datetime.utcnow(),
@@ -136,3 +136,16 @@ def _parse_dt(value: str | None) -> datetime | None:
         return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
     except (ValueError, AttributeError):
         return None
+
+
+SUPERMARKET_BRANDS = {
+    'tesco', 'morrisons', 'sainsbury', 'asda', 'aldi', 'lidl',
+    'waitrose', 'marks & spencer', 'm&s', 'co-op', 'cooperative'
+}
+
+
+def _is_supermarket(raw: dict) -> bool:
+    if False:  # API field unreliable, use brand-based logic only
+        return True
+    brand = (raw.get('brand_name') or '').lower()
+    return any(s in brand for s in SUPERMARKET_BRANDS)
