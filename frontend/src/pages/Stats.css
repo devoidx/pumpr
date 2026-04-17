@@ -113,3 +113,181 @@
   border-top: 1px solid var(--border);
   padding-top: 24px;
 }
+
+.stats-section-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stats-section-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stats-regional {
+  margin-bottom: 40px;
+}
+
+.stats-regional-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stats-fuel-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.stats-fuel-tab {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.stats-fuel-tab:hover { color: var(--text); }
+.stats-fuel-tab.active { background: var(--surface2); }
+
+.stats-country-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stats-country-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.stats-country-name {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.stats-country-price {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.stats-country-unit { font-size: 16px; opacity: 0.6; }
+
+.stats-country-station {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+.stats-country-postcode { color: var(--text3); }
+.stats-country-na { color: var(--text3); font-size: 12px; }
+
+.stats-county-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.stats-county-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stats-country-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.stats-country-tab {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.stats-country-tab:hover { color: var(--text); }
+.stats-country-tab.active { background: var(--surface2); color: var(--text); }
+
+.stats-county-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.stats-county-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: var(--transition);
+  gap: 12px;
+}
+
+.stats-county-row:hover { background: var(--surface2); }
+
+.stats-county-name {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text2);
+  min-width: 140px;
+  text-transform: capitalize;
+}
+
+.stats-county-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.stats-county-station {
+  font-size: 11px;
+  color: var(--text3);
+  text-align: right;
+}
+
+.stats-county-postcode { color: var(--text3); }
+
+.stats-county-price {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
