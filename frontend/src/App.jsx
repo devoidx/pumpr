@@ -4,6 +4,7 @@ import StationDetail from './pages/StationDetail'
 import EvDetail from './pages/EvDetail'
 import Home from './pages/Home'
 import Stats from './pages/Stats'
+import About from './pages/About'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/stations/:id" element={<StationDetail />} />
           <Route path="/ev/:id" element={<EvDetail />} />
           <Route path="/stats" element={<Stats />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </div>
     </div>

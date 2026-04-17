@@ -17,6 +17,9 @@ export default function Navbar() {
         <Link to="/stats" className={`navbar-link ${loc.pathname === '/stats' ? 'active' : ''}`}>
           UK Stats
         </Link>
+        <Link to="/about" className={`navbar-link ${loc.pathname === '/about' ? 'active' : ''}`}>
+          About
+        </Link>
       </div>
       <div className="navbar-tag">Live UK fuel prices</div>
     </nav>
