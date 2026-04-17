@@ -67,7 +67,7 @@ export default function About() {
           <div className="about-social">
             <a href="https://x.com/pumpr_app" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">𝕏</span>
-              <span>@pumprapp</span>
+              <span>@pumpr_app</span>
             </a>
             <a href="https://bsky.app/profile/pumpr-app.bsky.social" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">🦋</span>

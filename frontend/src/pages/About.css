@@ -16,7 +16,7 @@
   margin-bottom: 48px;
 }
 
-.about-logo { font-size: 56px; margin-bottom: 12px; }
+.about-logo { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 20px; }
 
 .about-title {
   font-family: var(--font-display);
