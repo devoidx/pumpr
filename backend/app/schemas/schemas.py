@@ -1,7 +1,6 @@
-from datetime import datetime, time
-from typing import Any
+from datetime import datetime
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel
 
 
 class PriceOut(BaseModel):
@@ -15,6 +14,7 @@ class StationLatestPrices(BaseModel):
     fuel_type: str
     price_pence: float
     recorded_at: datetime
+    source_updated_at: datetime | None = None
     model_config = {"from_attributes": True}
 
 
