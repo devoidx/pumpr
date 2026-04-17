@@ -150,11 +150,14 @@ async def post_cheapest_station(fuel: str = "E10", dry_run: bool = False) -> str
     if not station:
         return ""
 
-    location = station["postcode"] or ""
+    parts = []
     if station["county"]:
-        location = f"{station['county'].title()}"
+        parts.append(station["county"].title())
+    if station["country"] and station["country"] != "England":
+        parts.append(station["country"])
     if station["postcode"]:
-        location += f" ({station['postcode']})"
+        parts.append(station["postcode"])
+    location = ", ".join(parts) if parts else "UK"
 
     text = f"💰 Cheapest {FUEL_LABEL.get(fuel, fuel)} in the UK today:\n\n"
     text += f"📍 {station['name']}\n"
@@ -202,3 +205,8 @@ async def post_cheapest_by_country(fuel: str = "E10", dry_run: bool = False) -> 
             return ""
 
     return text
+
+
+async def post_cheapest_diesel(dry_run: bool = False) -> str:
+    """Post cheapest diesel (B7) station to Bluesky."""
+    return await post_cheapest_station("B7", dry_run=dry_run)

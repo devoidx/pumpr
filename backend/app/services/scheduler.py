@@ -46,6 +46,14 @@ async def post_cheapest_job() -> None:
         logger.error(f"Scheduler: cheapest post failed: {e}")
 
 
+async def post_cheapest_diesel_job() -> None:
+    try:
+        from app.services.social import post_cheapest_diesel
+        await post_cheapest_diesel(dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: cheapest diesel post failed: {e}")
+
+
 async def post_by_country_job() -> None:
     try:
         from app.services.social import post_cheapest_by_country
@@ -75,8 +83,14 @@ def start_scheduler() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
+        post_cheapest_diesel_job,
+        trigger=CronTrigger(hour=8, minute=15),
+        id="post_cheapest_diesel",
+        replace_existing=True,
+    )
+    scheduler.add_job(
         post_by_country_job,
-        trigger=CronTrigger(hour=8, minute=10),
+        trigger=CronTrigger(hour=8, minute=20),
         id="post_by_country",
         replace_existing=True,
     )
