@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     ocm_api_url: str = "https://api.openchargemap.io/v3"
     bsky_handle: str = ""
     bsky_app_password: str = ""
+    x_api_key: str = ""
+    x_api_secret: str = ""
+    x_access_token: str = ""
+    x_access_token_secret: str = ""
 
     class Config:
         env_file = ".env"

@@ -202,3 +202,71 @@ async def post_cheapest_by_country(fuel: str = "E10", dry_run: bool = False) -> 
             return ""
 
     return text
+
+
+def _x_client():
+    import tweepy
+    return tweepy.Client(
+        consumer_key=settings.x_api_key,
+        consumer_secret=settings.x_api_secret,
+        access_token=settings.x_access_token,
+        access_token_secret=settings.x_access_token_secret,
+    )
+
+
+async def x_post_daily_averages(dry_run: bool = False) -> str:
+    averages = await _get_uk_averages()
+    if not averages:
+        return ""
+
+    key_fuels = {a["fuel_type"]: a["avg_price"] for a in averages if a["fuel_type"] in ("E10", "B7", "E5")}
+    today = datetime.utcnow().strftime("%a %d %b")
+
+    text = f"⛽ UK Average Fuel Prices — {today}\n\n"
+    text += f"Unleaded E10: {key_fuels.get('E10', '—')}p/L\n"
+    text += f"Super Unleaded: {key_fuels.get('E5', '—')}p/L\n"
+    text += f"Diesel: {key_fuels.get('B7', '—')}p/L\n\n"
+    text += "Prices from 7,600+ UK stations 🇬🇧\n"
+    text += "#UKFuel #FuelPrices #Pumpr"
+
+    logger.info(f"X daily averages post:\n{text}")
+
+    if not dry_run:
+        try:
+            client = _x_client()
+            client.create_tweet(text=text)
+            logger.info("Posted daily averages to X")
+        except Exception as e:
+            logger.error(f"X post failed: {e}")
+            return ""
+
+    return text
+
+
+async def x_post_cheapest_station(fuel: str = "E10", dry_run: bool = False) -> str:
+    station = await _get_cheapest_uk(fuel)
+    if not station:
+        return ""
+
+    location = station["county"].title() if station["county"] else ""
+    if station["postcode"]:
+        location += f" ({station['postcode']})"
+
+    text = f"💰 Cheapest {FUEL_LABEL.get(fuel, fuel)} in the UK today:\n\n"
+    text += f"📍 {station['name']}\n"
+    text += f"📌 {location}\n"
+    text += f"💷 {station['price_pence']}p/L\n\n"
+    text += "#UKFuel #CheapFuel #Pumpr"
+
+    logger.info(f"X cheapest post:\n{text}")
+
+    if not dry_run:
+        try:
+            client = _x_client()
+            client.create_tweet(text=text)
+            logger.info(f"Posted cheapest {fuel} to X")
+        except Exception as e:
+            logger.error(f"X post failed: {e}")
+            return ""
+
+    return text
