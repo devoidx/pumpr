@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -128,3 +128,57 @@ async def _get_latest_prices(db: AsyncSession, station_id: str) -> list[StationL
     result = await db.execute(stmt)
     records = result.scalars().all()
     return [StationLatestPrices(fuel_type=r.fuel_type, price_pence=r.price_pence, recorded_at=r.recorded_at) for r in records]
+
+
+@router.get("/{station_id}/price-changes")
+async def get_price_changes(
+    station_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Return current prices vs 24h ago for a station."""
+    from datetime import timedelta
+    from sqlalchemy import func
+
+    now = datetime.utcnow()
+    day_ago = now - timedelta(hours=24)
+
+    # Latest prices
+    latest_sql = text("""
+        SELECT DISTINCT ON (fuel_type)
+            fuel_type, price_pence, recorded_at
+        FROM price_history
+        WHERE station_id = :station_id
+        ORDER BY fuel_type, recorded_at DESC
+    """)
+
+    # Prices ~24h ago
+    old_sql = text("""
+        SELECT DISTINCT ON (fuel_type)
+            fuel_type, price_pence, recorded_at
+        FROM price_history
+        WHERE station_id = :station_id
+          AND recorded_at <= :day_ago
+        ORDER BY fuel_type, recorded_at DESC
+    """)
+
+    latest_result = await db.execute(latest_sql, {"station_id": station_id})
+    old_result = await db.execute(old_sql, {"station_id": station_id, "day_ago": day_ago})
+
+    latest = {r.fuel_type: r for r in latest_result.fetchall()}
+    old = {r.fuel_type: r for r in old_result.fetchall()}
+
+    changes = []
+    for fuel_type, current in latest.items():
+        prev = old.get(fuel_type)
+        change = None
+        if prev:
+            change = round(current.price_pence - prev.price_pence, 1)
+        changes.append({
+            "fuel_type": fuel_type,
+            "price_pence": current.price_pence,
+            "prev_price_pence": prev.price_pence if prev else None,
+            "change_pence": change,
+            "recorded_at": current.recorded_at,
+        })
+
+    return sorted(changes, key=lambda x: x["fuel_type"])
