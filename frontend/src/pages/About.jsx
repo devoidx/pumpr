@@ -63,7 +63,7 @@ export default function About() {
         <div className="about-section">
           <h2 className="about-section-title">Follow</h2>
           <div className="about-social">
-            <a href="https://x.com/pumprapp" target="_blank" rel="noopener noreferrer" className="about-social-link">
+            <a href="https://x.com/pumpr_app" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">𝕏</span>
               <span>@pumprapp</span>
             </a>
