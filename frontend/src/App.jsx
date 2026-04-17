@@ -5,6 +5,7 @@ import EvDetail from './pages/EvDetail'
 import Home from './pages/Home'
 import Stats from './pages/Stats'
 import About from './pages/About'
+import Privacy from './pages/Privacy'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/ev/:id" element={<EvDetail />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </div>
     </div>
