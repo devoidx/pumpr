@@ -31,6 +31,13 @@ async def run_retention() -> None:
 
 
 def start_scheduler() -> None:
+    from apscheduler.triggers.cron import CronTrigger as CT2
+    scheduler.add_job(
+        run_county_fix,
+        trigger=CT2(day_of_week="sun", hour=4, minute=0),
+        id="county_fix",
+        replace_existing=True,
+    )
     scheduler.add_job(
         poll_prices,
         trigger=IntervalTrigger(minutes=settings.poll_interval_minutes),
@@ -49,3 +56,19 @@ def start_scheduler() -> None:
 
 def stop_scheduler() -> None:
     scheduler.shutdown(wait=False)
+
+
+async def run_county_fix() -> None:
+    logger.info("Scheduler: running weekly county normalisation")
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["python3", "/app/scripts/fix_counties.py"],
+            capture_output=True, text=True, timeout=300
+        )
+        if result.returncode == 0:
+            logger.info("County fix complete")
+        else:
+            logger.error(f"County fix failed: {result.stderr}")
+    except Exception as e:
+        logger.error(f"County fix error: {e}")

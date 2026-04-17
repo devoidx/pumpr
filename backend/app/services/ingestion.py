@@ -47,16 +47,16 @@ async def sync_stations() -> int:
                 postcode=location.get("postcode"),
                 latitude=location.get("latitude"),
                 longitude=location.get("longitude"),
-                country=location.get("country"),
+                country=_normalise_country(raw),
                 county=location.get("county"),
                 phone=raw.get("public_phone_number"),
                 amenities=raw.get("amenities", []),
                 opening_times=raw.get("opening_times", {}),
                 fuel_types=raw.get("fuel_types", []),
-                is_motorway=raw.get("is_motorway_service_station", False),
+                is_motorway=bool(raw.get("is_motorway_service_station") or False),
                 is_supermarket=_is_supermarket(raw),
-                temporary_closure=raw.get("temporary_closure", False),
-                permanent_closure=raw.get("permanent_closure", False),
+                temporary_closure=bool(raw.get("temporary_closure") or False),
+                permanent_closure=bool(raw.get("permanent_closure") or False),
             ).on_conflict_do_update(
                 index_elements=["id"],
                 set_={
@@ -71,16 +71,16 @@ async def sync_stations() -> int:
                     "postcode": location.get("postcode"),
                     "latitude": location.get("latitude"),
                     "longitude": location.get("longitude"),
-                    "country": location.get("country"),
+                    "country": _normalise_country(raw),
                     "county": location.get("county"),
                     "phone": raw.get("public_phone_number"),
                     "amenities": raw.get("amenities", []),
                     "opening_times": raw.get("opening_times", {}),
                     "fuel_types": raw.get("fuel_types", []),
-                    "is_motorway": raw.get("is_motorway_service_station", False),
+                    "is_motorway": bool(raw.get("is_motorway_service_station") or False),
                     "is_supermarket": _is_supermarket(raw),
-                    "temporary_closure": raw.get("temporary_closure", False),
-                    "permanent_closure": raw.get("permanent_closure", False),
+                    "temporary_closure": bool(raw.get("temporary_closure") or False),
+                    "permanent_closure": bool(raw.get("permanent_closure") or False),
                     "updated_at": datetime.utcnow(),
                 },
             )
@@ -137,6 +137,19 @@ def _parse_dt(value: str | None) -> datetime | None:
     except (ValueError, AttributeError):
         return None
 
+
+
+COUNTRY_MAP = {
+    'ENGLAND': 'England', 'E': 'England',
+    'SCOTLAND': 'Scotland', 'S': 'Scotland',
+    'WALES': 'Wales', 'W': 'Wales',
+    'NORTHERN IRELAND': 'Northern Ireland', 'N. IRELAND': 'Northern Ireland',
+    'N': 'Northern Ireland', 'UNITED KINGDOM': 'England', 'UK': 'England',
+}
+
+def _normalise_country(raw: dict) -> str | None:
+    country = (raw.get("location", {}).get("country") or "").strip().upper()
+    return COUNTRY_MAP.get(country, raw.get("location", {}).get("country"))
 
 SUPERMARKET_BRANDS = {
     'tesco', 'morrisons', 'sainsbury', 'asda', 'aldi', 'lidl',
