@@ -8,7 +8,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
-        <PumpIcon size={20} />
+        <PumpIcon size={26} />
         <span className="navbar-name">Pumpr</span>
       </Link>
       <div className="navbar-links">
