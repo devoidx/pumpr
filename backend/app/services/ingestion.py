@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from app.db.session import AsyncSessionLocal
 from app.models.models import PriceRecord, Station
 from app.services.fuel_finder_client import fuel_finder_client
+from app.services.geocoding import lookup_postcodes_batch
 
 logger = logging.getLogger(__name__)
 
@@ -20,20 +21,71 @@ FUEL_TYPE_MAP = {
     "HVO":         "HVO",
 }
 
+COUNTRY_MAP = {
+    'ENGLAND': 'England', 'E': 'England',
+    'SCOTLAND': 'Scotland', 'S': 'Scotland',
+    'WALES': 'Wales', 'W': 'Wales',
+    'NORTHERN IRELAND': 'Northern Ireland', 'N. IRELAND': 'Northern Ireland',
+    'N': 'Northern Ireland', 'UNITED KINGDOM': 'England', 'UK': 'England',
+}
+
+SUPERMARKET_BRANDS = {
+    'tesco', 'morrisons', 'sainsbury', 'asda', 'aldi', 'lidl',
+    'waitrose', 'marks & spencer', 'm&s', 'co-op', 'cooperative'
+}
+
+
+def _normalise_country(raw: dict) -> str | None:
+    country = (raw.get("location", {}).get("country") or "").strip().upper()
+    return COUNTRY_MAP.get(country, raw.get("location", {}).get("country"))
+
+
+def _is_supermarket(raw: dict) -> bool:
+    brand = (raw.get('brand_name') or '').lower()
+    return any(s in brand for s in SUPERMARKET_BRANDS)
+
 
 async def sync_stations() -> int:
+    """Fetch station metadata from API and upsert into DB. Returns count."""
     stations = await fuel_finder_client.get_stations()
     if not stations:
         logger.warning("No stations returned from API")
         return 0
 
+    # Only geocode stations we haven't seen before (no county data yet)
+    from sqlalchemy import select, text
+    async with AsyncSessionLocal() as check_session:
+        result = await check_session.execute(
+            text("SELECT id FROM stations WHERE county IS NOT NULL")
+        )
+        known_ids = {row[0] for row in result.fetchall()}
+
+    new_stations = [s for s in stations if s.get("node_id") not in known_ids]
+    postcodes = [
+        s.get("location", {}).get("postcode", "")
+        for s in new_stations
+        if s.get("location", {}).get("postcode")
+    ]
+    postcode_data: dict = {}
+    if postcodes:
+        for i in range(0, len(postcodes), 100):
+            batch_result = await lookup_postcodes_batch(postcodes[i:i + 100])
+            postcode_data.update(batch_result)
+        logger.info(f"Geocoded {len(postcode_data)} new postcodes")
+
     async with AsyncSessionLocal() as session:
         for raw in stations:
-            # Skip permanently closed stations
             if raw.get("permanent_closure"):
                 continue
 
             location = raw.get("location", {})
+            postcode = location.get("postcode") or ""
+            clean_pc = postcode.replace(" ", "").upper()
+            geo = postcode_data.get(clean_pc, {})
+
+            county = geo.get("county") or None
+            country = geo.get("country") or _normalise_country(raw)
+
             stmt = insert(Station).values(
                 id=raw["node_id"],
                 name=raw.get("trading_name", ""),
@@ -44,11 +96,11 @@ async def sync_stations() -> int:
                     location.get("address_line_2"),
                     location.get("city"),
                 ])),
-                postcode=location.get("postcode"),
+                postcode=postcode or None,
                 latitude=location.get("latitude"),
                 longitude=location.get("longitude"),
-                country=_normalise_country(raw),
-                county=location.get("county"),
+                country=country,
+                county=county,
                 phone=raw.get("public_phone_number"),
                 amenities=raw.get("amenities", []),
                 opening_times=raw.get("opening_times", {}),
@@ -68,11 +120,11 @@ async def sync_stations() -> int:
                         location.get("address_line_2"),
                         location.get("city"),
                     ])),
-                    "postcode": location.get("postcode"),
+                    "postcode": postcode or None,
                     "latitude": location.get("latitude"),
                     "longitude": location.get("longitude"),
-                    "country": _normalise_country(raw),
-                    "county": location.get("county"),
+                    "country": country,
+                    "county": county,
                     "phone": raw.get("public_phone_number"),
                     "amenities": raw.get("amenities", []),
                     "opening_times": raw.get("opening_times", {}),
@@ -92,6 +144,7 @@ async def sync_stations() -> int:
 
 
 async def ingest_prices() -> int:
+    """Fetch current prices from API and write to price_history. Returns count."""
     prices = await fuel_finder_client.get_prices()
     if not prices:
         logger.warning("No prices returned from API")
@@ -136,29 +189,3 @@ def _parse_dt(value: str | None) -> datetime | None:
         return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
     except (ValueError, AttributeError):
         return None
-
-
-
-COUNTRY_MAP = {
-    'ENGLAND': 'England', 'E': 'England',
-    'SCOTLAND': 'Scotland', 'S': 'Scotland',
-    'WALES': 'Wales', 'W': 'Wales',
-    'NORTHERN IRELAND': 'Northern Ireland', 'N. IRELAND': 'Northern Ireland',
-    'N': 'Northern Ireland', 'UNITED KINGDOM': 'England', 'UK': 'England',
-}
-
-def _normalise_country(raw: dict) -> str | None:
-    country = (raw.get("location", {}).get("country") or "").strip().upper()
-    return COUNTRY_MAP.get(country, raw.get("location", {}).get("country"))
-
-SUPERMARKET_BRANDS = {
-    'tesco', 'morrisons', 'sainsbury', 'asda', 'aldi', 'lidl',
-    'waitrose', 'marks & spencer', 'm&s', 'co-op', 'cooperative'
-}
-
-
-def _is_supermarket(raw: dict) -> bool:
-    if False:  # API field unreliable, use brand-based logic only
-        return True
-    brand = (raw.get('brand_name') or '').lower()
-    return any(s in brand for s in SUPERMARKET_BRANDS)
