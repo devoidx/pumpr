@@ -3,6 +3,7 @@ import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.cron import CronTrigger
 
 from app.core.config import settings
 from app.services.ingestion import ingest_prices, sync_stations
@@ -30,12 +31,54 @@ async def run_retention() -> None:
         logger.error(f"Scheduler: retention failed: {e}")
 
 
+async def post_daily_averages_job() -> None:
+    try:
+        from app.services.social import post_daily_averages
+        await post_daily_averages(dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: daily averages post failed: {e}")
+
+
+async def post_cheapest_job() -> None:
+    try:
+        from app.services.social import post_cheapest_station
+        await post_cheapest_station("E10", dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: cheapest post failed: {e}")
+
+
+async def post_by_country_job() -> None:
+    try:
+        from app.services.social import post_cheapest_by_country
+        await post_cheapest_by_country("E10", dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: by country post failed: {e}")
+
+
 def start_scheduler() -> None:
     from apscheduler.triggers.cron import CronTrigger as CT2
     scheduler.add_job(
         run_county_fix,
         trigger=CT2(day_of_week="sun", hour=4, minute=0),
         id="county_fix",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_daily_averages_job,
+        trigger=CronTrigger(hour=8, minute=0),
+        id="post_daily_averages",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_cheapest_job,
+        trigger=CronTrigger(hour=8, minute=5),
+        id="post_cheapest",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_by_country_job,
+        trigger=CronTrigger(hour=8, minute=10),
+        id="post_by_country",
         replace_existing=True,
     )
     scheduler.add_job(

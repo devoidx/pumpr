@@ -35,6 +35,8 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       ENVIRONMENT: ${ENVIRONMENT:-production}
       OCM_API_KEY: ${OCM_API_KEY}
+      BSKY_HANDLE: ${BSKY_HANDLE}
+      BSKY_APP_PASSWORD: ${BSKY_APP_PASSWORD}
     ports:
       - "8002:8000"
     volumes:

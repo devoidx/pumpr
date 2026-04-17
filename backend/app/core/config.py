@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings
 
-
 class Settings(BaseSettings):
     database_url: str
     fuel_finder_client_id: str
@@ -12,9 +11,10 @@ class Settings(BaseSettings):
     environment: str = "production"
     ocm_api_key: str = ""
     ocm_api_url: str = "https://api.openchargemap.io/v3"
+    bsky_handle: str = ""
+    bsky_app_password: str = ""
 
     class Config:
         env_file = ".env"
-
 
 settings = Settings()  # type: ignore[call-arg]
