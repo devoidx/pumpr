@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import case, literal
 
 from app.db.session import AsyncSessionLocal
 from app.models.models import PriceRecord, Station
@@ -123,8 +124,6 @@ async def sync_stations() -> int:
                     "postcode": postcode or None,
                     "latitude": location.get("latitude"),
                     "longitude": location.get("longitude"),
-                    "country": country,
-                    "county": county,
                     "phone": raw.get("public_phone_number"),
                     "amenities": raw.get("amenities", []),
                     "opening_times": raw.get("opening_times", {}),
