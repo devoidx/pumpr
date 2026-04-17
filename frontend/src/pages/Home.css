@@ -24,6 +24,8 @@
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
+  align-items: center;
+  min-height: 34px;
 }
 
 .panel-meta {
@@ -63,6 +65,7 @@
   border-radius: var(--radius);
   cursor: pointer;
   font-family: var(--font-body);
+  flex-shrink: 0;
 }
 
 .station-list {
@@ -86,4 +89,13 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+}
+
+.fuel-filter-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }

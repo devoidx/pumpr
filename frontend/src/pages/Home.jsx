@@ -133,6 +133,11 @@ export default function Home() {
           </div>
         </div>
 
+        {mode === 'fuel' && (
+          <div className="fuel-filter-row">
+            <FuelSelector value={fuel} onChange={handleSetFuel} />
+          </div>
+        )}
         {mode === 'ev' && (
           <EvFilters
             connector={connector}
