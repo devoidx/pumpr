@@ -126,3 +126,17 @@
 }
 
 .card-price-unit { font-size: 14px; opacity: 0.7; }
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-updated {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+}

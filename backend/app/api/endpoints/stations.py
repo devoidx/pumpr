@@ -82,7 +82,7 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
         "opening_times": station.opening_times,
         "is_open_now": open_now,
         "week_hours": week_hours,
-        "latest_prices": [{"fuel_type": p.fuel_type, "price_pence": p.price_pence, "recorded_at": p.recorded_at} for p in latest],
+        "latest_prices": [{"fuel_type": p.fuel_type, "price_pence": p.price_pence, "recorded_at": p.recorded_at, "source_updated_at": p.source_updated_at} for p in latest],
         "created_at": station.created_at,
         "updated_at": station.updated_at,
     }

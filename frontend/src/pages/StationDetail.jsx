@@ -7,6 +7,7 @@ import {
 import { getPriceHistory, getStation } from '../api/client'
 import { FUEL_COLORS, FUEL_LABELS } from '../constants/fuels'
 import { getWeekHours, isOpenNow } from '../utils/openingHours'
+import { timeAgo } from '../utils/timeAgo'
 import './StationDetail.css'
 
 const DAY_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -98,6 +99,7 @@ export default function StationDetail() {
                 onClick={() => setSelectedFuel(p.fuel_type)}
               >
                 <div className="dpc-label">{FUEL_LABELS[p.fuel_type] || p.fuel_type}</div>
+                <div className="dpc-updated">{p.source_updated_at ? `Updated ${timeAgo(p.source_updated_at)}` : ""}</div>
                 <div className="dpc-price" style={{ color: c }}>
                   {p.price_pence.toFixed(1)}<span className="dpc-unit">p</span>
                 </div>

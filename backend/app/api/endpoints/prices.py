@@ -55,6 +55,7 @@ async def get_cheapest(
             ph.station_id,
             ph.price_pence,
             ph.recorded_at,
+            ph.source_updated_at,
             s.name,
             s.brand,
             s.address,
@@ -104,6 +105,7 @@ async def get_cheapest(
             "fuel_type": fuel,
             "price_pence": row.price_pence,
             "recorded_at": row.recorded_at,
+            "source_updated_at": row.source_updated_at,
             "distance_km": round(dist, 2) if dist is not None else None,
         })
 
