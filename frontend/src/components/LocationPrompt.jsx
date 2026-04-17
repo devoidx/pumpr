@@ -1,23 +1,25 @@
 import { useState } from 'react'
+import PumpIcon from './icons/PumpIcon'
+import BoltIcon from './icons/BoltIcon'
 import './LocationPrompt.css'
 
 export default function LocationPrompt({ onLocation }) {
-  const [locating, setLocating] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [postcode, setPostcode] = useState('')
   const [postcodeLoading, setPostcodeLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const handleLocate = () => {
-    setLocating(true)
+    setLoading(true)
     setError(null)
     navigator.geolocation.getCurrentPosition(
       pos => {
         onLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setLocating(false)
+        setLoading(false)
       },
       () => {
         setError('Location access denied. Please allow location or enter a postcode.')
-        setLocating(false)
+        setLoading(false)
       },
       { timeout: 10000 }
     )
@@ -47,22 +49,23 @@ export default function LocationPrompt({ onLocation }) {
   return (
     <div className="location-prompt">
       <div className="lp-inner">
-        <div className="lp-icon">⛽</div>
+        <div className="lp-icons">
+          <PumpIcon size={40} color="#f5a623" />
+          <BoltIcon size={32} color="#2ecc71" />
+        </div>
         <h1 className="lp-title">Pumpr</h1>
         <p className="lp-sub">Real-time UK fuel prices at 7,600+ stations</p>
         <div className="lp-divider" />
 
         <button
-          className={`lp-btn ${locating ? 'loading' : ''}`}
+          className={`lp-btn ${loading ? 'loading' : ''}`}
           onClick={handleLocate}
-          disabled={locating || postcodeLoading}
+          disabled={loading || postcodeLoading}
         >
-          {locating ? <span className="lp-spinner" /> : '📍 Use my location'}
+          {loading ? <span className="lp-spinner" /> : '📍 Use my location'}
         </button>
 
-        <div className="lp-or">
-          <span>or</span>
-        </div>
+        <div className="lp-or"><span>or</span></div>
 
         <form className="lp-postcode-form" onSubmit={handlePostcode}>
           <input
@@ -71,13 +74,13 @@ export default function LocationPrompt({ onLocation }) {
             placeholder="Enter postcode e.g. PE27 5EU"
             value={postcode}
             onChange={e => setPostcode(e.target.value)}
-            disabled={locating || postcodeLoading}
+            disabled={loading || postcodeLoading}
             maxLength={8}
           />
           <button
             className="lp-postcode-btn"
             type="submit"
-            disabled={locating || postcodeLoading || !postcode.trim()}
+            disabled={loading || postcodeLoading || !postcode.trim()}
           >
             {postcodeLoading ? <span className="lp-spinner lp-spinner-dark" /> : '→'}
           </button>

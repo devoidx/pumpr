@@ -1,4 +1,6 @@
 import './About.css'
+import PumpIcon from '../components/icons/PumpIcon'
+import BoltIcon from '../components/icons/BoltIcon'
 
 const VERSION = '0.1.0'
 const GOV_URL = 'https://www.gov.uk/guidance/access-the-latest-fuel-prices-and-forecourt-data-via-api-or-email'
@@ -9,7 +11,7 @@ export default function About() {
       <div className="about-inner">
 
         <div className="about-hero">
-          <div className="about-logo">⛽</div>
+          <div className="about-logo"><PumpIcon size={56} /><BoltIcon size={40} /></div>
           <h1 className="about-title">Pumpr</h1>
           <p className="about-tagline">Real-time UK fuel prices & EV charging</p>
           <span className="about-version">v{VERSION}</span>
