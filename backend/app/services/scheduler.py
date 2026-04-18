@@ -73,25 +73,49 @@ def start_scheduler() -> None:
     scheduler.add_job(
         post_daily_averages_job,
         trigger=CronTrigger(hour=8, minute=0),
-        id="post_daily_averages",
+        id="post_daily_averages_am",
         replace_existing=True,
     )
     scheduler.add_job(
         post_cheapest_job,
         trigger=CronTrigger(hour=8, minute=5),
-        id="post_cheapest",
+        id="post_cheapest_am",
         replace_existing=True,
     )
     scheduler.add_job(
         post_cheapest_diesel_job,
         trigger=CronTrigger(hour=8, minute=15),
-        id="post_cheapest_diesel",
+        id="post_cheapest_diesel_am",
         replace_existing=True,
     )
     scheduler.add_job(
         post_by_country_job,
         trigger=CronTrigger(hour=8, minute=20),
-        id="post_by_country",
+        id="post_by_country_am",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_daily_averages_job,
+        trigger=CronTrigger(hour=16, minute=0),
+        id="post_daily_averages_pm",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_cheapest_job,
+        trigger=CronTrigger(hour=16, minute=5),
+        id="post_cheapest_pm",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_cheapest_diesel_job,
+        trigger=CronTrigger(hour=16, minute=15),
+        id="post_cheapest_diesel_pm",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_by_country_job,
+        trigger=CronTrigger(hour=16, minute=20),
+        id="post_by_country_pm",
         replace_existing=True,
     )
     scheduler.add_job(
