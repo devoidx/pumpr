@@ -293,7 +293,7 @@ async def post_cheapest_by_county(fuel: str = "E10", dry_run: bool = False) -> l
         location = f"{name}, {postcode}" if postcode else name
 
         if ties > 1:
-            text = f"⛽ {region.upper()}! Your cheapest {fuel_name} today is {price}p/L at {location} — and {ties - 1} more at the same price!\n\n#UKFuel #Pumpr #{region.replace(' ', '')}"
+            text = f"⛽ {region.upper()}! Your cheapest {fuel_name} today is {price}p/L at {location} — and {ties - 1} other{'s' if ties - 1 > 1 else ''} at the same price!\n\n#UKFuel #Pumpr #{region.replace(' ', '')}"
         else:
             text = f"⛽ {region.upper()}! Your cheapest {fuel_name} today is {price}p/L at {location}!\n\n#UKFuel #Pumpr #{region.replace(' ', '')}"
 
