@@ -78,6 +78,10 @@ async def sync_stations() -> int:
         for raw in stations:
             if raw.get("permanent_closure"):
                 continue
+            # Filter out test/dummy stations
+            name = raw.get("trading_name", "").upper()
+            if any(x in name for x in ["DUMMY", "PRE PROD", "WB 0749"]):
+                continue
 
             location = raw.get("location", {})
             postcode = location.get("postcode") or ""
