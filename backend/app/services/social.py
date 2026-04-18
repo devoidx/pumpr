@@ -210,3 +210,105 @@ async def post_cheapest_by_country(fuel: str = "E10", dry_run: bool = False) -> 
 async def post_cheapest_diesel(dry_run: bool = False) -> str:
     """Post cheapest diesel (B7) station to Bluesky."""
     return await post_cheapest_station("B7", dry_run=dry_run)
+
+
+async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(text("""
+            WITH latest AS (
+                SELECT DISTINCT ON (station_id, fuel_type)
+                    station_id, fuel_type, price_pence
+                FROM price_history
+                WHERE fuel_type = :fuel
+                ORDER BY station_id, fuel_type, recorded_at DESC
+            ),
+            regional_min AS (
+                SELECT s.county as region, s.country, MIN(l.price_pence) as min_price
+                FROM latest l
+                JOIN stations s ON l.station_id = s.id
+                WHERE s.permanent_closure = FALSE
+                  AND s.county IS NOT NULL AND s.county != ''
+                  AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
+                GROUP BY s.county, s.country
+            )
+            SELECT
+                s.county as region,
+                s.country,
+                s.name,
+                s.postcode,
+                l.price_pence,
+                COUNT(*) OVER (PARTITION BY s.county) as ties
+            FROM latest l
+            JOIN stations s ON l.station_id = s.id
+            JOIN regional_min rm ON s.county = rm.region AND l.price_pence = rm.min_price
+            WHERE s.permanent_closure = FALSE
+              AND s.county IS NOT NULL AND s.county != ''
+            ORDER BY s.county, RANDOM()
+        """), {"fuel": fuel})
+
+        rows = result.fetchall()
+        seen = set()
+        out = []
+        for row in rows:
+            if row.region in seen:
+                continue
+            seen.add(row.region)
+            out.append({
+                "region": row.region,
+                "country": row.country,
+                "name": row.name,
+                "postcode": row.postcode,
+                "price_pence": row.price_pence,
+                "ties": row.ties,
+            })
+        return out
+
+
+FUEL_FRIENDLY = {
+    "E10": "unleaded petrol",
+    "E5": "super unleaded petrol",
+    "B7": "diesel",
+    "SDV": "super diesel",
+    "B10": "biodiesel",
+    "HVO": "HVO",
+}
+
+
+async def post_cheapest_by_county(fuel: str = "E10", dry_run: bool = False) -> list[str]:
+    import asyncio as aio
+    counties = await _get_cheapest_by_county_all(fuel)
+    if not counties:
+        return []
+
+    fuel_name = FUEL_FRIENDLY.get(fuel, fuel)
+    posted = []
+
+    for c in counties:
+        region = c["region"].title()
+        price = c["price_pence"]
+        name = c["name"].title()
+        postcode = c["postcode"] or ""
+        ties = c["ties"]
+
+        location = f"{name}, {postcode}" if postcode else name
+
+        if ties > 1:
+            text = f"⛽ {region.upper()}! Your cheapest {fuel_name} today is {price}p/L at {location} — and {ties - 1} more at the same price!\n\n#UKFuel #Pumpr #{region.replace(' ', '')}"
+        else:
+            text = f"⛽ {region.upper()}! Your cheapest {fuel_name} today is {price}p/L at {location}!\n\n#UKFuel #Pumpr #{region.replace(' ', '')}"
+
+        logger.info(f"County post ({region}): {text[:80]}")
+
+        if not dry_run:
+            try:
+                client = _bsky_client()
+                client.send_post(text=text)
+                logger.info(f"Posted county cheapest for {region}")
+                posted.append(region)
+                await aio.sleep(2)
+            except Exception as e:
+                logger.error(f"Bluesky county post failed for {region}: {e}")
+        else:
+            posted.append(region)
+
+    return posted

@@ -62,6 +62,22 @@ async def post_by_country_job() -> None:
         logger.error(f"Scheduler: by country post failed: {e}")
 
 
+async def post_county_e10_job() -> None:
+    try:
+        from app.services.social import post_cheapest_by_county
+        await post_cheapest_by_county("E10", dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: county E10 post failed: {e}")
+
+
+async def post_county_diesel_job() -> None:
+    try:
+        from app.services.social import post_cheapest_by_county
+        await post_cheapest_by_county("B7", dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: county diesel post failed: {e}")
+
+
 def start_scheduler() -> None:
     from apscheduler.triggers.cron import CronTrigger as CT2
     scheduler.add_job(
@@ -116,6 +132,18 @@ def start_scheduler() -> None:
         post_by_country_job,
         trigger=CronTrigger(hour=16, minute=20),
         id="post_by_country_pm",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_county_e10_job,
+        trigger=CronTrigger(hour=10, minute=0),
+        id="post_county_e10",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_county_diesel_job,
+        trigger=CronTrigger(hour=10, minute=30),
+        id="post_county_diesel",
         replace_existing=True,
     )
     scheduler.add_job(
