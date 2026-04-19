@@ -1,19 +1,28 @@
-export const FUEL_TYPES = ['E10', 'E5', 'B7', 'SDV', 'B10', 'HVO']
+export const FUEL_TYPES = ['E10', 'E5', 'B7','SDV', 'B10', 'HVO']
 
 export const FUEL_LABELS = {
   E10: 'Unleaded E10',
-  E5:  'Super E5',
+  E5:  'Super Unleaded E5',
   B7:  'Diesel B7',
   SDV: 'Super Diesel',
-  B10: 'B10 Diesel',
+  B10: 'Biodiesel B10',
   HVO: 'HVO',
 }
 
 export const FUEL_SHORT = {
+  E10: 'Unleaded',
+  E5:  'Super',
+  B7:  'Diesel',
+  SDV: 'Super Diesel',
+  B10: 'B10',
+  HVO: 'HVO',
+}
+
+export const FUEL_SHORT2 = {
   E10: 'E10',
   E5:  'E5',
-  B7:  'Diesel',
-  SDV: 'Super',
+  B7:  'B7',
+  SDV: 'SDV',
   B10: 'B10',
   HVO: 'HVO',
 }

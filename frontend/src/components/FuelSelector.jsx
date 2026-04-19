@@ -1,4 +1,4 @@
-import { FUEL_COLORS, FUEL_SHORT, FUEL_TYPES } from '../constants/fuels'
+import { FUEL_COLORS, FUEL_SHORT, FUEL_SHORT2, FUEL_TYPES } from '../constants/fuels'
 import './FuelSelector.css'
 
 export default function FuelSelector({ value, onChange }) {
@@ -15,7 +15,8 @@ export default function FuelSelector({ value, onChange }) {
           } : {}}
           onClick={() => onChange(f)}
         >
-          {FUEL_SHORT[f]}
+          <span className="fuel-btn-main">{FUEL_SHORT[f]}</span>
+          <span className="fuel-btn-sub">{FUEL_SHORT2[f]}</span>
         </button>
       ))}
     </div>
