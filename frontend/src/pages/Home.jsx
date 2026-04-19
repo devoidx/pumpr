@@ -42,6 +42,8 @@ export default function Home() {
   const handleSetMode = (m) => {
     localStorage.setItem('pumpr_mode', m)
     setMode(m)
+    if (m === 'ev') setStations([])
+    if (m === 'fuel') setChargers([])
   }
 
   const handleSetFuel = (f) => {
