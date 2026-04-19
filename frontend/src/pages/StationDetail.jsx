@@ -4,7 +4,7 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer,
   Tooltip, XAxis, YAxis,
 } from 'recharts'
-import { getPriceHistory, getStation } from '../api/client'
+import { getPriceHistory, getStation, getPriceChanges } from '../api/client'
 import { FUEL_COLORS, FUEL_LABELS } from '../constants/fuels'
 import { getWeekHours, isOpenNow } from '../utils/openingHours'
 import { timeAgo } from '../utils/timeAgo'
@@ -33,13 +33,17 @@ export default function StationDetail() {
   const [history, setHistory] = useState([])
   const [selectedFuel, setSelectedFuel] = useState(fuelParam || 'E10')
   const [loading, setLoading] = useState(true)
+  const [priceChanges, setPriceChanges] = useState({})
 
   useEffect(() => {
-    getStation(id)
-      .then(r => {
-        setStation(r.data)
-        const fuels = r.data.latest_prices.map(p => p.fuel_type)
+    Promise.all([getStation(id), getPriceChanges(id)])
+      .then(([stationRes, changesRes]) => {
+        setStation(stationRes.data)
+        const fuels = stationRes.data.latest_prices.map(p => p.fuel_type)
         if (fuels.length > 0 && !fuelParam) setSelectedFuel(fuels[0])
+        const map = {}
+        changesRes.data.forEach(c => { map[c.fuel_type] = c })
+        setPriceChanges(map)
       })
       .finally(() => setLoading(false))
   }, [id])
