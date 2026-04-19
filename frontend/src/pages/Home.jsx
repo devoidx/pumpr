@@ -137,10 +137,16 @@ export default function Home() {
               value={radius}
               onChange={e => handleSetRadius(Number(e.target.value))}
             >
-              {[2, 5, 10, 15, 25].map(r => (
-                <option key={r} value={r}>{r} km</option>
+              {radiusOptions.map(r => (
+                <option key={r.km} value={r.km}>{r.label}</option>
               ))}
             </select>
+            <button
+              className={`units-btn ${units === 'miles' ? 'active' : ''}`}
+              onClick={() => handleSetUnits(units === 'miles' ? 'km' : 'miles')}
+            >
+              {units === 'miles' ? 'mi' : 'km'}
+            </button>
           </div>
           <div className="panel-meta">
             {loading ? (
