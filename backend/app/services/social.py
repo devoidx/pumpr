@@ -99,7 +99,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
                 GROUP BY s.country
             )
             SELECT DISTINCT ON (s.country)
-                s.country, s.name, s.postcode, l.price_pence
+                s.country, s.name, s.postcode, s.county, l.price_pence
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.country = rm.region AND l.price_pence = rm.min_price
@@ -107,7 +107,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
             ORDER BY s.country, l.price_pence
         """), {"fuel": fuel})
         return [
-            {"country": r.country, "name": r.name, "postcode": r.postcode, "price_pence": r.price_pence}
+            {"country": r.country, "name": r.name, "postcode": r.postcode, "county": r.county, "price_pence": r.price_pence}
             for r in result.fetchall()
         ]
 
@@ -185,12 +185,15 @@ async def post_cheapest_by_country(fuel: str = "E10", dry_run: bool = False) -> 
     if not countries:
         return ""
 
-    flag = {"England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "Northern Ireland": "🇬🇧"}
 
     text = f"🗺️ Cheapest {FUEL_LABEL.get(fuel, fuel)} by nation today:\n\n"
     for c in countries:
-        f = flag.get(c["country"], "🇬🇧")
-        text += f"{f} {c['country']}: {c['price_pence']}p — {c['name']}\n"
+        location_parts = [c["name"]]
+        if c.get("county"):
+            location_parts.append(c["county"].title())
+        if c.get("postcode"):
+            location_parts.append(c["postcode"])
+        text += f"{c['country']}: {c['price_pence']}p — {', '.join(location_parts)}\n"
     text += "\n#UKFuel #FuelPrices #Pumpr"
 
     logger.info(f"Cheapest by country post:\n{text}")
