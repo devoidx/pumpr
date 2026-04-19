@@ -82,67 +82,67 @@ def start_scheduler() -> None:
     from apscheduler.triggers.cron import CronTrigger as CT2
     scheduler.add_job(
         run_county_fix,
-        trigger=CT2(day_of_week="sun", hour=4, minute=0),
+        trigger=CT2(day_of_week="sun", hour=4, minute=0, timezone="Europe/London"),
         id="county_fix",
         replace_existing=True,
     )
     scheduler.add_job(
         post_daily_averages_job,
-        trigger=CronTrigger(hour=8, minute=0),
+        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=0),
         id="post_daily_averages_am",
         replace_existing=True,
     )
     scheduler.add_job(
         post_cheapest_job,
-        trigger=CronTrigger(hour=8, minute=5),
+        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=5),
         id="post_cheapest_am",
         replace_existing=True,
     )
     scheduler.add_job(
         post_cheapest_diesel_job,
-        trigger=CronTrigger(hour=8, minute=15),
+        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=15),
         id="post_cheapest_diesel_am",
         replace_existing=True,
     )
     scheduler.add_job(
         post_by_country_job,
-        trigger=CronTrigger(hour=8, minute=20),
+        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=20),
         id="post_by_country_am",
         replace_existing=True,
     )
     scheduler.add_job(
         post_daily_averages_job,
-        trigger=CronTrigger(hour=16, minute=0),
+        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=0),
         id="post_daily_averages_pm",
         replace_existing=True,
     )
     scheduler.add_job(
         post_cheapest_job,
-        trigger=CronTrigger(hour=16, minute=5),
+        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=5),
         id="post_cheapest_pm",
         replace_existing=True,
     )
     scheduler.add_job(
         post_cheapest_diesel_job,
-        trigger=CronTrigger(hour=16, minute=15),
+        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=15),
         id="post_cheapest_diesel_pm",
         replace_existing=True,
     )
     scheduler.add_job(
         post_by_country_job,
-        trigger=CronTrigger(hour=16, minute=20),
+        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=20),
         id="post_by_country_pm",
         replace_existing=True,
     )
     scheduler.add_job(
         post_county_e10_job,
-        trigger=CronTrigger(hour=10, minute=0),
+        trigger=CronTrigger(hour=10, timezone="Europe/London", minute=0),
         id="post_county_e10",
         replace_existing=True,
     )
     scheduler.add_job(
         post_county_diesel_job,
-        trigger=CronTrigger(hour=10, minute=30),
+        trigger=CronTrigger(hour=10, timezone="Europe/London", minute=30),
         id="post_county_diesel",
         replace_existing=True,
     )
@@ -154,7 +154,7 @@ def start_scheduler() -> None:
     )
     scheduler.add_job(
         run_retention,
-        trigger=CronTrigger(hour=3, minute=0),
+        trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"),
         id="retention",
         replace_existing=True,
     )

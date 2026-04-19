@@ -188,12 +188,10 @@ async def post_cheapest_by_country(fuel: str = "E10", dry_run: bool = False) -> 
 
     text = f"🗺️ Cheapest {FUEL_LABEL.get(fuel, fuel)} by nation today:\n\n"
     for c in countries:
-        location_parts = [c["name"]]
-        if c.get("county"):
-            location_parts.append(c["county"].title())
-        if c.get("postcode"):
-            location_parts.append(c["postcode"])
-        text += f"{c['country']}: {c['price_pence']}p — {', '.join(location_parts)}\n"
+        name = c["name"][:35]
+        postcode = c.get("postcode") or ""
+        location = f"{name}, {postcode}" if postcode else name
+        text += f"{c['country']}: {c['price_pence']}p — {location}\n"
     text += "\n#UKFuel #FuelPrices #Pumpr"
 
     logger.info(f"Cheapest by country post:\n{text}")
