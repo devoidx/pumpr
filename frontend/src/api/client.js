@@ -19,3 +19,6 @@ export const getChargers = (params) =>
   client.get('/api/v1/ev/chargers', { params })
 export const getCharger = (id) =>
   client.get(`/api/v1/ev/chargers/${id}`)
+
+export const getPriceChanges = (id) =>
+  client.get(`/api/v1/stations/${id}/price-changes`)
