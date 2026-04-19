@@ -99,3 +99,23 @@
   border-bottom: 1px solid var(--border);
   background: var(--surface);
 }
+
+.units-btn {
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.units-btn.active {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+
+.units-btn:hover { color: var(--text); }

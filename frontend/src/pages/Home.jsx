@@ -21,7 +21,8 @@ export default function Home() {
   const [chargers, setChargers] = useState([])
   const [allChargers, setAllChargers] = useState([])
   const [fuel, setFuel] = useState(() => localStorage.getItem('pumpr_fuel') || 'E10')
-  const [radius, setRadius] = useState(() => Number(localStorage.getItem('pumpr_radius')) || 5)
+  const [radius, setRadius] = useState(() => Number(localStorage.getItem('pumpr_radius')) || 8)
+  const [units, setUnits] = useState(() => localStorage.getItem('pumpr_units') || 'miles')
   const [connector, setConnector] = useState('')
   const [minPower, setMinPower] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -49,6 +50,29 @@ export default function Home() {
   const handleSetFuel = (f) => {
     localStorage.setItem('pumpr_fuel', f)
     setFuel(f)
+  }
+
+  const toDisplay = (km) => units === 'miles' ? (km * 0.621371).toFixed(1) : km
+  const unitLabel = units === 'miles' ? 'mi' : 'km'
+  const radiusOptions = units === 'miles'
+    ? [{ label: '2 mi', km: 3 }, { label: '5 mi', km: 8 }, { label: '10 mi', km: 16 }, { label: '15 mi', km: 24 }, { label: '25 mi', km: 40 }]
+    : [{ label: '2 km', km: 2 }, { label: '5 km', km: 5 }, { label: '10 km', km: 10 }, { label: '15 km', km: 15 }, { label: '25 km', km: 25 }]
+
+  const handleSetUnits = (u) => {
+    localStorage.setItem('pumpr_units', u)
+    setUnits(u)
+    // Switch to nearest equivalent radius
+    const milesOptions = [3, 8, 16, 24, 40]
+    const kmOptions = [2, 5, 10, 15, 25]
+    if (u === 'miles') {
+      const nearest = milesOptions.reduce((a, b) => Math.abs(b - radius) < Math.abs(a - radius) ? b : a)
+      setRadius(nearest)
+      localStorage.setItem('pumpr_radius', nearest)
+    } else {
+      const nearest = kmOptions.reduce((a, b) => Math.abs(b - radius) < Math.abs(a - radius) ? b : a)
+      setRadius(nearest)
+      localStorage.setItem('pumpr_radius', nearest)
+    }
   }
 
   const handleSetRadius = (r) => {
@@ -124,7 +148,7 @@ export default function Home() {
             ) : (
               <span>
                 {location.postcode ? `${location.postcode} · ` : ''}
-                {count} {mode === 'fuel' ? 'stations' : 'chargers'} within {radius}km
+                {count} {mode === 'fuel' ? 'stations' : 'chargers'} within {radiusOptions.find(r => r.km === radius)?.label || radius + unitLabel}
               </span>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -151,7 +175,7 @@ export default function Home() {
         <div className="station-list">
           {count === 0 && !loading && (
             <div className="empty-state">
-              <p>No {mode === 'fuel' ? 'stations' : 'chargers'} found within {radius}km</p>
+              <p>No {mode === 'fuel' ? 'stations' : 'chargers'} found within {radiusOptions.find(r => r.km === radius)?.label || radius + unitLabel}</p>
               {mode === 'ev' && (connector || minPower > 0) && (
                 <p style={{ marginTop: 8, fontSize: 12 }}>
                   Try clearing filters or increasing radius
@@ -161,7 +185,7 @@ export default function Home() {
           )}
 
           {mode === 'fuel' && stations.map((s, i) => (
-            <StationCard
+            <StationCard units={units}
               key={s.station_id}
               station={s}
               rank={i}

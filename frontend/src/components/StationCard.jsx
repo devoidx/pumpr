@@ -5,7 +5,7 @@ import './StationCard.css'
 
 const RANK_LABELS = ['Cheapest', '2nd', '3rd']
 
-export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover }) {
+export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover, units = 'miles' }) {
   const color = FUEL_COLORS[s.fuel_type] || 'var(--amber)'
   const openStatus = isOpenNow(s.opening_times)
   const todayHours = getTodayHours(s.opening_times)
@@ -36,7 +36,7 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
           {s.brand && <span className="card-brand">{s.brand}</span>}
           {s.brand && s.postcode && <span className="card-dot">·</span>}
           {s.postcode && <span>{s.postcode}</span>}
-          {s.distance_km != null && <><span className="card-dot">·</span><span>{s.distance_km}km</span></>}
+          {s.distance_km != null && <><span className="card-dot">·</span><span>{units === 'miles' ? (s.distance_km * 0.621371).toFixed(1) + ' mi' : s.distance_km + ' km'}</span></>}
         </div>
         <div className="card-footer">
           {openStatus !== null && (
