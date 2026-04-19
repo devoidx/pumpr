@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import {
   CartesianGrid, Line, LineChart, ResponsiveContainer,
   Tooltip, XAxis, YAxis,
@@ -26,10 +26,12 @@ const AMENITY_LABELS = {
 
 export default function StationDetail() {
   const { id } = useParams()
+  const location = useLocation()
+  const fuelParam = new URLSearchParams(location.search).get('fuel')
   const navigate = useNavigate()
   const [station, setStation] = useState(null)
   const [history, setHistory] = useState([])
-  const [selectedFuel, setSelectedFuel] = useState('E10')
+  const [selectedFuel, setSelectedFuel] = useState(fuelParam || 'E10')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export default function StationDetail() {
       .then(r => {
         setStation(r.data)
         const fuels = r.data.latest_prices.map(p => p.fuel_type)
-        if (fuels.length > 0) setSelectedFuel(fuels[0])
+        if (fuels.length > 0 && !fuelParam) setSelectedFuel(fuels[0])
       })
       .finally(() => setLoading(false))
   }, [id])
