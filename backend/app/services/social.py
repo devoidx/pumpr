@@ -17,10 +17,10 @@ FUEL_EMOJI = {
 
 FUEL_LABEL = {
     "E10": "Unleaded (E10)",
-    "E5": "Super Unleaded (E5)",
+    "E5": "Unleaded (E5)",
     "B7": "Diesel (B7)",
     "SDV": "Super Diesel",
-    "B10": "Biodiesel (B10)",
+    "B10": "Biodiesel",
     "HVO": "HVO",
 }
 
@@ -268,9 +268,9 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
 
 
 FUEL_FRIENDLY = {
-    "E10": "unleaded petrol",
-    "E5": "super unleaded petrol",
-    "B7": "diesel",
+    "E10": "unleaded petrol (E10)",
+    "E5": "unleaded petrol (E5)",
+    "B7": "diesel (B7)",
     "SDV": "super diesel",
     "B10": "biodiesel",
     "HVO": "HVO",
