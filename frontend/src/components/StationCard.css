@@ -140,3 +140,15 @@
   font-family: var(--font-mono);
   color: var(--text3);
 }
+
+.card-price-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.card-flag {
+  font-size: 12px;
+  cursor: help;
+}

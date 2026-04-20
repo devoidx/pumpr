@@ -56,6 +56,7 @@ async def get_cheapest(
             ph.price_pence,
             ph.recorded_at,
             ph.source_updated_at,
+            ph.price_flagged,
             s.name,
             s.brand,
             s.address,
@@ -71,6 +72,7 @@ async def get_cheapest(
         JOIN stations s ON ph.station_id = s.id
         WHERE ph.fuel_type = :fuel
           AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+              AND (ph.price_flagged = FALSE OR ph.price_flagged IS NULL)
           AND s.latitude IS NOT NULL
           AND s.longitude IS NOT NULL
           {geo_filter}
@@ -104,6 +106,7 @@ async def get_cheapest(
             "opening_times": row.opening_times,
             "fuel_type": fuel,
             "price_pence": row.price_pence,
+            "price_flagged": bool(row.price_flagged) if row.price_flagged is not None else False,
             "recorded_at": row.recorded_at,
             "source_updated_at": row.source_updated_at,
             "distance_km": round(dist, 2) if dist is not None else None,
@@ -122,6 +125,7 @@ async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
         FROM price_history ph
         JOIN stations s ON ph.station_id = s.id
         WHERE (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+          AND (ph.price_flagged = FALSE OR ph.price_flagged IS NULL)
         ORDER BY ph.station_id, ph.fuel_type, ph.recorded_at DESC
     """)
     result = await db.execute(sql)

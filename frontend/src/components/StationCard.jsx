@@ -53,9 +53,14 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
           )}
         </div>
       </div>
-      <div className="card-price" style={{ color }}>
-        {s.price_pence.toFixed(1)}
-        <span className="card-price-unit">p</span>
+      <div className="card-price-col">
+        {s.price_flagged && (
+          <span className="card-flag" title="This price may be inaccurate — it appears significantly lower than average">⚠️</span>
+        )}
+        <div className="card-price" style={{ color }}>
+          {s.price_pence.toFixed(1)}
+          <span className="card-price-unit">p</span>
+        </div>
       </div>
     </div>
   )

@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import case, literal
+from sqlalchemy import text, case, literal
 
 from app.db.session import AsyncSessionLocal
 from app.models.models import PriceRecord, Station
@@ -54,7 +54,7 @@ async def sync_stations() -> int:
         return 0
 
     # Only geocode stations we haven't seen before (no county data yet)
-    from sqlalchemy import select, text
+    from sqlalchemy import text, select, text
     async with AsyncSessionLocal() as check_session:
         result = await check_session.execute(
             text("SELECT id FROM stations WHERE county IS NOT NULL")
@@ -146,6 +146,45 @@ async def sync_stations() -> int:
     return len(stations)
 
 
+# Fallback hard limits per fuel type (pence)
+FUEL_HARD_LIMITS = {
+    "E10":  (100, 300),
+    "E5":   (100, 320),
+    "B7":   (100, 320),
+    "SDV":  (100, 350),
+    "B10":  (100, 350),
+    "HVO":  (100, 400),
+}
+
+# Cache for median prices, refreshed each ingest run
+_median_cache: dict[str, float] = {}
+
+
+async def _get_median_prices(session) -> dict[str, float]:
+    """Get median price per fuel type from recent price history."""
+    result = await session.execute(text("""
+        SELECT fuel_type, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY price_pence) as median
+        FROM price_history
+        WHERE recorded_at > NOW() - INTERVAL '24 hours'
+        GROUP BY fuel_type
+    """))
+    return {row.fuel_type: float(row.median) for row in result.fetchall()}
+
+
+def _is_valid_price(fuel_type: str, price: float, medians: dict[str, float]) -> bool:
+    """Validate price using dynamic median-based limits with hard floor/ceiling."""
+    hard_min, hard_max = FUEL_HARD_LIMITS.get(fuel_type, (100, 400))
+    if not (hard_min <= price <= hard_max):
+        return False
+    # If we have median data, also check within 40% of median
+    if fuel_type in medians:
+        median = medians[fuel_type]
+        if price < median * 0.6 or price > median * 1.4:
+            logger.warning(f"Price outlier: {fuel_type} {price}p (median {median}p)")
+            return False
+    return True
+
+
 async def ingest_prices() -> int:
     """Fetch current prices from API and write to price_history. Returns count."""
     prices = await fuel_finder_client.get_prices()
@@ -166,7 +205,8 @@ async def ingest_prices() -> int:
             if not internal_fuel_type:
                 continue
             price = fuel_entry.get("price")
-            if price is not None and 50 <= float(price) <= 300:
+            # Get medians once per ingest run
+    medians: dict[str, float] = {}
                 records.append(
                     PriceRecord(
                         station_id=station_id,

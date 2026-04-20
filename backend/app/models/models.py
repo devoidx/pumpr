@@ -43,5 +43,6 @@ class PriceRecord(Base):
     price_pence: Mapped[float] = mapped_column(Float, nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     source_updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    price_flagged: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     station: Mapped["Station"] = relationship("Station", back_populates="prices")

@@ -106,7 +106,10 @@ export default function StationDetail() {
                 style={selectedFuel === p.fuel_type ? { borderColor: c, background: c + '11' } : {}}
                 onClick={() => setSelectedFuel(p.fuel_type)}
               >
-                <div className="dpc-label">{FUEL_LABELS[p.fuel_type] || p.fuel_type}</div>
+                <div className="dpc-label">
+                  {FUEL_LABELS[p.fuel_type] || p.fuel_type}
+                  {p.price_flagged && <span className="dpc-flag" title="This price may be inaccurate — it appears significantly lower than average"> ⚠️</span>}
+                </div>
                 <div className="dpc-updated">{p.source_updated_at ? `Updated ${timeAgo(p.source_updated_at)}` : ""}</div>
                 {priceChanges[p.fuel_type]?.change_pence !== undefined && priceChanges[p.fuel_type]?.change_pence !== 0 && (
                   <div className="dpc-change" style={{ color: priceChanges[p.fuel_type].change_pence < 0 ? '#2ecc71' : '#e74c3c' }}>
