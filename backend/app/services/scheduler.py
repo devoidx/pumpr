@@ -79,6 +79,10 @@ async def post_county_diesel_job() -> None:
 
 
 def start_scheduler() -> None:
+    import os
+    if os.getenv("ENABLE_SCHEDULER", "true").lower() != "true":
+        logger.info("Scheduler disabled via ENABLE_SCHEDULER env var")
+        return
     from apscheduler.triggers.cron import CronTrigger as CT2
     scheduler.add_job(
         run_county_fix,
