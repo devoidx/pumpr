@@ -72,7 +72,6 @@ async def get_cheapest(
         JOIN stations s ON ph.station_id = s.id
         WHERE ph.fuel_type = :fuel
           AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
-              AND (ph.price_flagged = FALSE OR ph.price_flagged IS NULL)
           AND s.latitude IS NOT NULL
           AND s.longitude IS NOT NULL
           {geo_filter}
