@@ -82,7 +82,7 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
         "opening_times": station.opening_times,
         "is_open_now": open_now,
         "week_hours": week_hours,
-        "latest_prices": [{"fuel_type": p.fuel_type, "price_pence": p.price_pence, "recorded_at": p.recorded_at, "source_updated_at": p.source_updated_at} for p in latest],
+        "latest_prices": [{"fuel_type": p.fuel_type, "price_pence": p.price_pence, "recorded_at": p.recorded_at, "source_updated_at": p.source_updated_at, "price_flagged": getattr(p, "price_flagged", False)} for p in latest],
         "created_at": station.created_at,
         "updated_at": station.updated_at,
     }
@@ -127,7 +127,7 @@ async def _get_latest_prices(db: AsyncSession, station_id: str) -> list[StationL
     ).where(PriceRecord.station_id == station_id)
     result = await db.execute(stmt)
     records = result.scalars().all()
-    return [StationLatestPrices(fuel_type=r.fuel_type, price_pence=r.price_pence, recorded_at=r.recorded_at) for r in records]
+    return [StationLatestPrices(fuel_type=r.fuel_type, price_pence=r.price_pence, recorded_at=r.recorded_at, source_updated_at=r.source_updated_at, price_flagged=r.price_flagged or False) for r in records]
 
 
 @router.get("/{station_id}/price-changes")

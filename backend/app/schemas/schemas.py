@@ -15,6 +15,7 @@ class StationLatestPrices(BaseModel):
     price_pence: float
     recorded_at: datetime
     source_updated_at: datetime | None = None
+    price_flagged: bool = False
     model_config = {"from_attributes": True}
 
 
