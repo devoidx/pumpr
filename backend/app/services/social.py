@@ -45,6 +45,7 @@ async def _get_uk_averages() -> list[dict]:
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             WHERE s.permanent_closure = FALSE
+              AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
             GROUP BY fuel_type
             ORDER BY fuel_type
         """))
@@ -65,6 +66,7 @@ async def _get_cheapest_uk(fuel: str) -> dict | None:
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             WHERE s.permanent_closure = FALSE
+              AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
             ORDER BY l.price_pence ASC
             LIMIT 1
         """), {"fuel": fuel})
@@ -95,6 +97,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 WHERE s.permanent_closure = FALSE
+                  AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
                 GROUP BY s.country
             )
@@ -104,6 +107,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.country = rm.region AND l.price_pence = rm.min_price
             WHERE s.permanent_closure = FALSE
+            AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
             ORDER BY s.country, l.price_pence
         """), {"fuel": fuel})
         return [
@@ -228,6 +232,7 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 WHERE s.permanent_closure = FALSE
+                AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.county IS NOT NULL AND s.county != ''
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
                 GROUP BY s.county, s.country
@@ -243,6 +248,7 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.county = rm.region AND l.price_pence = rm.min_price
             WHERE s.permanent_closure = FALSE
+            AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
               AND s.county IS NOT NULL AND s.county != ''
             ORDER BY s.county, RANDOM()
         """), {"fuel": fuel})
