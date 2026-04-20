@@ -23,6 +23,7 @@ export default function Home() {
   const [fuel, setFuel] = useState(() => localStorage.getItem('pumpr_fuel') || 'E10')
   const [radius, setRadius] = useState(() => Number(localStorage.getItem('pumpr_radius')) || 8)
   const [units, setUnits] = useState(() => localStorage.getItem('pumpr_units') || 'miles')
+  const [mapView, setMapView] = useState('split') // 'split' | 'hidden' | 'full'
   const [connector, setConnector] = useState('')
   const [minPower, setMinPower] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -127,8 +128,8 @@ export default function Home() {
   const count = items.length
 
   return (
-    <div className="home">
-      <div className="panel">
+    <div className={`home map-${mapView}`}>
+      <div className={`panel ${mapView === "full" ? "panel-hidden" : ""}`}>
         <div className="panel-header">
           <div className="panel-controls">
             <ModeToggle mode={mode} onChange={handleSetMode} />
@@ -215,7 +216,21 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="map-container">
+      <div className={`map-container ${mapView === "hidden" ? "map-hidden" : ""}`}>
+        <div className="map-controls">
+          {mapView === "split" && (
+            <>
+              <button className="map-ctrl-btn" onClick={() => setMapView("full")} title="Fullscreen map">⛶</button>
+              <button className="map-ctrl-btn" onClick={() => setMapView("hidden")} title="Hide map">✕</button>
+            </>
+          )}
+          {mapView === "full" && (
+            <button className="map-ctrl-btn" onClick={() => setMapView("split")} title="Split view">⊡</button>
+          )}
+          {mapView === "hidden" && (
+            <button className="map-ctrl-btn map-ctrl-show" onClick={() => setMapView("split")} title="Show map">Show map</button>
+          )}
+        </div>
         <Map
           stations={stations}
           chargers={chargers}
