@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getStats } from '../api/client'
 import { FUEL_COLORS, FUEL_LABELS, FUEL_TYPES } from '../constants/fuels'
 import './Stats.css'
+import SkeletonCard from '../components/SkeletonCard'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8002'
 
@@ -43,7 +44,15 @@ export default function Stats() {
         </div>
 
         {loading ? (
-          <div className="stats-loading">Loading…</div>
+          <div className="stats-skeleton-grid">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="stat-card-skeleton">
+                <div className="skeleton-line short" style={{marginBottom: 12}} />
+                <div className="skeleton-line long" style={{height: 40, marginBottom: 8}} />
+                <div className="skeleton-line medium" />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="stats-grid">
             {stats.map(s => {
@@ -136,7 +145,9 @@ export default function Stats() {
             </div>
 
             {regionalLoading ? (
-              <div className="stats-loading">Loading…</div>
+              <div className="skeleton-list" style={{padding: '8px 0'}}>
+                {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+              </div>
             ) : (
               <div className="stats-county-grid">
                 {countyStats.map(c => (
