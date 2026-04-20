@@ -212,3 +212,37 @@
   font-size: 12px;
   font-family: var(--font-mono);
 }
+
+.error-state {
+  text-align: center;
+  padding: 32px 24px;
+  color: var(--text2);
+}
+
+.error-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.error-msg {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.error-retry {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.error-retry:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}

@@ -27,6 +27,7 @@ export default function Home() {
   const [connector, setConnector] = useState('')
   const [minPower, setMinPower] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [selected, setSelected] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
   const navigate = useNavigate()
@@ -180,7 +181,14 @@ export default function Home() {
         )}
 
         <div className="station-list">
-          {count === 0 && !loading && (
+          {error && (
+            <div className="error-state">
+              <div className="error-icon">⚠️</div>
+              <div className="error-msg">{error}</div>
+              <button className="error-retry" onClick={fetchData}>Retry</button>
+            </div>
+          )}
+          {count === 0 && !loading && !error && (
             <div className="empty-state">
               <p>No {mode === 'fuel' ? 'stations' : 'chargers'} found within {radiusOptions.find(r => r.km === radius)?.label || radius + unitLabel}</p>
               {mode === 'ev' && (connector || minPower > 0) && (

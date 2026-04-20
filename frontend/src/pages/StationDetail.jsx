@@ -33,6 +33,7 @@ export default function StationDetail() {
   const [history, setHistory] = useState([])
   const [selectedFuel, setSelectedFuel] = useState(fuelParam || 'E10')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [priceChanges, setPriceChanges] = useState({})
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function StationDetail() {
         changesRes.data.forEach(c => { map[c.fuel_type] = c })
         setPriceChanges(map)
       })
+      .catch(() => setError('Unable to load station details.'))
       .finally(() => setLoading(false))
   }, [id])
 
