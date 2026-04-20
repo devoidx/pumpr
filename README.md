@@ -2,7 +2,7 @@
 
 Real-time UK fuel price tracker and EV charging finder. Covers 7,600+ petrol stations across the UK with prices updated every 30 minutes from the official GOV.UK Fuel Finder scheme. EV charging data via Open Charge Map.
 
-**Live at:** https://pumpr.app (coming soon)
+**Live at:** https://pumpr.co.uk (coming soon)
 **Follow:** [@pumpr_app](https://x.com/pumpr_app) · [Bluesky](https://bsky.app/profile/pumpr-app.bsky.social)
 **Support:** [Ko-fi](https://ko-fi.com/devoidx)
 

@@ -123,8 +123,8 @@ export default function Privacy() {
             If you have any questions about this privacy policy or how we
             handle your data, please contact us at:
           </p>
-          <a href="mailto:hello@pumpr.app" className="privacy-contact">
-            hello@pumpr.app
+          <a href="mailto:hello@pumpr.co.uk" className="privacy-contact">
+            hello@pumpr.co.uk
           </a>
         </div>
 
