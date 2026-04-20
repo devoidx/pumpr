@@ -2,7 +2,8 @@ import math
 from datetime import datetime
 from collections import defaultdict
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
+from app.core.limiter import limiter
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +23,8 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 @router.get("/cheapest")
-async def get_cheapest(
+@limiter.limit("60/minute")
+async def get_cheapest(request: Request,
     fuel: str = Query(...),
     lat: float | None = Query(None),
     lng: float | None = Query(None),

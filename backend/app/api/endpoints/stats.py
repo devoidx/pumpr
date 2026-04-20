@@ -1,7 +1,8 @@
 from datetime import datetime
 from collections import defaultdict
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Depends, Request
+from app.core.limiter import limiter
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -107,7 +108,9 @@ async def _get_cheapest_per_region(db: AsyncSession, group_field: str, fuel: str
 
 
 @router.get("/countries")
+@limiter.limit("30/minute")
 async def get_country_stats(
+    request: Request,
     fuel: str = Query("E10"),
     db: AsyncSession = Depends(get_db)
 ) -> list[dict]:
@@ -118,7 +121,9 @@ async def get_country_stats(
 
 
 @router.get("/countries/cheapest")
+@limiter.limit("30/minute")
 async def get_cheapest_by_country(
+    request: Request,
     fuel: str = Query("E10"),
     db: AsyncSession = Depends(get_db)
 ) -> list[dict]:
@@ -129,7 +134,9 @@ async def get_cheapest_by_country(
 
 
 @router.get("/counties")
+@limiter.limit("30/minute")
 async def get_county_stats(
+    request: Request,
     fuel: str = Query("E10"),
     country: str | None = Query(None),
     db: AsyncSession = Depends(get_db)
@@ -140,7 +147,9 @@ async def get_county_stats(
 
 
 @router.get("/counties/cheapest")
+@limiter.limit("30/minute")
 async def get_cheapest_by_county(
+    request: Request,
     fuel: str = Query("E10"),
     country: str | None = Query(None),
     db: AsyncSession = Depends(get_db)
