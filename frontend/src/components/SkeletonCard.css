@@ -1,0 +1,42 @@
+.skeleton-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  gap: 12px;
+}
+
+.skeleton-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 4px;
+  background: var(--surface2);
+  animation: shimmer 1.5s ease infinite;
+}
+
+.skeleton-line.short  { width: 40%; }
+.skeleton-line.long   { width: 75%; }
+.skeleton-line.medium { width: 55%; }
+
+.skeleton-price {
+  width: 56px;
+  height: 40px;
+  border-radius: 6px;
+  background: var(--surface2);
+  animation: shimmer 1.5s ease infinite;
+  flex-shrink: 0;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}

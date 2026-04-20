@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getCheapest, getChargers } from '../api/client'
 import Map from '../components/Map'
 import StationCard from '../components/StationCard'
+import SkeletonCard from '../components/SkeletonCard'
 import ChargerCard from '../components/ChargerCard'
 import FuelSelector from '../components/FuelSelector'
 import ModeToggle from '../components/ModeToggle'
@@ -181,6 +182,11 @@ export default function Home() {
         )}
 
         <div className="station-list">
+          {loading && !error && (
+            <div className="skeleton-list">
+              {[...Array(5)].map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          )}
           {error && (
             <div className="error-state">
               <div className="error-icon">⚠️</div>

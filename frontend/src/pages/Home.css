@@ -246,3 +246,10 @@
   border-color: var(--amber);
   color: var(--amber);
 }
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
