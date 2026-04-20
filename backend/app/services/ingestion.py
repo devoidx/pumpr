@@ -192,6 +192,10 @@ async def ingest_prices() -> int:
         logger.warning("No prices returned from API")
         return 0
 
+    # Get median prices for outlier detection
+    async with AsyncSessionLocal() as session:
+        medians = await _get_median_prices(session)
+
     now = datetime.utcnow()
     records: list[PriceRecord] = []
 
@@ -205,25 +209,34 @@ async def ingest_prices() -> int:
             if not internal_fuel_type:
                 continue
             price = fuel_entry.get("price")
-            # Get medians once per ingest run
-    medians: dict[str, float] = {}
-                records.append(
-                    PriceRecord(
-                        station_id=station_id,
-                        fuel_type=internal_fuel_type,
-                        price_pence=float(price),
-                        recorded_at=now,
-                        source_updated_at=_parse_dt(fuel_entry.get("price_last_updated")),
-                    )
+            if price is None:
+                continue
+            price = float(price)
+            if price < 100:
+                logger.warning(f"Rejected price {price}p for {internal_fuel_type} at {station_id}")
+                continue
+            flagged = False
+            if internal_fuel_type in medians and price < medians[internal_fuel_type] * 0.6:
+                logger.warning(f"Flagged suspicious price {price}p for {internal_fuel_type} at {station_id}")
+                flagged = True
+            records.append(
+                PriceRecord(
+                    station_id=station_id,
+                    fuel_type=internal_fuel_type,
+                    price_pence=price,
+                    recorded_at=now,
+                    source_updated_at=_parse_dt(fuel_entry.get("price_last_updated")),
+                    price_flagged=flagged,
                 )
+            )
 
     async with AsyncSessionLocal() as session:
         session.add_all(records)
         await session.commit()
 
-    logger.info(f"Ingested {len(records)} price records")
+    flagged_count = sum(1 for r in records if r.price_flagged)
+    logger.info(f"Ingested {len(records)} price records ({flagged_count} flagged)")
     return len(records)
-
 
 def _parse_dt(value: str | None) -> datetime | None:
     if not value:
