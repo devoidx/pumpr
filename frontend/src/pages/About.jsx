@@ -83,7 +83,7 @@ export default function About() {
         <div className="about-section">
           <h2 className="about-section-title">Contact</h2>
           <p className="about-body">Found incorrect data or have a suggestion?</p>
-          <a href="mailto:hello@pumpr.co.uk" className="about-contact-link">hello@pumpr.app</a>
+          <a href="mailto:hello@pumpr.co.uk" className="about-contact-link">hello@pumpr.co.uk</a>
         </div>
 
         <div className="about-section">
