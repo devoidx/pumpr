@@ -119,3 +119,52 @@
 }
 
 .units-btn:hover { color: var(--text); }
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  .home {
+    flex-direction: column;
+  }
+
+  .panel {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .station-list {
+    max-height: 50vh;
+  }
+
+  .map-container {
+    height: 50vh;
+    flex: none;
+  }
+
+  .panel-controls {
+    flex-wrap: wrap;
+  }
+
+  .panel-meta {
+    font-size: 11px;
+  }
+
+  .navbar-tag {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .station-list {
+    max-height: 45vh;
+  }
+
+  .map-container {
+    height: 45vh;
+  }
+
+  .panel-header {
+    padding: 8px;
+  }
+}
