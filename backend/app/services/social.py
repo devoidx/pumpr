@@ -37,7 +37,7 @@ async def _get_uk_averages() -> list[dict]:
         result = await session.execute(text("""
             WITH latest AS (
                 SELECT DISTINCT ON (station_id, fuel_type)
-                    station_id, fuel_type, price_pence
+                    station_id, fuel_type, price_pence, price_flagged
                 FROM price_history
                 ORDER BY station_id, fuel_type, recorded_at DESC
             )
@@ -57,7 +57,7 @@ async def _get_cheapest_uk(fuel: str) -> dict | None:
         result = await session.execute(text("""
             WITH latest AS (
                 SELECT DISTINCT ON (station_id, fuel_type)
-                    station_id, fuel_type, price_pence
+                    station_id, fuel_type, price_pence, price_flagged
                 FROM price_history
                 WHERE fuel_type = :fuel
                 ORDER BY station_id, fuel_type, recorded_at DESC
@@ -87,7 +87,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
         result = await session.execute(text("""
             WITH latest AS (
                 SELECT DISTINCT ON (station_id, fuel_type)
-                    station_id, fuel_type, price_pence
+                    station_id, fuel_type, price_pence, price_flagged
                 FROM price_history
                 WHERE fuel_type = :fuel
                 ORDER BY station_id, fuel_type, recorded_at DESC
@@ -222,7 +222,7 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
         result = await session.execute(text("""
             WITH latest AS (
                 SELECT DISTINCT ON (station_id, fuel_type)
-                    station_id, fuel_type, price_pence
+                    station_id, fuel_type, price_pence, price_flagged
                 FROM price_history
                 WHERE fuel_type = :fuel
                 ORDER BY station_id, fuel_type, recorded_at DESC
