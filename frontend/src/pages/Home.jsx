@@ -91,7 +91,7 @@ export default function Home() {
     setSelected(null)
 
     if (mode === 'fuel') {
-      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50 })
+      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50, brand: selectedBrand || undefined })
         .then(r => setStations(r.data))
         .finally(() => setLoading(false))
     } else {
@@ -159,6 +159,18 @@ export default function Home() {
             >
               {units === 'miles' ? 'mi' : 'km'}
             </button>
+            {mode === 'fuel' && (
+              <select
+                className="brand-select"
+                value={selectedBrand}
+                onChange={e => { setSelectedBrand(e.target.value) }}
+              >
+                <option value="">All brands</option>
+                {brands.map(b => (
+                  <option key={b.brand} value={b.brand}>{b.brand}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="panel-meta">
             {loading ? (
@@ -179,16 +191,6 @@ export default function Home() {
         {mode === 'fuel' && (
           <div className="fuel-filter-row">
             <FuelSelector value={fuel} onChange={handleSetFuel} />
-            <select
-              className="brand-select"
-              value={selectedBrand}
-              onChange={e => { setSelectedBrand(e.target.value) }}
-            >
-              <option value="">All brands</option>
-              {brands.map(b => (
-                <option key={b.brand} value={b.brand}>{b.brand} ({b.count})</option>
-              ))}
-            </select>
           </div>
         )}
         {mode === 'ev' && (
