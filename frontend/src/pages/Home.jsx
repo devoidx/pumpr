@@ -24,7 +24,9 @@ export default function Home() {
   const [fuel, setFuel] = useState(() => localStorage.getItem('pumpr_fuel') || 'E10')
   const [radius, setRadius] = useState(() => Number(localStorage.getItem('pumpr_radius')) || 8)
   const [units, setUnits] = useState(() => localStorage.getItem('pumpr_units') || 'miles')
-  const [mapView, setMapView] = useState('split') // 'split' | 'hidden' | 'full'
+  const [mapView, setMapView] = useState('split')
+  const [brands, setBrands] = useState([])
+  const [selectedBrand, setSelectedBrand] = useState('') // 'split' | 'hidden' | 'full'
   const [connector, setConnector] = useState('')
   const [minPower, setMinPower] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -99,7 +101,7 @@ export default function Home() {
         })
         .finally(() => setLoading(false))
     }
-  }, [location, mode, fuel, radius])
+  }, [location, mode, fuel, radius, selectedBrand])
 
   // Apply EV filters client-side for instant response
   useEffect(() => {
@@ -170,6 +172,16 @@ export default function Home() {
         {mode === 'fuel' && (
           <div className="fuel-filter-row">
             <FuelSelector value={fuel} onChange={handleSetFuel} />
+            <select
+              className="brand-select"
+              value={selectedBrand}
+              onChange={e => { setSelectedBrand(e.target.value) }}
+            >
+              <option value="">All brands</option>
+              {brands.map(b => (
+                <option key={b.brand} value={b.brand}>{b.brand} ({b.count})</option>
+              ))}
+            </select>
           </div>
         )}
         {mode === 'ev' && (

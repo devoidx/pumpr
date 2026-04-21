@@ -33,6 +33,11 @@ async def get_cheapest(request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
     # Use bounding box in SQL to pre-filter by rough geography, then exact haversine in Python
+    brand_filter = ""
+    if brand:
+        params["brand"] = brand
+        brand_filter = "AND UPPER(s.brand) = UPPER(:brand)"
+
     if lat is not None and lng is not None:
         # Rough bounding box: 1 degree lat ≈ 111km, 1 degree lng ≈ 111km * cos(lat)
         lat_margin = radius_km / 111.0
@@ -87,6 +92,7 @@ async def get_cheapest(request: Request,
           AND s.latitude IS NOT NULL
           AND s.longitude IS NOT NULL
           {geo_filter}
+          {brand_filter}
         ORDER BY ph.station_id, ph.recorded_at DESC
     """)
 
@@ -95,7 +101,12 @@ async def get_cheapest(request: Request,
 
     output = []
     for row in rows:
-        if lat is not None and lng is not None:
+        brand_filter = ""
+    if brand:
+        params["brand"] = brand
+        brand_filter = "AND UPPER(s.brand) = UPPER(:brand)"
+
+    if lat is not None and lng is not None:
             dist = haversine_km(lat, lng, row.latitude, row.longitude)
             if dist > radius_km:
                 continue

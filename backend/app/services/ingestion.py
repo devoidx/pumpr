@@ -46,6 +46,34 @@ def _is_supermarket(raw: dict) -> bool:
     return any(s in brand for s in SUPERMARKET_BRANDS)
 
 
+
+BRAND_NORMALISE = {
+    "esso": "ESSO",
+    "bp": "BP",
+    "shell": "SHELL",
+    "tesco": "TESCO",
+    "morrisons": "MORRISONS",
+    "asda": "ASDA",
+    "asda express": "ASDA",
+    "sainsbury's": "SAINSBURY'S",
+    "sainsburys": "SAINSBURY'S",
+    "texaco": "TEXACO",
+    "jet": "JET",
+    "eg on the move": "EG ON THE MOVE",
+    "gulf": "GULF",
+    "valero": "VALERO",
+    "murco": "MURCO",
+    "maxol": "MAXOL",
+    "applegreen": "APPLEGREEN",
+    "certas": "CERTAS",
+    "harvest energy": "HARVEST ENERGY",
+}
+
+def _normalise_brand(brand: str | None) -> str | None:
+    if not brand:
+        return None
+    return BRAND_NORMALISE.get(brand.lower().strip(), brand.upper().strip())
+
 async def sync_stations() -> int:
     """Fetch station metadata from API and upsert into DB. Returns count."""
     stations = await fuel_finder_client.get_stations()
@@ -94,8 +122,8 @@ async def sync_stations() -> int:
             stmt = insert(Station).values(
                 id=raw["node_id"],
                 name=raw.get("trading_name", ""),
-                brand=raw.get("brand_name"),
-                operator=raw.get("brand_name"),
+                brand=_normalise_brand(raw.get("brand_name")),
+                operator=_normalise_brand(raw.get("brand_name")),
                 address=", ".join(filter(None, [
                     location.get("address_line_1"),
                     location.get("address_line_2"),
@@ -118,8 +146,8 @@ async def sync_stations() -> int:
                 index_elements=["id"],
                 set_={
                     "name": raw.get("trading_name", ""),
-                    "brand": raw.get("brand_name"),
-                    "operator": raw.get("brand_name"),
+                    "brand": _normalise_brand(raw.get("brand_name")),
+                    "operator": _normalise_brand(raw.get("brand_name")),
                     "address": ", ".join(filter(None, [
                         location.get("address_line_1"),
                         location.get("address_line_2"),

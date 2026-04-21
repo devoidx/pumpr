@@ -67,6 +67,19 @@ async def list_stations(
     return out
 
 
+@router.get("/brands")
+async def get_brands(db: AsyncSession = Depends(get_db)):
+    """Get list of unique brands with station counts."""
+    result = await db.execute(text("""
+        SELECT UPPER(brand) as brand, COUNT(*) as count
+        FROM stations
+        WHERE brand IS NOT NULL AND brand != ''
+          AND (permanent_closure = FALSE OR permanent_closure IS NULL)
+        GROUP BY UPPER(brand)
+        ORDER BY count DESC
+    """))
+    return [{"brand": r.brand, "count": r.count} for r in result.fetchall()]
+
 @router.get("/{station_id}")
 async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> dict:
     result = await db.execute(select(Station).where(Station.id == station_id))
@@ -260,3 +273,4 @@ async def get_price_changes(
         )
 
     return sorted(changes, key=lambda x: x["fuel_type"])
+

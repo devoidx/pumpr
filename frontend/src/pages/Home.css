@@ -253,3 +253,16 @@
   gap: 4px;
   padding: 4px 0;
 }
+
+.brand-select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font-body);
+  flex-shrink: 0;
+  max-width: 130px;
+}
