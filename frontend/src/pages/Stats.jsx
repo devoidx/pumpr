@@ -19,7 +19,10 @@ export default function Stats() {
   const [history, setHistory] = useState([])
   const [historyDays, setHistoryDays] = useState(30)
   const [historyLoading, setHistoryLoading] = useState(false)
-  const [selectedFuels, setSelectedFuels] = useState(['E10', 'B7'])
+  const [selectedFuels, setSelectedFuels] = useState(() => {
+    const saved = localStorage.getItem('pumpr_fuel')
+    return saved ? [saved] : ['E10']
+  })
 
   useEffect(() => {
     getStats().then(r => setStats(r.data)).finally(() => setLoading(false))
