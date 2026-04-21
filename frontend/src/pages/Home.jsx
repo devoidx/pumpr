@@ -119,6 +119,13 @@ export default function Home() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
+  useEffect(() => {
+    fetch('/api/v1/stations/brands')
+      .then(r => r.json())
+      .then(data => setBrands(data.slice(0, 20)))
+      .catch(() => {})
+  }, [])
+
   const handleSelectItem = (item) => {
     setSelected(item)
     const id = mode === 'fuel' ? item.station_id : item.id
