@@ -70,9 +70,18 @@ async def get_cheapest(request: Request,
             s.temporary_closure,
             s.amenities,
             s.opening_times,
-            s.county
+            s.county,
+            prev.price_pence as prev_price_pence
         FROM price_history ph
         JOIN stations s ON ph.station_id = s.id
+        LEFT JOIN LATERAL (
+            SELECT price_pence FROM price_history
+            WHERE station_id = ph.station_id
+              AND fuel_type = :fuel
+              AND recorded_at BETWEEN NOW() - INTERVAL '26 hours' AND NOW() - INTERVAL '22 hours'
+            ORDER BY recorded_at DESC
+            LIMIT 1
+        ) prev ON true
         WHERE ph.fuel_type = :fuel
           AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
           AND s.latitude IS NOT NULL
@@ -114,6 +123,7 @@ async def get_cheapest(request: Request,
             "distance_km": round(dist, 2) if dist is not None else None,
             "county": row.county,
             "is_county_cheapest": False,
+            "price_change_pence": round(row.price_pence - float(row.prev_price_pence), 1) if row.prev_price_pence is not None else None,
         })
 
     output.sort(key=lambda x: (x["price_pence"], x["distance_km"] if x["distance_km"] is not None else 9999))
