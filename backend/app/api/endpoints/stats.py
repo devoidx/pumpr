@@ -14,8 +14,9 @@ async def _get_regional_prices(db: AsyncSession, group_field: str, filter_sql: s
     sql = text(f"""
         WITH latest AS (
             SELECT DISTINCT ON (station_id, fuel_type)
-                station_id, fuel_type, price_pence
+                station_id, fuel_type, price_pence, price_flagged
             FROM price_history
+            WHERE recorded_at > NOW() - INTERVAL '2 hours'
             ORDER BY station_id, fuel_type, recorded_at DESC
         )
         SELECT
@@ -30,6 +31,7 @@ async def _get_regional_prices(db: AsyncSession, group_field: str, filter_sql: s
         WHERE s.permanent_closure = FALSE
           AND s.{group_field} IS NOT NULL
           AND s.{group_field} != ''
+          AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
           {filter_sql}
         GROUP BY s.{group_field}, l.fuel_type
         ORDER BY s.{group_field}, l.fuel_type
@@ -55,9 +57,11 @@ async def _get_cheapest_per_region(db: AsyncSession, group_field: str, fuel: str
     sql = text(f"""
         WITH latest AS (
             SELECT DISTINCT ON (station_id, fuel_type)
-                station_id, fuel_type, price_pence
+                station_id, fuel_type, price_pence, price_flagged
             FROM price_history
             WHERE fuel_type = :fuel
+              AND recorded_at > NOW() - INTERVAL '2 hours'
+              AND (price_flagged = FALSE OR price_flagged IS NULL)
             ORDER BY station_id, fuel_type, recorded_at DESC
         ),
         regional_min AS (

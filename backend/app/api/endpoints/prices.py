@@ -174,6 +174,7 @@ async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
         JOIN stations s ON ph.station_id = s.id
         WHERE (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
           AND (ph.price_flagged = FALSE OR ph.price_flagged IS NULL)
+          AND ph.recorded_at > NOW() - INTERVAL '2 hours'
         ORDER BY ph.station_id, ph.fuel_type, ph.recorded_at DESC
     """)
     result = await db.execute(sql)
