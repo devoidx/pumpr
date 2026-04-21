@@ -27,6 +27,7 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
               {RANK_LABELS[rank]}
             </div>
           )}
+          {s.is_county_cheapest && !s.price_flagged && <div className="card-tag card-tag-county" title={`Cheapest ${s.fuel_type} in ${s.county}`}>⭐ County cheapest</div>}
           {s.temporary_closure && <div className="card-tag card-tag-closed">Temp closed</div>}
           {s.is_motorway && <div className="card-tag card-tag-motorway">Motorway</div>}
           {s.is_supermarket && <div className="card-tag card-tag-supermarket">Supermarket</div>}

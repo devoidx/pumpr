@@ -16,6 +16,7 @@ class StationLatestPrices(BaseModel):
     recorded_at: datetime
     source_updated_at: datetime | None = None
     price_flagged: bool = False
+    is_county_cheapest: bool = False
     model_config = {"from_attributes": True}
 
 

@@ -69,7 +69,8 @@ async def get_cheapest(request: Request,
             s.is_supermarket,
             s.temporary_closure,
             s.amenities,
-            s.opening_times
+            s.opening_times,
+            s.county
         FROM price_history ph
         JOIN stations s ON ph.station_id = s.id
         WHERE ph.fuel_type = :fuel
@@ -111,9 +112,35 @@ async def get_cheapest(request: Request,
             "recorded_at": row.recorded_at,
             "source_updated_at": row.source_updated_at,
             "distance_km": round(dist, 2) if dist is not None else None,
+            "county": row.county,
+            "is_county_cheapest": False,
         })
 
     output.sort(key=lambda x: (x["price_pence"], x["distance_km"] if x["distance_km"] is not None else 9999))
+
+    # Flag cheapest non-flagged station per county (whole county, not just search radius)
+    counties = list(set(s["county"] for s in output if s.get("county") and not s["price_flagged"]))
+    county_cheapest: dict[str, float] = {}
+    if counties:
+        from sqlalchemy import text as sql_text
+        placeholders = ",".join(f":c{i}" for i in range(len(counties)))
+        county_params = {f"c{i}": c for i, c in enumerate(counties)}
+        county_params["fuel"] = fuel
+        cp_result = await db.execute(sql_text(f"""
+            SELECT s.county, MIN(ph.price_pence) as min_price
+            FROM price_history ph
+            JOIN stations s ON ph.station_id = s.id
+            WHERE s.county IN ({placeholders})
+              AND ph.fuel_type = :fuel
+              AND ph.price_flagged = FALSE
+              AND ph.recorded_at > NOW() - INTERVAL '2 hours'
+            GROUP BY s.county
+        """), county_params)
+        county_cheapest = {r.county: float(r.min_price) for r in cp_result.fetchall()}
+    for s in output:
+        county = s.get("county")
+        if county and not s["price_flagged"] and county_cheapest.get(county) == s["price_pence"]:
+            s["is_county_cheapest"] = True
     return output[:limit]
 
 

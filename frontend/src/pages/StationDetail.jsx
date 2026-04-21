@@ -109,6 +109,7 @@ export default function StationDetail() {
                 <div className="dpc-label">
                   {FUEL_LABELS[p.fuel_type] || p.fuel_type}
                   {p.price_flagged && <span className="dpc-flag" title="This price may be inaccurate — it appears significantly lower than average"> ⚠️</span>}
+                  {p.is_county_cheapest && !p.price_flagged && <span className="dpc-flag" title={`Cheapest ${p.fuel_type} in ${station.county}`}> ⭐</span>}
                 </div>
                 <div className="dpc-updated">{p.source_updated_at ? `Updated ${timeAgo(p.source_updated_at)}` : ""}</div>
                 {priceChanges[p.fuel_type]?.change_pence !== undefined && priceChanges[p.fuel_type]?.change_pence !== 0 && (
