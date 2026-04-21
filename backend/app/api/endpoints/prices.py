@@ -18,28 +18,27 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    a = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    )
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 @router.get("/cheapest")
 @limiter.limit("60/minute")
-async def get_cheapest(request: Request,
+async def get_cheapest(
+    request: Request,
     fuel: str = Query(...),
     lat: float | None = Query(None),
     lng: float | None = Query(None),
     radius_km: float = Query(10.0),
     limit: int = Query(20, le=100),
+    brand: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
-    # Use bounding box in SQL to pre-filter by rough geography, then exact haversine in Python
     brand_filter = ""
-    if brand:
-        params["brand"] = brand
-        brand_filter = "AND UPPER(s.brand) = UPPER(:brand)"
-
     if lat is not None and lng is not None:
-        # Rough bounding box: 1 degree lat ≈ 111km, 1 degree lng ≈ 111km * cos(lat)
         lat_margin = radius_km / 111.0
         lng_margin = radius_km / (111.0 * math.cos(math.radians(lat)))
         geo_filter = """
@@ -56,6 +55,10 @@ async def get_cheapest(request: Request,
     else:
         geo_filter = ""
         params = {"fuel": fuel}
+
+    if brand:
+        params["brand"] = brand
+        brand_filter = "AND UPPER(s.brand) = UPPER(:brand)"
 
     sql = text(f"""
         SELECT DISTINCT ON (ph.station_id)
@@ -101,12 +104,7 @@ async def get_cheapest(request: Request,
 
     output = []
     for row in rows:
-        brand_filter = ""
-    if brand:
-        params["brand"] = brand
-        brand_filter = "AND UPPER(s.brand) = UPPER(:brand)"
-
-    if lat is not None and lng is not None:
+        if lat is not None and lng is not None:
             dist = haversine_km(lat, lng, row.latitude, row.longitude)
             if dist > radius_km:
                 continue
@@ -143,11 +141,10 @@ async def get_cheapest(request: Request,
     counties = list(set(s["county"] for s in output if s.get("county") and not s["price_flagged"]))
     county_cheapest: dict[str, float] = {}
     if counties:
-        from sqlalchemy import text as sql_text
         placeholders = ",".join(f":c{i}" for i in range(len(counties)))
         county_params = {f"c{i}": c for i, c in enumerate(counties)}
         county_params["fuel"] = fuel
-        cp_result = await db.execute(sql_text(f"""
+        cp_result = await db.execute(text(f"""
             SELECT s.county, MIN(ph.price_pence) as min_price
             FROM price_history ph
             JOIN stations s ON ph.station_id = s.id
@@ -158,10 +155,12 @@ async def get_cheapest(request: Request,
             GROUP BY s.county
         """), county_params)
         county_cheapest = {r.county: float(r.min_price) for r in cp_result.fetchall()}
+
     for s in output:
         county = s.get("county")
         if county and not s["price_flagged"] and county_cheapest.get(county) == s["price_pence"]:
             s["is_county_cheapest"] = True
+
     return output[:limit]
 
 
