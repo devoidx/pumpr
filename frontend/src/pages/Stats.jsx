@@ -5,7 +5,6 @@ import { FUEL_COLORS, FUEL_LABELS, FUEL_TYPES } from '../constants/fuels'
 import './Stats.css'
 import SkeletonCard from '../components/SkeletonCard'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8002'
 
 const COUNTRIES = ['England', 'Scotland', 'Wales', 'Northern Ireland']
 
@@ -45,8 +44,8 @@ export default function Stats() {
   useEffect(() => {
     setRegionalLoading(true)
     Promise.all([
-      fetch(`${API_BASE}/api/v1/stats/countries/cheapest?fuel=${fuel}`).then(r => r.json()),
-      fetch(`${API_BASE}/api/v1/stats/counties/cheapest?fuel=${fuel}&country=${selectedCountry}`).then(r => r.json()),
+      fetch(`/api/v1/stats/countries/cheapest?fuel=${fuel}`).then(r => r.json()),
+      fetch(`/api/v1/stats/counties/cheapest?fuel=${fuel}&country=${selectedCountry}`).then(r => r.json()),
     ])
       .then(([countries, counties]) => {
         setCountryStats(countries)
