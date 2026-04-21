@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { getStats } from '../api/client'
 import { FUEL_COLORS, FUEL_LABELS, FUEL_TYPES } from '../constants/fuels'
 import './Stats.css'
@@ -16,10 +17,30 @@ export default function Stats() {
   const [countyStats, setCountyStats] = useState([])
   const [selectedCountry, setSelectedCountry] = useState('England')
   const [regionalLoading, setRegionalLoading] = useState(false)
+  const [history, setHistory] = useState([])
+  const [historyDays, setHistoryDays] = useState(30)
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [selectedFuels, setSelectedFuels] = useState(['E10', 'B7'])
 
   useEffect(() => {
     getStats().then(r => setStats(r.data)).finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    setHistoryLoading(true)
+    fetch(`/api/v1/stats/history?days=${historyDays}`)
+      .then(r => r.json())
+      .then(data => {
+        // Pivot data: [{date, E10: x, B7: y, ...}]
+        const byDate = {}
+        data.forEach(({ date, fuel_type, avg_price }) => {
+          if (!byDate[date]) byDate[date] = { date }
+          byDate[date][fuel_type] = avg_price
+        })
+        setHistory(Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date)))
+      })
+      .finally(() => setHistoryLoading(false))
+  }, [historyDays])
 
   useEffect(() => {
     setRegionalLoading(true)
@@ -177,7 +198,75 @@ export default function Stats() {
           </div>
         </div>
 
-        <div className="stats-note">
+  
+      <div className="stats-history">
+        <div className="stats-history-header">
+          <h2 className="stats-section-title">Price Trends</h2>
+          <div className="stats-history-controls">
+            <div className="stats-fuel-tabs">
+              {FUEL_TYPES.map(f => (
+                <button
+                  key={f}
+                  className={`stats-fuel-tab ${selectedFuels.includes(f) ? 'active' : ''}`}
+                  style={selectedFuels.includes(f) ? { color: FUEL_COLORS[f], borderColor: FUEL_COLORS[f] } : {}}
+                  onClick={() => setSelectedFuels(prev =>
+                    prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]
+                  )}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <select
+              className="stats-days-select"
+              value={historyDays}
+              onChange={e => setHistoryDays(Number(e.target.value))}
+            >
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+              <option value={30}>30 days</option>
+              <option value={60}>60 days</option>
+              <option value={90}>90 days</option>
+            </select>
+          </div>
+        </div>
+        {historyLoading ? (
+          <div className="stats-loading">Loading…</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={history} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11, fill: 'var(--text3)' }}
+                tickFormatter={d => d.slice(5)}
+              />
+              <YAxis
+                domain={['auto', 'auto']}
+                tick={{ fontSize: 11, fill: 'var(--text3)' }}
+                tickFormatter={v => `${v}p`}
+                width={45}
+              />
+              <Tooltip
+                contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: 12 }}
+                formatter={(value, name) => [`${value}p`, FUEL_LABELS[name] || name]}
+                labelFormatter={l => `Date: ${l}`}
+              />
+              {selectedFuels.map(f => (
+                <Line
+                  key={f}
+                  type="monotone"
+                  dataKey={f}
+                  stroke={FUEL_COLORS[f]}
+                  strokeWidth={2}
+                  dot={false}
+                  connectNulls
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+      <div className="stats-note">
           Prices updated every 30 minutes from the GOV.UK Fuel Finder API.
           Data collected under the Motor Fuel Price (Open Data) Regulations 2025.
           LPG is not included in the scheme.

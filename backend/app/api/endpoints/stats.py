@@ -156,3 +156,25 @@ async def get_cheapest_by_county(
     filter_sql = "AND s.country = :country" if country else ""
     params = {"country": country} if country else {}
     return await _get_cheapest_per_region(db, "county", fuel, filter_sql, params)
+
+@router.get("/history")
+async def get_price_history(
+    days: int = Query(30, le=90),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Get daily average prices per fuel type for the last N days."""
+    result = await db.execute(text("""
+        SELECT
+            fuel_type,
+            DATE(recorded_at) as date,
+            ROUND(AVG(price_pence)::numeric, 1) as avg_price
+        FROM price_history
+        WHERE price_flagged = FALSE
+          AND recorded_at > NOW() - INTERVAL '1 day' * :days
+        GROUP BY fuel_type, DATE(recorded_at)
+        ORDER BY date ASC, fuel_type
+    """), {"days": days})
+    return [
+        {"fuel_type": r.fuel_type, "date": str(r.date), "avg_price": float(r.avg_price)}
+        for r in result.fetchall()
+    ]
