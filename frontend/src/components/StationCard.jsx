@@ -52,6 +52,11 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
           {updatedAgo && (
             <span className="card-updated">Updated {updatedAgo}</span>
           )}
+          {s.price_change_pence != null && s.price_change_pence !== 0 && (
+            <span className="card-price-change" style={{ color: s.price_change_pence < 0 ? '#2ecc71' : '#e74c3c' }}>
+              {s.price_change_pence > 0 ? '↑' : '↓'}{Math.abs(s.price_change_pence).toFixed(1)}p vs yesterday
+            </span>
+          )}
         </div>
       </div>
       <div className="card-price-col">
