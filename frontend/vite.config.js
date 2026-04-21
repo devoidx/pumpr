@@ -7,4 +7,7 @@ export default defineConfig({
     allowedHosts: ['pumpr.zeolite'],
     host: '0.0.0.0',
   },
+  define: {
+    'import.meta.env.VITE_BUILD_HASH': JSON.stringify(process.env.BUILD_HASH || 'dev'),
+  },
 })
