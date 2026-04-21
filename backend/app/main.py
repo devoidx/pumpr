@@ -1,14 +1,13 @@
 import asyncio
 import logging
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from app.core.limiter import limiter
-from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
+from app.core.limiter import limiter
 from app.db.session import Base, engine
 from app.services.fuel_finder_client import fuel_finder_client
 from app.services.ingestion import ingest_prices, sync_stations
@@ -24,7 +23,7 @@ app = FastAPI(
 )
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

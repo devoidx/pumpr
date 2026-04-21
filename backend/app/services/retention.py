@@ -1,8 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 
-from sqlalchemy import delete, select, func, text
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete, func, select
 
 from app.db.session import AsyncSessionLocal
 from app.models.models import PriceRecord
@@ -59,7 +58,7 @@ async def apply_retention_policy() -> None:
         await session.commit()
 
         # Report current table size
-        result = await session.execute(
+        result = await session.execute(  # type: ignore[assignment]
             select(func.count()).select_from(PriceRecord)
         )
         total = result.scalar()

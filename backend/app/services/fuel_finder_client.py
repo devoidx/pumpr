@@ -44,7 +44,7 @@ class FuelFinderClient:
         expires_in = token_data.get("expires_in", 3600)
         self._token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in - 60)
         logger.info("OAuth token acquired successfully")
-        return self._token
+        return self._token  # type: ignore[return-value]
 
     async def _refresh_access_token(self) -> str:
         logger.info("Refreshing Fuel Finder OAuth token")
@@ -63,7 +63,7 @@ class FuelFinderClient:
         self._token = data["access_token"]
         expires_in = data.get("expires_in", 3600)
         self._token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in - 60)
-        return self._token
+        return self._token  # type: ignore[return-value]
 
     async def _get_paginated(self, path: str) -> list[dict]:
         """Fetch all batches from a paginated endpoint."""

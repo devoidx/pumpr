@@ -1,8 +1,10 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
+
 from sqlalchemy import text
-from app.db.session import AsyncSessionLocal
+
 from app.core.config import settings
+from app.db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
 

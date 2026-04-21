@@ -1,5 +1,7 @@
 import logging
+
 import httpx
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -21,7 +23,7 @@ async def get_chargers_near(lat: float, lng: float, radius_km: float = 10.0, max
         "key": settings.ocm_api_key,
     }
     async with httpx.AsyncClient(timeout=15.0) as client:
-        response = await client.get(f"{OCM_BASE}/poi/", params=params)
+        response = await client.get(f"{OCM_BASE}/poi/", params=params)  # type: ignore[arg-type]
         response.raise_for_status()
         return response.json()
 

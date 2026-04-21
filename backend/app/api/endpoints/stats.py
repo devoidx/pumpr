@@ -1,11 +1,10 @@
-from datetime import datetime
 from collections import defaultdict
 
-from fastapi import APIRouter, Query, Depends, Request
-from app.core.limiter import limiter
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.limiter import limiter
 from app.db.session import get_db
 
 router = APIRouter(prefix="/stats", tags=["stats"])

@@ -1,12 +1,12 @@
 import math
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query, Request
-from app.core.limiter import limiter
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.limiter import limiter
 from app.db.session import get_db
 from app.schemas.schemas import StatsOut
 

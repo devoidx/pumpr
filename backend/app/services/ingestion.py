@@ -1,8 +1,8 @@
 import logging
 from datetime import datetime
 
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import text, case, literal
 
 from app.db.session import AsyncSessionLocal
 from app.models.models import PriceRecord, Station
@@ -82,7 +82,7 @@ async def sync_stations() -> int:
         return 0
 
     # Only geocode stations we haven't seen before (no county data yet)
-    from sqlalchemy import text, select, text
+    from sqlalchemy import text
     async with AsyncSessionLocal() as check_session:
         result = await check_session.execute(
             text("SELECT id FROM stations WHERE county IS NOT NULL")

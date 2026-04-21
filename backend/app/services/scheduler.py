@@ -1,11 +1,11 @@
 import logging
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from app.core.config import settings
-from app.services.ingestion import ingest_prices, sync_stations
+from app.services.ingestion import ingest_prices
 from app.services.retention import apply_retention_policy
 
 logger = logging.getLogger(__name__)

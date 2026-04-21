@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from app.api.endpoints import prices, stations, ev, stats
+
+from app.api.endpoints import ev, prices, stations, stats
 
 api_router = APIRouter()
 api_router.include_router(stations.router)

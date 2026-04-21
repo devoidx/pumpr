@@ -1,9 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import text
 from sqlalchemy import func, select, text
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -11,11 +9,10 @@ from app.models.models import PriceRecord, Station
 from app.schemas.schemas import (
     PriceHistoryOut,
     PriceHistoryPoint,
-    StationDetail,
     StationLatestPrices,
     StationOut,
 )
-from app.services.opening_hours import is_open_now, get_week_hours
+from app.services.opening_hours import get_week_hours, is_open_now
 
 router = APIRouter(prefix="/stations", tags=["stations"])
 
@@ -30,7 +27,7 @@ async def list_stations(
     stmt = (
         select(Station)
         .where(
-            (Station.permanent_closure == False) | Station.permanent_closure.is_(None)
+            Station.permanent_closure.is_(False) | Station.permanent_closure.is_(None)
         )
         .limit(limit)
     )
@@ -223,8 +220,8 @@ async def get_price_changes(
 ) -> list[dict]:
     """Return current prices vs 24h ago for a station."""
     from datetime import timedelta
+
     from sqlalchemy import text
-    from sqlalchemy import func
 
     now = datetime.utcnow()
     day_ago = now - timedelta(hours=24)

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Query
+
 from app.services.ocm_client import get_chargers_near, parse_charger
 
 router = APIRouter(prefix="/ev", tags=["ev"])
@@ -31,6 +32,7 @@ async def list_chargers(
 async def get_charger(charger_id: int) -> dict:
     """Get a specific charger by OCM ID."""
     import httpx
+
     from app.core.config import settings
     async with httpx.AsyncClient(timeout=15.0) as client:
         r = await client.get(
