@@ -1,0 +1,125 @@
+.auth-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 1rem;
+}
+.auth-modal {
+  position: relative;
+  background: var(--surface, #1a1a1a);
+  border: 1px solid var(--border, #2d2d2d);
+  border-radius: 12px; padding: 2rem;
+  width: 100%; max-width: 420px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  animation: auth-slide-in 0.18s ease-out;
+}
+@keyframes auth-slide-in {
+  from { opacity: 0; transform: translateY(-12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.auth-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none; color: #888;
+  font-size: 1.1rem; cursor: pointer;
+  padding: 0.25rem 0.5rem; border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.auth-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+.auth-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem; }
+.auth-logo { font-size: 1.6rem; line-height: 1; }
+.auth-header h2 { margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--text, #e8e8e8); }
+.auth-form { display: flex; flex-direction: column; gap: 0.4rem; }
+.auth-form label { font-size: 0.8rem; font-weight: 500; color: #a0a0a8; margin-top: 0.5rem; }
+.auth-form input {
+  background: var(--bg, #111); border: 1px solid var(--border, #2d2d2d);
+  border-radius: 6px; color: var(--text, #e8e8e8);
+  font-size: 0.95rem; padding: 0.6rem 0.75rem; width: 100%; box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.auth-form input::placeholder { color: #4a4a4a; }
+.auth-form input:focus { outline: none; border-color: var(--amber, #f59e0b); box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+.auth-hint { font-size: 0.72rem; color: #5a5a5a; margin-top: 0.1rem; }
+.auth-btn-primary {
+  margin-top: 1rem; background: var(--amber, #f59e0b); border: none;
+  border-radius: 6px; color: #000; cursor: pointer;
+  font-size: 0.95rem; font-weight: 700; padding: 0.7rem 1rem;
+  transition: opacity 0.15s; width: 100%;
+}
+.auth-btn-primary:hover:not(:disabled) { opacity: 0.88; }
+.auth-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.auth-btn-secondary {
+  margin-top: 0.5rem; background: transparent;
+  border: 1px solid var(--border, #2d2d2d); border-radius: 6px;
+  color: #a0a0a8; cursor: pointer; font-size: 0.88rem;
+  padding: 0.55rem 1rem; transition: border-color 0.15s, color 0.15s; width: 100%;
+}
+.auth-btn-secondary:hover { border-color: var(--amber, #f59e0b); color: var(--text, #e8e8e8); }
+.auth-error {
+  background: rgba(220,50,50,0.12); border: 1px solid rgba(220,50,50,0.35);
+  border-radius: 6px; color: #f08080; font-size: 0.85rem;
+  margin: 0.25rem 0 0.5rem; padding: 0.55rem 0.75rem;
+}
+.auth-success { color: #6dbf7e; font-size: 0.88rem; margin: 0.5rem 0; }
+.auth-success-block { text-align: center; padding: 0.5rem 0 0.25rem; }
+.auth-switch { font-size: 0.83rem; color: #6a6a6a; margin-top: 1.1rem; text-align: center; }
+.auth-link {
+  background: none; border: none; color: var(--amber, #f59e0b);
+  cursor: pointer; font-size: inherit; padding: 0;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.auth-link:hover { opacity: 0.8; }
+.auth-reset-inline { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border, #2d2d2d); }
+
+/* UserMenu */
+.user-menu { position: relative; display: inline-flex; }
+.user-menu-trigger {
+  align-items: center; background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3); border-radius: 20px;
+  color: var(--text, #e8e8e8); cursor: pointer; display: flex;
+  font-size: 0.85rem; font-weight: 500; gap: 0.4rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.5rem; transition: background 0.15s;
+}
+.user-menu-trigger:hover { background: rgba(245,158,11,0.18); }
+.user-menu-trigger .avatar {
+  align-items: center; background: var(--amber, #f59e0b);
+  border-radius: 50%; color: #000; display: flex;
+  font-size: 0.75rem; font-weight: 700;
+  height: 22px; justify-content: center; width: 22px;
+}
+.user-menu-dropdown {
+  background: var(--surface, #1a1a1a); border: 1px solid var(--border, #2d2d2d);
+  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  min-width: 180px; padding: 0.4rem 0;
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 500;
+}
+.user-menu-info { padding: 0.5rem 0.85rem 0.4rem; border-bottom: 1px solid var(--border, #2d2d2d); margin-bottom: 0.3rem; }
+.user-menu-info .um-username { font-size: 0.88rem; font-weight: 600; color: var(--text, #e8e8e8); }
+.user-menu-info .um-email { font-size: 0.75rem; color: #5a5a5a; margin-top: 0.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+.user-menu-info .um-badge {
+  display: inline-block; background: rgba(245,158,11,0.15);
+  border: 1px solid rgba(245,158,11,0.35); border-radius: 3px;
+  color: var(--amber, #f59e0b); font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.05em; margin-top: 0.3rem; padding: 0.1rem 0.35rem; text-transform: uppercase;
+}
+.user-menu-item {
+  background: none; border: none; color: #a0a0a8; cursor: pointer;
+  display: block; font-size: 0.87rem; padding: 0.45rem 0.85rem;
+  text-align: left; transition: background 0.12s, color 0.12s; width: 100%;
+}
+.user-menu-item:hover { background: rgba(255,255,255,0.05); color: var(--text, #e8e8e8); }
+.user-menu-item.danger { color: #c07070; }
+.user-menu-item.danger:hover { background: rgba(220,50,50,0.1); color: #f08080; }
+.nav-auth-buttons { display: flex; align-items: center; gap: 0.5rem; }
+.nav-btn-ghost {
+  background: none; border: 1px solid var(--border, #2d2d2d); border-radius: 6px;
+  color: #a0a0a8; cursor: pointer; font-size: 0.85rem; padding: 0.35rem 0.75rem;
+  transition: border-color 0.15s, color 0.15s;
+}
+.nav-btn-ghost:hover { border-color: var(--amber, #f59e0b); color: var(--text, #e8e8e8); }
+.nav-btn-filled {
+  background: var(--amber, #f59e0b); border: none; border-radius: 6px;
+  color: #000; cursor: pointer; font-size: 0.85rem; font-weight: 700;
+  padding: 0.35rem 0.85rem; transition: opacity 0.15s;
+}
+.nav-btn-filled:hover { opacity: 0.88; }

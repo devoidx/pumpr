@@ -3,6 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
   background: var(--bg);
   background-image: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(245,166,35,0.06) 0%, transparent 70%);
 }
@@ -12,12 +13,20 @@
   max-width: 380px;
   width: 100%;
   padding: 48px 32px;
+  margin: 1rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
 }
 
 .lp-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+.lp-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
 
 .lp-title {
   font-family: var(--font-display);
@@ -159,3 +168,12 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .lp-privacy { font-size: 11px; color: var(--text3); }
+
+@media (max-width: 480px) {
+  .lp-inner {
+    padding: 32px 20px;
+  }
+  .lp-title {
+    font-size: 34px;
+  }
+}

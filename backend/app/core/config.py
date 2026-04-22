@@ -14,6 +14,17 @@ class Settings(BaseSettings):
     ocm_api_url: str = "https://api.openchargemap.io/v3"
     bsky_handle: str = ""
     bsky_app_password: str = ""
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "noreply@pumpr.co.uk"
+    app_base_url: str = "https://pumpr.co.uk"
+    stripe_secret_key: str = ""
+    stripe_publishable_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_price_monthly: str = ""
+    stripe_price_annual: str = ""
 
     class Config:
         env_file = ".env"

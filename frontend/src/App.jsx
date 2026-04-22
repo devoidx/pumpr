@@ -6,12 +6,16 @@ import Home from './pages/Home'
 import Stats from './pages/Stats'
 import About from './pages/About'
 import Privacy from './pages/Privacy'
+import VerifyEmailPage from './components/auth/VerifyEmailPage'
+import ResetPasswordPage from './components/auth/ResetPasswordPage'
+import ProPage from './pages/ProPage'
+import ProSuccessPage from './pages/ProSuccessPage'
 
 export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Navbar />
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflow: 'auto' }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/stations/:id" element={<StationDetail />} />
@@ -19,6 +23,10 @@ export default function App() {
           <Route path="/stats" element={<Stats />} />
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/pro" element={<ProPage />} />
+          <Route path="/pro/success" element={<ProSuccessPage />} />
         </Routes>
       </div>
     </div>
