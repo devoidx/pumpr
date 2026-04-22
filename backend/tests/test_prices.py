@@ -14,6 +14,7 @@ async def test_cheapest_requires_fuel(client):
     assert r.status_code == 422
 
 
+@pytest.mark.live
 async def test_cheapest_returns_list(client):
     r = await client.get("/api/v1/prices/cheapest?fuel=E10&lat=52.3&lng=-0.07&radius_km=10&limit=5")
     assert r.status_code == 200
