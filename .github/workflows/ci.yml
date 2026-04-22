@@ -26,9 +26,17 @@ jobs:
         run: cd backend && ruff check app/
 
       - name: Install test dependencies
-        run: pip install pytest pytest-asyncio httpx pytest-mock fastapi sqlalchemy pydantic pydantic-settings
+        run: pip install pytest pytest-asyncio httpx pytest-mock fastapi sqlalchemy pydantic pydantic-settings slowapi apscheduler asyncpg atproto
 
       - name: Run tests
-        run: cd backend && python3 -m pytest tests/ -q --ignore-missing-imports 2>/dev/null || true
+        run: cd backend && python3 -m pytest tests/ -q
         env:
           DATABASE_URL: postgresql+asyncpg://pumpr:pumpr@localhost:5432/pumpr
+          FUEL_FINDER_CLIENT_ID: test
+          FUEL_FINDER_CLIENT_SECRET: test
+          FUEL_FINDER_TOKEN_URL: http://localhost
+          FUEL_FINDER_API_URL: http://localhost
+          OCM_API_KEY: test
+          BSKY_HANDLE: test
+          BSKY_APP_PASSWORD: test
+          SECRET_KEY: testsecretkey
