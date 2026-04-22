@@ -60,7 +60,7 @@ export default function ProPage() {
   return (
     <div className="pro-page">
       <div className="pro-hero">
-        <div className="pro-hero-badge">Available now</div>
+        <div className="pro-hero-badge">Coming soon</div>
         <h1>Pumpr <span className="pro-highlight">Pro</span></h1>
         <p className="pro-hero-sub">
           Everything you need to stop overpaying for fuel.
@@ -97,11 +97,11 @@ export default function ProPage() {
 
         {error && <p className="pro-error">{error}</p>}
 
-        <button className="pro-subscribe-btn" onClick={handleSubscribe} disabled={loading}>
-          {loading ? 'Redirecting…' : 'Get Pumpr Pro'}
+        <button className="pro-subscribe-btn" onClick={handleSubscribe} disabled={true}>
+          Coming soon
         </button>
 
-        <p className="pro-cancel-note">Cancel any time. No commitment.</p>
+        <p className="pro-cancel-note">Pricing confirmed — launching once Pro features are ready.</p>
       </div>
 
       <div className="pro-benefits">
