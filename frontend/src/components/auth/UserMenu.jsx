@@ -45,17 +45,13 @@ export default function NavAuthSection() {
   const [modal, setModal] = useState(null)
   const navigate = useNavigate()
 
-  if (loading) return <div style={{ width: 120 }} />
+  if (loading) return null
   if (isAuthenticated) return <UserMenu />
 
+  // Auth hidden until Pro features are ready — only Go Pro button shown
   return (
     <>
-      <div className="nav-auth-buttons">
-        <button className="nav-btn-ghost"  onClick={() => setModal('login')}>Sign in</button>
-        <button className="nav-btn-filled" onClick={() => navigate('/pro')}>Go Pro</button>
-      </div>
-      {modal === 'login'    && <LoginModal    onClose={() => setModal(null)} onSwitchToRegister={() => setModal('register')} />}
-      {modal === 'register' && <RegisterModal onClose={() => setModal(null)} onSwitchToLogin={() => setModal('login')} />}
+      <button className="nav-btn-filled" onClick={() => navigate('/pro')}>Go Pro</button>
     </>
   )
 }
