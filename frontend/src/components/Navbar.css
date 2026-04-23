@@ -1,6 +1,7 @@
 .navbar {
   height: var(--nav-h);
   position: relative;
+  overflow: visible;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;

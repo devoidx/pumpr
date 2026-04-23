@@ -110,3 +110,19 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+.charger-card { position: relative; }
+.cc-star {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: none; border: none;
+  color: var(--text3); cursor: pointer;
+  font-size: 16px; line-height: 1;
+  padding: 2px 4px; border-radius: 4px;
+  transition: var(--transition);
+  z-index: 1;
+}
+.cc-star:hover { color: var(--amber); }
+.cc-star-on { color: var(--amber); }
+.cc-star-locked { cursor: default; font-size: 12px; opacity: 0.5; }
+.cc-star-locked:hover { color: var(--text3); }

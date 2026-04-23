@@ -1,0 +1,190 @@
+.profile-page {
+  overflow-y: auto;
+  height: 100%;
+  background: var(--bg);
+  padding: 2rem 1.5rem 4rem;
+}
+.profile-inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.profile-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+}
+.profile-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.profile-section h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+.profile-section-header h2 { margin-bottom: 0; }
+.profile-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.profile-info-row:last-of-type { border-bottom: none; }
+.profile-info-row strong { color: var(--text); }
+.profile-warn { color: #c8a830; font-size: 0.82rem; margin-top: 0.5rem; }
+.profile-upgrade-btn {
+  display: inline-block;
+  margin-top: 0.85rem;
+  background: var(--amber);
+  border-radius: 6px;
+  color: #000;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.profile-upgrade-btn:hover { opacity: 0.85; }
+.profile-add-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--amber);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  transition: var(--transition);
+}
+.profile-add-btn:hover { border-color: var(--amber); }
+.profile-pro-gate {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text2);
+  font-size: 0.85rem;
+  padding: 0.5rem 0;
+}
+.profile-pro-gate a { color: var(--amber); }
+.profile-loading, .profile-empty { color: var(--text3); font-size: 0.85rem; }
+.profile-location-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.profile-location-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+}
+.pll-icon { font-size: 1.2rem; flex-shrink: 0; }
+.pll-info { flex: 1; }
+.pll-label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--text); }
+.pll-meta { display: block; font-size: 0.75rem; color: var(--text3); margin-top: 0.1rem; }
+.pll-actions { display: flex; gap: 0.4rem; }
+.pll-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0.25rem 0.6rem;
+  transition: var(--transition);
+}
+.pll-btn:hover { border-color: var(--amber); color: var(--amber); }
+.pll-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+/* Location modal */
+.lm-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 1rem;
+}
+.lm-modal {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  animation: auth-slide-in 0.18s ease-out;
+}
+.lm-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none; color: #888;
+  cursor: pointer; font-size: 1.1rem;
+  padding: 0.25rem 0.5rem; border-radius: 4px;
+}
+.lm-close:hover { color: var(--text); background: var(--surface2); }
+.lm-modal h2 { font-size: 1.1rem; margin-bottom: 1.25rem; }
+.lm-form { display: flex; flex-direction: column; gap: 0.4rem; }
+.lm-form label { font-size: 0.8rem; font-weight: 500; color: var(--text2); margin-top: 0.5rem; }
+.lm-form input[type="text"] {
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 6px; color: var(--text);
+  font-size: 0.92rem; padding: 0.55rem 0.75rem;
+  width: 100%; box-sizing: border-box; transition: var(--transition);
+}
+.lm-form input[type="text"]:focus { outline: none; border-color: var(--amber); }
+.lm-type-row { display: flex; gap: 0.4rem; }
+.lm-type-btn {
+  flex: 1; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 6px;
+  color: var(--text2); cursor: pointer;
+  font-size: 0.82rem; padding: 0.45rem 0.25rem;
+  transition: var(--transition); text-align: center;
+}
+.lm-type-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
+.lm-type-btn.taken { opacity: 0.35; cursor: not-allowed; }
+.lm-postcode-row { display: flex; gap: 0.4rem; }
+.lm-postcode-row input { flex: 1; }
+.lm-lookup-btn {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 6px; color: var(--text);
+  cursor: pointer; font-size: 0.85rem;
+  padding: 0 0.85rem; transition: var(--transition);
+  white-space: nowrap;
+}
+.lm-lookup-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
+.lm-lookup-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.lm-field-err { color: var(--red); font-size: 0.78rem; }
+.lm-coords { color: var(--green); font-size: 0.78rem; }
+.lm-checkbox-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--text2); font-size: 0.85rem;
+  margin-top: 0.25rem; cursor: pointer;
+}
+.lm-error {
+  background: rgba(220,50,50,0.12); border: 1px solid rgba(220,50,50,0.35);
+  border-radius: 6px; color: #f08080;
+  font-size: 0.82rem; padding: 0.5rem 0.7rem;
+}
+.lm-save-btn {
+  margin-top: 0.85rem;
+  background: var(--amber); border: none; border-radius: 6px;
+  color: #000; cursor: pointer; font-size: 0.92rem; font-weight: 700;
+  padding: 0.65rem; transition: opacity 0.15s; width: 100%;
+}
+.lm-save-btn:hover:not(:disabled) { opacity: 0.85; }
+.lm-save-btn:disabled { opacity: 0.45; cursor: not-allowed; }

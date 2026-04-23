@@ -10,6 +10,7 @@ import ModeToggle from '../components/ModeToggle'
 import EvFilters from '../components/EvFilters'
 import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
+import SavedLocations from '../components/SavedLocations'
 import './Home.css'
 
 export default function Home() {
@@ -182,6 +183,7 @@ export default function Home() {
               </span>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <SavedLocations onSelect={handleSetLocation} />
               <PostcodeSearch onLocation={handleSetLocation} />
               <button className="location-btn" onClick={handleClearLocation} title="Change location">📍</button>
             </div>

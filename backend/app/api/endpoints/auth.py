@@ -16,12 +16,12 @@ from app.auth.jwt import (
     refresh_token_expiry,
 )
 from app.auth.password import hash_password, verify_password
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import RefreshToken, User, UserToken
 from app.schemas.user import (
     PasswordResetConfirm,
     PasswordResetRequest,
-    RefreshRequest,
     TokenResponse,
     UserCreate,
     UserLogin,
@@ -85,10 +85,10 @@ async def login(body: UserLogin, response: Response, db: AsyncSession = Depends(
         key="refresh_token",
         value=raw_refresh,
         httponly=True,
-        secure=True,
+        secure=settings.environment == "production",
         samesite="lax",
         max_age=60 * 60 * 24 * 30,
-        path="/api/v1/auth/refresh",
+        path="/",
     )
     return TokenResponse(access_token=access_token, expires_in=expires_in)
 
@@ -132,10 +132,10 @@ async def refresh(
         key="refresh_token",
         value=new_raw_refresh,
         httponly=True,
-        secure=True,
+        secure=settings.environment == "production",
         samesite="lax",
         max_age=60 * 60 * 24 * 30,
-        path="/api/v1/auth/refresh",
+        path="/",
     )
     return TokenResponse(access_token=access_token, expires_in=expires_in)
 
@@ -167,14 +167,16 @@ async def me(current_user: User = Depends(get_current_user)) -> UserOut:
 
 
 @router.post("/logout")
-async def logout(body: RefreshRequest, response: Response, db: AsyncSession = Depends(get_db)) -> dict:
-    token_hash = hash_token(body.refresh_token)
-    result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
-    stored: RefreshToken | None = result.scalar_one_or_none()
-    if stored:
-        stored.revoked = True
-        await db.commit()
-    response.delete_cookie("refresh_token", path="/api/v1/auth/refresh")
+async def logout(request: Request, response: Response, db: AsyncSession = Depends(get_db)) -> dict:
+    raw_token = request.cookies.get("refresh_token")
+    if raw_token:
+        token_hash = hash_token(raw_token)
+        result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
+        stored: RefreshToken | None = result.scalar_one_or_none()
+        if stored:
+            stored.revoked = True
+            await db.commit()
+    response.delete_cookie("refresh_token", path="/")
     return {"message": "Logged out"}
 
 

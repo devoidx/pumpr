@@ -1,4 +1,5 @@
-import { Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import StationDetail from './pages/StationDetail'
 import EvDetail from './pages/EvDetail'
@@ -9,9 +10,19 @@ import Privacy from './pages/Privacy'
 import VerifyEmailPage from './components/auth/VerifyEmailPage'
 import ResetPasswordPage from './components/auth/ResetPasswordPage'
 import ProPage from './pages/ProPage'
+import ProfilePage from './pages/ProfilePage'
+import MyPlacesPage from './pages/MyPlacesPage'
 import ProSuccessPage from './pages/ProSuccessPage'
 
 export default function App() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    function handler(e) { navigate(e.detail.path) }
+    window.addEventListener('pumpr:navigate', handler)
+    return () => window.removeEventListener('pumpr:navigate', handler)
+  }, [navigate])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Navbar />
@@ -26,6 +37,8 @@ export default function App() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/pro" element={<ProPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/my-places" element={<MyPlacesPage />} />
           <Route path="/pro/success" element={<ProSuccessPage />} />
         </Routes>
       </div>

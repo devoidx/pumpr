@@ -1,0 +1,95 @@
+.saved-locations {
+  position: relative;
+}
+
+.sl-trigger {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  padding: 5px 10px;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.sl-trigger:hover { border-color: var(--amber); color: var(--text); }
+.sl-trigger.sl-locked { opacity: 0.7; }
+.sl-trigger.sl-locked:hover { border-color: var(--border2); color: var(--text2); cursor: default; }
+
+.sl-count {
+  background: var(--amber);
+  border-radius: 10px;
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+}
+
+.sl-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  min-width: 220px;
+  max-width: 280px;
+  padding: 0.35rem 0;
+  z-index: 500;
+}
+
+.sl-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0.5rem 0.85rem;
+  text-align: left;
+  transition: var(--transition);
+  width: 100%;
+}
+.sl-item:hover { background: var(--surface2); }
+.sl-item-icon { font-size: 14px; flex-shrink: 0; }
+.sl-item-label { flex: 1; font-weight: 500; }
+.sl-item-postcode {
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.sl-empty {
+  color: var(--text3);
+  font-size: 12px;
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+}
+
+.sl-pro-prompt {
+  padding: 0.85rem;
+  text-align: center;
+}
+.sl-lock-icon { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+.sl-pro-prompt p { color: var(--text2); font-size: 12px; margin-bottom: 0.5rem; }
+
+.sl-pro-link, .sl-manage-link {
+  color: var(--amber);
+  display: block;
+  font-size: 12px;
+  padding: 0.4rem 0.85rem;
+  text-align: center;
+  text-decoration: none;
+  transition: var(--transition);
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+}
+.sl-pro-link:hover, .sl-manage-link:hover { color: var(--text); }
