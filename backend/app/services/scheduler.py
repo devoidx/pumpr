@@ -62,6 +62,14 @@ async def post_by_country_job() -> None:
         logger.error(f"Scheduler: by country post failed: {e}")
 
 
+async def post_by_country_diesel_job() -> None:
+    try:
+        from app.services.social import post_cheapest_by_country
+        await post_cheapest_by_country("B7", dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: by country diesel post failed: {e}")
+
+
 async def post_county_e10_job() -> None:
     try:
         from app.services.social import post_cheapest_by_county
@@ -115,6 +123,12 @@ def start_scheduler() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
+        post_by_country_diesel_job,
+        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=25),
+        id="post_by_country_diesel_am",
+        replace_existing=True,
+    )
+    scheduler.add_job(
         post_daily_averages_job,
         trigger=CronTrigger(hour=16, timezone="Europe/London", minute=0),
         id="post_daily_averages_pm",
@@ -136,6 +150,12 @@ def start_scheduler() -> None:
         post_by_country_job,
         trigger=CronTrigger(hour=16, timezone="Europe/London", minute=20),
         id="post_by_country_pm",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        post_by_country_diesel_job,
+        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=25),
+        id="post_by_country_diesel_pm",
         replace_existing=True,
     )
     scheduler.add_job(
