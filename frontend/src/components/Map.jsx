@@ -11,6 +11,21 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 })
 
+function priceColor(pricePence, minPrice, maxPrice) {
+  if (!pricePence || minPrice === maxPrice) return '#f5a623'
+  const ratio = (pricePence - minPrice) / (maxPrice - minPrice)
+  // green (cheap) → amber (mid) → red (expensive)
+  if (ratio < 0.5) {
+    const r = Math.round(46 + (245 - 46) * (ratio * 2))
+    const g = Math.round(204 - (204 - 166) * (ratio * 2))
+    return `rgb(${r},${g},50)`
+  } else {
+    const r = Math.round(245 - (245 - 231) * ((ratio - 0.5) * 2))
+    const g = Math.round(166 - (166 - 76) * ((ratio - 0.5) * 2))
+    return `rgb(${r},${g},50)`
+  }
+}
+
 function createFuelMarker(color, selected = false, rank = null) {
   const size = selected ? 36 : 28
   const rankLabel = rank !== null && rank < 3 ? ['★', '2', '3'][rank] : ''
@@ -50,7 +65,7 @@ function createEvMarker(color, selected = false) {
   })
 }
 
-export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover }) {
+export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
@@ -81,9 +96,9 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
     markersRef.current = {}
 
     if (mode === 'fuel') {
-      const color = FUEL_COLORS[fuel] || '#f5a623'
       stations.forEach((s, i) => {
         if (!s.latitude || !s.longitude) return
+        const color = priceColor(s.price_pence, minPrice, maxPrice)
         const isSelected = s.station_id === selectedId
         const isHovered = s.station_id === hoveredId
         const marker = L.marker([s.latitude, s.longitude], {
@@ -146,7 +161,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
         if (lats.length > 0) map.fitBounds([[Math.min(...lats),Math.min(...lngs)],[Math.max(...lats),Math.max(...lngs)]], { padding:[40,40], maxZoom:14 })
       }
     }
-  }, [stations, chargers, fuel, mode])
+  }, [stations, chargers, fuel, mode, minPrice, maxPrice])
 
   useEffect(() => {
     const map = mapInstanceRef.current
@@ -154,7 +169,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
     const items = mode === 'fuel' ? stations : chargers
     const getId = mode === 'fuel' ? s => s.station_id : c => c.id
     const getColor = mode === 'fuel'
-      ? (_, i) => FUEL_COLORS[fuel] || '#f5a623'
+      ? (_, i) => priceColor(items[i]?.price_pence, minPrice, maxPrice)
       : (c) => SPEED_COLOR(c.max_power_kw)
 
     items.forEach((item, i) => {

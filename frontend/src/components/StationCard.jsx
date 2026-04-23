@@ -5,7 +5,7 @@ import './StationCard.css'
 
 const RANK_LABELS = ['Cheapest', '2nd', '3rd']
 
-export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover, units = 'miles' }) {
+export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover, units = 'miles', avgPrice = 0 }) {
   const color = FUEL_COLORS[s.fuel_type] || 'var(--amber)'
   const openStatus = isOpenNow(s.opening_times)
   const todayHours = getTodayHours(s.opening_times)
@@ -55,6 +55,11 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
           {s.price_change_pence != null && s.price_change_pence !== 0 && (
             <span className="card-price-change" style={{ color: s.price_change_pence < 0 ? '#2ecc71' : '#e74c3c' }}>
               {s.price_change_pence > 0 ? '↑' : '↓'}{Math.abs(s.price_change_pence).toFixed(1)}p vs yesterday
+            </span>
+          )}
+          {avgPrice > 0 && s.price_pence < avgPrice && (
+            <span className="card-below-avg">
+              {(avgPrice - s.price_pence).toFixed(1)}p below avg
             </span>
           )}
         </div>

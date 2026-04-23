@@ -27,10 +27,13 @@ export default function Home() {
   const [units, setUnits] = useState(() => localStorage.getItem('pumpr_units') || 'miles')
   const [mapView, setMapView] = useState('split')
   const [brands, setBrands] = useState([])
+  const [sortBy, setSortBy] = useState('price')
   const [selectedBrand, setSelectedBrand] = useState('') // 'split' | 'hidden' | 'full'
   const [connector, setConnector] = useState('')
   const [minPower, setMinPower] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 0 })
+  const [avgPrice, setAvgPrice] = useState(0)
   const [error, setError] = useState(null)
   const [selected, setSelected] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
@@ -92,8 +95,15 @@ export default function Home() {
     setSelected(null)
 
     if (mode === 'fuel') {
-      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50, brand: selectedBrand || undefined })
-        .then(r => setStations(r.data))
+      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50, brand: selectedBrand || undefined, sort: sortBy })
+        .then(r => {
+          setStations(r.data)
+          if (r.data.length > 0) {
+            const prices = r.data.map(s => s.price_pence)
+            setPriceRange({ min: Math.min(...prices), max: Math.max(...prices) })
+            setAvgPrice(prices.reduce((a, b) => a + b, 0) / prices.length)
+          }
+        })
         .finally(() => setLoading(false))
     } else {
       getChargers({ lat: location.lat, lng: location.lng, radius_km: radius, limit: 100 })
@@ -163,6 +173,17 @@ export default function Home() {
             {mode === 'fuel' && (
               <select
                 className="brand-select"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+              >
+                <option value="price">Price</option>
+                <option value="distance">Distance</option>
+                <option value="updated">Recently updated</option>
+              </select>
+            )}
+            {mode === 'fuel' && (
+              <select
+                className="brand-select"
                 value={selectedBrand}
                 onChange={e => { setSelectedBrand(e.target.value) }}
               >
@@ -177,7 +198,7 @@ export default function Home() {
             {loading ? (
               <span className="loading-dot">Searching…</span>
             ) : (
-              <span>
+              <span className="panel-meta-left">
                 {location.postcode ? `${location.postcode} · ` : ''}
                 {count} {mode === 'fuel' ? 'stations' : 'chargers'} within {radiusOptions.find(r => r.km === radius)?.label || radius + unitLabel}
               </span>
@@ -185,11 +206,25 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <SavedLocations onSelect={handleSetLocation} />
               <PostcodeSearch onLocation={handleSetLocation} />
+              <button
+                className="location-btn"
+                title="Share this view"
+                onClick={() => {
+                  const url = `${window.location.origin}/?lat=${location.lat}&lng=${location.lng}&fuel=${fuel}&radius=${radius}`
+                  navigator.clipboard?.writeText(url).then(() => alert('Link copied!')).catch(() => prompt('Copy this link:', url))
+                }}
+              >🔗</button>
               <button className="location-btn" onClick={handleClearLocation} title="Change location">📍</button>
             </div>
           </div>
         </div>
 
+        {mode === 'fuel' && priceRange.min > 0 && (
+          <div className="price-range-row">
+            <span>{priceRange.min.toFixed(1)}p – {priceRange.max.toFixed(1)}p</span>
+            <span className="price-range-avg">avg {avgPrice.toFixed(1)}p</span>
+          </div>
+        )}
         {mode === 'fuel' && (
           <div className="fuel-filter-row">
             <FuelSelector value={fuel} onChange={handleSetFuel} />
@@ -233,6 +268,7 @@ export default function Home() {
               key={s.station_id}
               station={s}
               rank={i}
+              avgPrice={avgPrice}
               isSelected={selected?.station_id === s.station_id}
               isHovered={hoveredId === s.station_id}
               onClick={() => { setSelected(s); navigate(`/stations/${s.station_id}?fuel=${fuel}`) }}
@@ -278,6 +314,8 @@ export default function Home() {
           mode={mode}
           onSelect={handleSelectItem}
           onHover={setHoveredId}
+          minPrice={priceRange.min}
+          maxPrice={priceRange.max}
         />
       </div>
     </div>
