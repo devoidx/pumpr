@@ -24,7 +24,7 @@ jobs:
         run: cd backend && ruff check app/
 
       - name: Install test dependencies
-        run: pip install pytest pytest-asyncio httpx pytest-mock fastapi sqlalchemy pydantic pydantic-settings slowapi apscheduler asyncpg atproto
+        run: pip install -r backend/requirements.txt && pip install pytest pytest-asyncio httpx pytest-mock
 
       - name: Run tests
         run: cd backend && python3 -m pytest tests/ -q
