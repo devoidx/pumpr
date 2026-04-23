@@ -37,6 +37,10 @@ app.include_router(api_router, prefix="/api/v1")
 
 async def _background_sync() -> None:
     """Run initial sync in background so app starts immediately."""
+    import os
+    if os.getenv("ENABLE_PRICE_POLLING", "true").lower() != "true":
+        logger.info("Background sync skipped — ENABLE_PRICE_POLLING=false")
+        return
     await asyncio.sleep(2)  # let the app finish starting
     try:
         logger.info("Background sync: starting station sync...")
