@@ -88,102 +88,36 @@ async def post_county_diesel_job() -> None:
 
 def start_scheduler() -> None:
     import os
-    if os.getenv("ENABLE_SCHEDULER", "true").lower() != "true":
-        logger.info("Scheduler disabled via ENABLE_SCHEDULER env var")
+    enable_social  = os.getenv("ENABLE_SOCIAL_POSTS",  "true").lower() == "true"
+    enable_polling = os.getenv("ENABLE_PRICE_POLLING", "true").lower() == "true"
+
+    if not enable_social and not enable_polling:
+        logger.info("Scheduler fully disabled")
         return
+
     from apscheduler.triggers.cron import CronTrigger as CT2
-    scheduler.add_job(
-        run_county_fix,
-        trigger=CT2(day_of_week="sun", hour=4, minute=0, timezone="Europe/London"),
-        id="county_fix",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_daily_averages_job,
-        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=0),
-        id="post_daily_averages_am",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_cheapest_job,
-        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=5),
-        id="post_cheapest_am",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_cheapest_diesel_job,
-        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=15),
-        id="post_cheapest_diesel_am",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_by_country_job,
-        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=20),
-        id="post_by_country_am",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_by_country_diesel_job,
-        trigger=CronTrigger(hour=8, timezone="Europe/London", minute=25),
-        id="post_by_country_diesel_am",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_daily_averages_job,
-        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=0),
-        id="post_daily_averages_pm",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_cheapest_job,
-        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=5),
-        id="post_cheapest_pm",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_cheapest_diesel_job,
-        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=15),
-        id="post_cheapest_diesel_pm",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_by_country_job,
-        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=20),
-        id="post_by_country_pm",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_by_country_diesel_job,
-        trigger=CronTrigger(hour=16, timezone="Europe/London", minute=25),
-        id="post_by_country_diesel_pm",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_county_e10_job,
-        trigger=CronTrigger(hour=10, timezone="Europe/London", minute=0),
-        id="post_county_e10",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        post_county_diesel_job,
-        trigger=CronTrigger(hour=10, timezone="Europe/London", minute=30),
-        id="post_county_diesel",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        poll_prices,
-        trigger=IntervalTrigger(minutes=settings.poll_interval_minutes),
-        id="poll_prices",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        run_retention,
-        trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"),
-        id="retention",
-        replace_existing=True,
-    )
+
+    if enable_social:
+        scheduler.add_job(run_county_fix, trigger=CT2(day_of_week="sun", hour=4, minute=0, timezone="Europe/London"), id="county_fix", replace_existing=True)
+        scheduler.add_job(post_daily_averages_job, trigger=CronTrigger(hour=8,  minute=0,  timezone="Europe/London"), id="post_daily_averages_am",      replace_existing=True)
+        scheduler.add_job(post_cheapest_job,        trigger=CronTrigger(hour=8,  minute=5,  timezone="Europe/London"), id="post_cheapest_am",            replace_existing=True)
+        scheduler.add_job(post_cheapest_diesel_job, trigger=CronTrigger(hour=8,  minute=15, timezone="Europe/London"), id="post_cheapest_diesel_am",     replace_existing=True)
+        scheduler.add_job(post_by_country_job,      trigger=CronTrigger(hour=8,  minute=20, timezone="Europe/London"), id="post_by_country_am",          replace_existing=True)
+        scheduler.add_job(post_by_country_diesel_job, trigger=CronTrigger(hour=8, minute=25, timezone="Europe/London"), id="post_by_country_diesel_am",  replace_existing=True)
+        scheduler.add_job(post_daily_averages_job,  trigger=CronTrigger(hour=16, minute=0,  timezone="Europe/London"), id="post_daily_averages_pm",      replace_existing=True)
+        scheduler.add_job(post_cheapest_job,        trigger=CronTrigger(hour=16, minute=5,  timezone="Europe/London"), id="post_cheapest_pm",            replace_existing=True)
+        scheduler.add_job(post_cheapest_diesel_job, trigger=CronTrigger(hour=16, minute=15, timezone="Europe/London"), id="post_cheapest_diesel_pm",     replace_existing=True)
+        scheduler.add_job(post_by_country_job,      trigger=CronTrigger(hour=16, minute=20, timezone="Europe/London"), id="post_by_country_pm",          replace_existing=True)
+        scheduler.add_job(post_by_country_diesel_job, trigger=CronTrigger(hour=16, minute=25, timezone="Europe/London"), id="post_by_country_diesel_pm", replace_existing=True)
+        scheduler.add_job(post_county_e10_job,      trigger=CronTrigger(hour=10, minute=0,  timezone="Europe/London"), id="post_county_e10",             replace_existing=True)
+        scheduler.add_job(post_county_diesel_job,   trigger=CronTrigger(hour=10, minute=30, timezone="Europe/London"), id="post_county_diesel",          replace_existing=True)
+
+    if enable_polling:
+        scheduler.add_job(poll_prices,   trigger=IntervalTrigger(minutes=settings.poll_interval_minutes), id="poll_prices", replace_existing=True)
+        scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
+
     scheduler.start()
-    logger.info(f"Scheduler started — polling every {settings.poll_interval_minutes} minutes, retention daily at 03:00")
+    logger.info(f"Scheduler started — social={enable_social} polling={enable_polling}")
 
 
 def stop_scheduler() -> None:
