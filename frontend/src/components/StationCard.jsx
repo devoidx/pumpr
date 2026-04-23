@@ -57,9 +57,9 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
               {s.price_change_pence > 0 ? '↑' : '↓'}{Math.abs(s.price_change_pence).toFixed(1)}p vs yesterday
             </span>
           )}
-          {avgPrice > 0 && s.price_pence < avgPrice && (
-            <span className="card-below-avg">
-              {(avgPrice - s.price_pence).toFixed(1)}p below avg
+          {avgPrice > 0 && Math.abs(avgPrice - s.price_pence) >= 0.05 && (
+            <span className="card-below-avg" style={{ color: s.price_pence < avgPrice ? '#2ecc71' : '#e74c3c' }}>
+              {Math.abs(avgPrice - s.price_pence).toFixed(1)}p {s.price_pence < avgPrice ? 'below' : 'above'} avg
             </span>
           )}
         </div>

@@ -11,6 +11,7 @@ import EvFilters from '../components/EvFilters'
 import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
 import SavedLocations from '../components/SavedLocations'
+import ShareButton from '../components/ShareButton'
 import './Home.css'
 
 export default function Home() {
@@ -206,14 +207,7 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <SavedLocations onSelect={handleSetLocation} />
               <PostcodeSearch onLocation={handleSetLocation} />
-              <button
-                className="location-btn"
-                title="Share this view"
-                onClick={() => {
-                  const url = `${window.location.origin}/?lat=${location.lat}&lng=${location.lng}&fuel=${fuel}&radius=${radius}`
-                  navigator.clipboard?.writeText(url).then(() => alert('Link copied!')).catch(() => prompt('Copy this link:', url))
-                }}
-              >🔗</button>
+              <ShareButton location={location} fuel={fuel} radius={radius} />
               <button className="location-btn" onClick={handleClearLocation} title="Change location">📍</button>
             </div>
           </div>
