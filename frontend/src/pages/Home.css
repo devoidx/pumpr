@@ -288,3 +288,16 @@
   font-size: 11px;
   font-family: var(--font-mono);
 }
+
+.sort-select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  margin-left: auto;
+}
+.sort-select:hover { border-color: var(--amber); color: var(--text); }

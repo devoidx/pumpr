@@ -28,8 +28,8 @@ export default function Home() {
   const [units, setUnits] = useState(() => localStorage.getItem('pumpr_units') || 'miles')
   const [mapView, setMapView] = useState('split')
   const [brands, setBrands] = useState([])
-  const [sortBy, setSortBy] = useState('price')
-  const [selectedBrand, setSelectedBrand] = useState('') // 'split' | 'hidden' | 'full'
+  const [selectedBrand, setSelectedBrand] = useState('')
+  const [sortBy, setSortBy] = useState('price') // 'split' | 'hidden' | 'full'
   const [connector, setConnector] = useState('')
   const [minPower, setMinPower] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -96,7 +96,7 @@ export default function Home() {
     setSelected(null)
 
     if (mode === 'fuel') {
-      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50, brand: selectedBrand || undefined, sort: sortBy })
+      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50, brand: selectedBrand || undefined })
         .then(r => {
           setStations(r.data)
           if (r.data.length > 0) {
@@ -174,17 +174,6 @@ export default function Home() {
             {mode === 'fuel' && (
               <select
                 className="brand-select"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-              >
-                <option value="price">Price</option>
-                <option value="distance">Distance</option>
-                <option value="updated">Recently updated</option>
-              </select>
-            )}
-            {mode === 'fuel' && (
-              <select
-                className="brand-select"
                 value={selectedBrand}
                 onChange={e => { setSelectedBrand(e.target.value) }}
               >
@@ -222,6 +211,7 @@ export default function Home() {
         {mode === 'fuel' && (
           <div className="fuel-filter-row">
             <FuelSelector value={fuel} onChange={handleSetFuel} />
+
           </div>
         )}
         {mode === 'ev' && (
