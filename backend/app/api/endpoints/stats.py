@@ -16,7 +16,7 @@ async def _get_regional_prices(db: AsyncSession, group_field: str, filter_sql: s
             SELECT DISTINCT ON (station_id, fuel_type)
                 station_id, fuel_type, price_pence, price_flagged
             FROM price_history
-            WHERE recorded_at > NOW() - INTERVAL '2 hours'
+            WHERE recorded_at > NOW() - INTERVAL '4 hours'
             ORDER BY station_id, fuel_type, recorded_at DESC
         )
         SELECT
