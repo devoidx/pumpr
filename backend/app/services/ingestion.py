@@ -82,7 +82,6 @@ async def sync_stations() -> int:
         return 0
 
     # Only geocode stations we haven't seen before (no county data yet)
-    from sqlalchemy import text
     async with AsyncSessionLocal() as check_session:
         result = await check_session.execute(
             text("SELECT id FROM stations WHERE county IS NOT NULL")
