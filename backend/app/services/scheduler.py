@@ -5,12 +5,21 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
 from app.core.config import settings
-from app.services.ingestion import ingest_prices
+from app.services.ingestion import ingest_prices, sync_stations
 from app.services.retention import apply_retention_policy
 
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
+
+
+async def sync_stations_job() -> None:
+    logger.info("Scheduler: syncing stations")
+    try:
+        await sync_stations()
+        logger.info("Scheduler: station sync complete")
+    except Exception as e:
+        logger.error(f"Scheduler: station sync failed: {e}")
 
 
 async def poll_prices() -> None:
@@ -113,6 +122,7 @@ def start_scheduler() -> None:
         scheduler.add_job(post_county_diesel_job,   trigger=CronTrigger(hour=10, minute=30, timezone="Europe/London"), id="post_county_diesel",          replace_existing=True)
 
     if enable_polling:
+        scheduler.add_job(sync_stations_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="sync_stations", replace_existing=True)
         scheduler.add_job(poll_prices,   trigger=IntervalTrigger(minutes=settings.poll_interval_minutes), id="poll_prices", replace_existing=True)
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
 
