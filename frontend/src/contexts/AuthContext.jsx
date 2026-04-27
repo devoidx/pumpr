@@ -84,6 +84,18 @@ export function AuthProvider({ children }) {
     clearAuth()
   }
 
+  async function updateProfile(updates) {
+    const res = await fetch(`${BASE}/me`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify(updates),
+    })
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || 'Update failed') }
+    const updated = await res.json()
+    setUser(updated)
+    return updated
+  }
+
   async function requestPasswordReset(email) {
     const res = await fetch(`${BASE}/password-reset`, {
       method: 'POST',
@@ -105,7 +117,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user, accessToken, loading,
       isAuthenticated: !!accessToken,
-      login, register, logout, requestPasswordReset, authFetch,
+      login, register, logout, requestPasswordReset, updateProfile, authFetch,
     }}>
       {children}
     </AuthContext.Provider>

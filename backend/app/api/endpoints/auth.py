@@ -26,6 +26,7 @@ from app.schemas.user import (
     UserCreate,
     UserLogin,
     UserOut,
+    UserUpdate,
 )
 from app.services.email import send_password_reset_email, send_verification_email
 
@@ -163,6 +164,19 @@ async def verify_email(token: str, db: AsyncSession = Depends(get_db)) -> dict:
 
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)) -> UserOut:
+    return UserOut.model_validate(current_user)
+
+
+@router.patch("/me", response_model=UserOut)
+async def update_me(
+    body: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserOut:
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(current_user, field, value)
+    await db.commit()
+    await db.refresh(current_user)
     return UserOut.model_validate(current_user)
 
 

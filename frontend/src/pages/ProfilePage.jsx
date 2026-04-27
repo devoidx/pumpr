@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import './ProfilePage.css'
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, loading } = useAuth()
+  const { user, isAuthenticated, loading, updateProfile } = useAuth()
   const navigate = useNavigate()
   const isPro = user?.role === 'pro' || user?.role === 'admin'
 
@@ -34,6 +34,31 @@ export default function ProfilePage() {
             <a href="/pro" className="profile-upgrade-btn">Upgrade to Pro →</a>
           )}
         </div>
+
+        {isPro && (
+          <div className="profile-section">
+            <h2>Preferences</h2>
+            <div className="profile-info-row">
+              <span>
+                <strong style={{color:'var(--text)'}}>Driving distance</strong>
+                <div style={{fontSize:'0.78rem',color:'var(--text3)',marginTop:'2px'}}>
+                  Show real driving distance for top 10 results instead of straight-line
+                </div>
+              </span>
+              <label className="profile-toggle">
+                <input
+                  type="checkbox"
+                  checked={user?.use_driving_distance || false}
+                  onChange={async e => {
+                    try { await updateProfile({ use_driving_distance: e.target.checked }) }
+                    catch { alert('Failed to save preference') }
+                  }}
+                />
+                <span className="profile-toggle-slider" />
+              </label>
+            </div>
+          </div>
+        )}
 
         <div className="profile-section">
           <h2>Actions</h2>

@@ -163,3 +163,12 @@
   font-size: 11px;
   font-family: var(--font-mono);
 }
+
+.card-driving-dist {
+  color: var(--amber);
+  font-weight: 500;
+}
+.card-dist-approx {
+  color: var(--text3);
+  font-style: italic;
+}

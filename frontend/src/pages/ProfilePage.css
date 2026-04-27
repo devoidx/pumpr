@@ -188,3 +188,31 @@
 }
 .lm-save-btn:hover:not(:disabled) { opacity: 0.85; }
 .lm-save-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.profile-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.profile-toggle input { opacity: 0; width: 0; height: 0; }
+.profile-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border2);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.profile-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.profile-toggle input:checked + .profile-toggle-slider { background: var(--amber); }
+.profile-toggle input:checked + .profile-toggle-slider::before { transform: translateX(20px); }

@@ -11,10 +11,13 @@ import EvFilters from '../components/EvFilters'
 import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
 import SavedLocations from '../components/SavedLocations'
+import { useAuth } from '../hooks/useAuth'
 import ShareButton from '../components/ShareButton'
 import './Home.css'
 
 export default function Home() {
+  const { user, accessToken } = useAuth()
+  const useDriving = user?.use_driving_distance && (user?.role === 'pro' || user?.role === 'admin')
   const [location, setLocation] = useState(() => {
     const saved = localStorage.getItem('pumpr_location')
     return saved ? JSON.parse(saved) : null
@@ -96,15 +99,20 @@ export default function Home() {
     setSelected(null)
 
     if (mode === 'fuel') {
-      getCheapest(fuel, { lat: location.lat, lng: location.lng, radius_km: radius, limit: 50, brand: selectedBrand || undefined })
-        .then(r => {
-          setStations(r.data)
-          if (r.data.length > 0) {
-            const prices = r.data.map(s => s.price_pence)
+      const params = new URLSearchParams({ fuel, lat: location.lat, lng: location.lng, radius_km: radius, limit: 50 })
+      if (selectedBrand) params.append('brand', selectedBrand)
+      const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+      fetch(`/api/v1/prices/cheapest?${params}`, { headers })
+        .then(r => r.json())
+        .then(data => {
+          setStations(data)
+          if (data.length > 0) {
+            const prices = data.map(s => s.price_pence)
             setPriceRange({ min: Math.min(...prices), max: Math.max(...prices) })
             setAvgPrice(prices.reduce((a, b) => a + b, 0) / prices.length)
           }
         })
+        .catch(() => {})
         .finally(() => setLoading(false))
     } else {
       getChargers({ lat: location.lat, lng: location.lng, radius_km: radius, limit: 100 })
@@ -113,7 +121,7 @@ export default function Home() {
         })
         .finally(() => setLoading(false))
     }
-  }, [location, mode, fuel, radius, selectedBrand])
+  }, [location, mode, fuel, radius, selectedBrand, useDriving])
 
   // Apply EV filters client-side for instant response
   useEffect(() => {
@@ -253,6 +261,7 @@ export default function Home() {
               station={s}
               rank={i}
               avgPrice={avgPrice}
+              useDriving={useDriving}
               isSelected={selected?.station_id === s.station_id}
               isHovered={hoveredId === s.station_id}
               onClick={() => { setSelected(s); navigate(`/stations/${s.station_id}?fuel=${fuel}`) }}

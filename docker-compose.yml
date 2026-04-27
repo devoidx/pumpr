@@ -53,6 +53,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        BUILD_HASH: ${BUILD_HASH:-dev}
+        VITE_SHOW_AUTH: ${VITE_SHOW_AUTH:-false}
     container_name: pumpr_frontend
     restart: unless-stopped
     depends_on:

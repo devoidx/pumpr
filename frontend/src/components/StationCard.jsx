@@ -5,7 +5,7 @@ import './StationCard.css'
 
 const RANK_LABELS = ['Cheapest', '2nd', '3rd']
 
-export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover, units = 'miles', avgPrice = 0 }) {
+export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover, units = 'miles', avgPrice = 0, useDriving = false }) {
   const color = FUEL_COLORS[s.fuel_type] || 'var(--amber)'
   const openStatus = isOpenNow(s.opening_times)
   const todayHours = getTodayHours(s.opening_times)
@@ -37,7 +37,11 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
           {s.brand && <span className="card-brand">{s.brand}</span>}
           {s.brand && s.postcode && <span className="card-dot">·</span>}
           {s.postcode && <span>{s.postcode}</span>}
-          {s.distance_km != null && <><span className="card-dot">·</span><span>{units === 'miles' ? (s.distance_km * 0.621371).toFixed(1) + ' mi' : s.distance_km + ' km'}</span></>}
+          {s.driving_km != null && useDriving ? (
+            <><span className="card-dot">·</span><span className="card-driving-dist" title="Driving distance">🚗 {units === 'miles' ? (s.driving_km * 0.621371).toFixed(1) + ' mi' : s.driving_km + ' km'}{s.driving_mins ? ` · ${Math.round(s.driving_mins)}min` : ''}</span></>
+          ) : s.distance_km != null ? (
+            <><span className="card-dot">·</span><span className={s.driving_km == null && useDriving ? 'card-dist-approx' : ''}>{units === 'miles' ? (s.distance_km * 0.621371).toFixed(1) + ' mi' : s.distance_km + ' km'}{s.driving_km == null && useDriving ? ' ~' : ''}</span></>
+          ) : null}
         </div>
         <div className="card-footer">
           {openStatus !== null && (

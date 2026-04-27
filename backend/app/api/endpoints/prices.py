@@ -6,9 +6,12 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.dependencies import get_optional_user
 from app.core.limiter import limiter
 from app.db.session import get_db
+from app.models.user import User
 from app.schemas.schemas import StatsOut
+from app.services.osrm import get_driving_distances
 
 router = APIRouter(prefix="/prices", tags=["prices"])
 
@@ -29,6 +32,7 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 @limiter.limit("60/minute")
 async def get_cheapest(
     request: Request,
+    current_user: User | None = Depends(get_optional_user),
     fuel: str = Query(...),
     lat: float | None = Query(None),
     lng: float | None = Query(None),
@@ -136,6 +140,16 @@ async def get_cheapest(
         })
 
     output.sort(key=lambda x: (x["price_pence"], x["distance_km"] if x["distance_km"] is not None else 9999))
+
+    # Add driving distances for Pro users who have enabled it
+    if current_user and current_user.role in ("pro", "admin") and getattr(current_user, "use_driving_distance", False) and lat and lng:
+        top10 = output[:10]
+        driving = await get_driving_distances(lat, lng, top10, db)
+        for s in output[:10]:
+            d = driving.get(s["station_id"])
+            if d:
+                s["driving_km"] = d["driving_km"]
+                s["driving_mins"] = d["driving_mins"]
 
     # Flag cheapest non-flagged station per county (whole county, not just search radius)
     counties = list(set(s["county"] for s in output if s.get("county") and not s["price_flagged"]))

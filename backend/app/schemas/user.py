@@ -35,6 +35,7 @@ class UserOut(BaseModel):
     created_at: datetime
     subscription_status: str
     current_period_end: datetime | None = None
+    use_driving_distance: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -65,3 +66,10 @@ class PasswordResetConfirm(BaseModel):
         if not any(c.isdigit() for c in v):
             raise ValueError("Password must contain at least one digit")
         return v
+
+
+class UserUpdate(BaseModel):
+    username: str | None = Field(
+        default=None, min_length=3, max_length=30, pattern=r"^[a-zA-Z0-9_\-]+$"
+    )
+    use_driving_distance: bool | None = None
