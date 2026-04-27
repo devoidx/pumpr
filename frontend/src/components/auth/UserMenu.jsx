@@ -73,7 +73,7 @@ export default function NavAuthSection() {
 
   return (
     <>
-      <button className="nav-btn-ghost" onClick={() => setModal('login')}>Sign in</button>
+      {/* Sign in hidden until Pro features are ready */}
       <button className="nav-btn-filled" onClick={() => window.dispatchEvent(new CustomEvent('pumpr:navigate', { detail: { path: '/pro' } }))}>Go Pro</button>
       {modal === 'login'    && <Portal><LoginModal    onClose={() => setModal(null)} onSwitchToRegister={() => setModal('register')} /></Portal>}
       {modal === 'register' && <Portal><RegisterModal onClose={() => setModal(null)} onSwitchToLogin={() => setModal('login')} /></Portal>}
