@@ -21,7 +21,6 @@ export default function ChargerCard({ charger: c, isSelected, isHovered, onClick
 
   async function toggleStar(e) {
     e.stopPropagation()
-    if (!isPro) return
     setStarLoading(true)
     try {
       if (starred) {
@@ -48,14 +47,16 @@ export default function ChargerCard({ charger: c, isSelected, isHovered, onClick
       onMouseEnter={() => onHover(c.id)}
       onMouseLeave={() => onHover(null)}
     >
-      <button
-        className={`cc-star ${starred ? 'cc-star-on' : ''} ${!isPro ? 'cc-star-locked' : ''}`}
-        onClick={isPro ? toggleStar : undefined}
-        disabled={starLoading}
-        title={isPro ? (starred ? 'Remove from favourites' : 'Add to favourites') : 'Favourite chargers — Pro feature'}
-      >
-        {!isPro ? '🔒' : starred ? '★' : '☆'}
-      </button>
+      {isPro && (
+        <button
+          className={`cc-star ${starred ? 'cc-star-on' : ''}`}
+          onClick={toggleStar}
+          disabled={starLoading}
+          title={starred ? 'Remove from favourites' : 'Add to favourites'}
+        >
+          {starred ? '★' : '☆'}
+        </button>
+      )}
       <div className="cc-left">
         <div className="cc-header">
           <span className="cc-name">{c.name}</span>

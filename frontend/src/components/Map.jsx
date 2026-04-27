@@ -209,8 +209,8 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
       const isHovered = id === hoveredId
       const color = getColor(item, i)
       marker.setIcon(mode === 'fuel'
-        ? createFuelMarker(color, isSelected || isHovered, i)
-        : createEvMarker(color, isSelected || isHovered)
+        ? createFuelMarker(color, isSelected || isHovered, i, item.price_pence?.toFixed(1) || '')
+        : createEvMarker(color, isSelected || isHovered, item.max_power_kw, item.total_points)
       )
       marker.setZIndexOffset(isSelected ? 1000 : isHovered ? 500 : 0)
       if (isSelected) marker.openPopup()
