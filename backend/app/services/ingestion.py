@@ -273,6 +273,11 @@ async def ingest_prices() -> int:
             if internal_fuel_type in medians and price < medians[internal_fuel_type] * 0.6:
                 logger.warning(f"Flagged suspicious price {price}p for {internal_fuel_type} at {station_id}")
                 flagged = True
+            # Flag prices not updated by supplier in 60+ days
+            source_updated = _parse_dt(fuel_entry.get("price_last_updated"))
+            if source_updated and (datetime.utcnow() - source_updated).days > 60:
+                logger.warning(f"Flagged stale price {price}p for {internal_fuel_type} at {station_id} (last updated {source_updated.date()})")
+                flagged = True
             records.append(
                 PriceRecord(
                     station_id=station_id,
