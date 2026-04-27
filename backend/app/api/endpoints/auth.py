@@ -141,6 +141,34 @@ async def refresh(
     return TokenResponse(access_token=access_token, expires_in=expires_in)
 
 
+@router.post("/resend-verification")
+async def resend_verification(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    if current_user.is_verified:
+        return {"message": "Email already verified"}
+
+    # Invalidate old tokens
+    from sqlalchemy import update as _update
+    await db.execute(
+        _update(UserToken)
+        .where(UserToken.user_id == current_user.id, UserToken.purpose == "verify_email")
+        .values(used_at=datetime.now(timezone.utc))
+    )
+
+    raw_token = generate_link_token()
+    db.add(UserToken(
+        user_id=current_user.id,
+        token_hash=hash_token(raw_token),
+        purpose="verify_email",
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+    ))
+    await db.commit()
+    await send_verification_email(current_user.email, raw_token)
+    return {"message": "Verification email sent"}
+
+
 @router.get("/verify/{token}")
 async def verify_email(token: str, db: AsyncSession = Depends(get_db)) -> dict:
     token_hash = hash_token(token)

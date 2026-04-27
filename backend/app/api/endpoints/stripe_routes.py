@@ -31,6 +31,12 @@ async def create_checkout_session(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    if not current_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email address before subscribing"
+        )
+
     # Validate price_id is one we recognise
     allowed = {settings.stripe_price_monthly, settings.stripe_price_annual}
     if body.price_id not in allowed:

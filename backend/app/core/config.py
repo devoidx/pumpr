@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ocm_api_url: str = "https://api.openchargemap.io/v3"
     bsky_handle: str = ""
     bsky_app_password: str = ""
+    resend_api_key: str = ""
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""

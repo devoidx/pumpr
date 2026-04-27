@@ -10,6 +10,7 @@ import Privacy from './pages/Privacy'
 import VerifyEmailPage from './components/auth/VerifyEmailPage'
 import ResetPasswordPage from './components/auth/ResetPasswordPage'
 import ProPage from './pages/ProPage'
+import UnverifiedBanner from './components/auth/UnverifiedBanner'
 import ProfilePage from './pages/ProfilePage'
 import MyPlacesPage from './pages/MyPlacesPage'
 import ProSuccessPage from './pages/ProSuccessPage'
@@ -26,6 +27,7 @@ export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Navbar />
+      <UnverifiedBanner />
       <div style={{ flex: 1, overflow: 'auto' }}>
         <Routes>
           <Route path="/" element={<Home />} />
