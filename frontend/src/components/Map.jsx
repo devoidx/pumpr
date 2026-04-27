@@ -26,42 +26,71 @@ function priceColor(pricePence, minPrice, maxPrice) {
   }
 }
 
-function createFuelMarker(color, selected = false, rank = null) {
-  const size = selected ? 36 : 28
-  const rankLabel = rank !== null && rank < 3 ? ['★', '2', '3'][rank] : ''
+function createFuelMarker(color, selected = false, rank = null, price = '') {
+  const w = selected ? 64 : 56
+  const h = selected ? 30 : 26
+  const fontSize = selected ? 13 : 11
+  const star = rank === 0 ? '★ ' : ''
   return L.divIcon({
     className: '',
     html: `<div style="
-      width:${size}px;height:${size}px;background:${color};
-      border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-      border:2px solid rgba(255,255,255,0.3);
-      box-shadow:0 2px 8px rgba(0,0,0,0.5);
-      display:flex;align-items:center;justify-content:center;">
-      <span style="transform:rotate(45deg);color:#000;font-size:${selected?13:11}px;
-        font-weight:700;font-family:'DM Mono',monospace;">${rankLabel}</span>
+      position:relative;
+      width:${w}px;
+      background:${color};
+      border-radius:6px;
+      border:2px solid rgba(255,255,255,0.4);
+      box-shadow:0 2px 8px rgba(0,0,0,0.45);
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      padding:2px 4px;
+      cursor:pointer;">
+      <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;">${star}${price}p</span>
+      <div style="
+        position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+        width:0;height:0;
+        border-left:5px solid transparent;
+        border-right:5px solid transparent;
+        border-top:6px solid ${color};">
+      </div>
     </div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    popupAnchor: [0, -size],
+    iconSize: [w, h + 6],
+    iconAnchor: [w / 2, h + 6],
+    popupAnchor: [0, -(h + 6)],
   })
 }
 
-function createEvMarker(color, selected = false) {
-  const size = selected ? 36 : 28
+function createEvMarker(color, selected = false, kw = null, points = null) {
+  const w = selected ? 58 : 50
+  const h = selected ? 32 : 28
+  const kwLabel = kw ? (kw >= 1000 ? `${(kw/1000).toFixed(0)}MW` : `${kw}kW`) : ''
+  const ptLabel = points > 1 ? `<span style="color:rgba(255,255,255,0.8);font-size:9px;font-family:'DM Mono',monospace;">${points}</span>` : ''
   return L.divIcon({
     className: '',
     html: `<div style="
-      width:${size}px;height:${size}px;background:${color};
-      border-radius:8px;
-      border:2px solid rgba(255,255,255,0.3);
-      box-shadow:0 2px 8px rgba(0,0,0,0.5);
-      display:flex;align-items:center;justify-content:center;
-      font-size:${selected?16:13}px;">
-      ⚡
+      position:relative;
+      width:${w}px;
+      background:${color};
+      border-radius:6px;
+      border:2px solid rgba(255,255,255,0.4);
+      box-shadow:0 2px 8px rgba(0,0,0,0.45);
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      padding:2px 4px;
+      cursor:pointer;gap:1px;">
+      <span style="font-size:11px;line-height:1;">⚡</span>
+      <span style="color:#fff;font-size:${selected?12:10}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;">${kwLabel}</span>
+      ${ptLabel}
+      <div style="
+        position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+        width:0;height:0;
+        border-left:5px solid transparent;
+        border-right:5px solid transparent;
+        border-top:6px solid ${color};">
+      </div>
     </div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    popupAnchor: [0, -size],
+    iconSize: [w, h + 6],
+    iconAnchor: [w / 2, h + 6],
+    popupAnchor: [0, -(h + 6)],
   })
 }
 
@@ -102,7 +131,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
         const isSelected = s.station_id === selectedId
         const isHovered = s.station_id === hoveredId
         const marker = L.marker([s.latitude, s.longitude], {
-          icon: createFuelMarker(color, isSelected || isHovered, i),
+          icon: createFuelMarker(color, isSelected || isHovered, i, s.price_pence?.toFixed(1) || ''),
           zIndexOffset: isSelected ? 1000 : isHovered ? 500 : 0,
         })
         const popup = L.popup({ closeButton: false, offset: [0, -28] }).setContent(`
@@ -135,7 +164,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
         const isHovered = c.id === hoveredId
         const color = SPEED_COLOR(c.max_power_kw)
         const marker = L.marker([c.latitude, c.longitude], {
-          icon: createEvMarker(color, isSelected || isHovered),
+          icon: createEvMarker(color, isSelected || isHovered, c.max_power_kw, c.total_points),
           zIndexOffset: isSelected ? 1000 : isHovered ? 500 : 0,
         })
         const popup = L.popup({ closeButton: false, offset: [0, -28] }).setContent(`
