@@ -44,3 +44,9 @@
   cursor: pointer;
   font-family: var(--font-mono);
 }
+
+.ev-filter-row2 {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}

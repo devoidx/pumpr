@@ -70,6 +70,8 @@ def parse_charger(raw: dict) -> dict:
         "usage_cost": raw.get("UsageCost"),
         "is_pay_at_location": usage.get("IsPayAtLocation", False),
         "is_membership_required": usage.get("IsMembershipRequired", False),
+        "usage_type_id": usage.get("ID", 0),
+        "usage_type": usage.get("Title", "Unknown"),
         "connections": connections,
         "total_points": len(connections),
         "max_power_kw": max((c.get("power_kw") or 0 for c in connections), default=None),

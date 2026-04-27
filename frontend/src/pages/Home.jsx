@@ -33,8 +33,11 @@ export default function Home() {
   const [brands, setBrands] = useState([])
   const [selectedBrand, setSelectedBrand] = useState('')
   const [sortBy, setSortBy] = useState('price') // 'split' | 'hidden' | 'full'
-  const [connector, setConnector] = useState('')
-  const [minPower, setMinPower] = useState(0)
+  const [connector, setConnector] = useState(() => localStorage.getItem('pumpr_ev_connector') || '')
+  const [minPower, setMinPower] = useState(() => Number(localStorage.getItem('pumpr_ev_power')) || 0)
+  const [publicOnly, setPublicOnly] = useState(() => localStorage.getItem('pumpr_ev_public') === 'true')
+  const [freeOnly, setFreeOnly] = useState(() => localStorage.getItem('pumpr_ev_free') === 'true')
+  const [hideStale, setHideStale] = useState(() => localStorage.getItem('pumpr_ev_stale') === 'true')
   const [loading, setLoading] = useState(false)
   const [priceRange, setPriceRange] = useState({ min: 0, max: 0 })
   const [avgPrice, setAvgPrice] = useState(0)
@@ -138,8 +141,18 @@ export default function Home() {
     if (minPower > 0) {
       filtered = filtered.filter(c => c.max_power_kw && c.max_power_kw >= minPower)
     }
+    if (publicOnly) {
+      filtered = filtered.filter(c => [1, 4, 5, 7].includes(c.usage_type_id))
+    }
+    if (freeOnly) {
+      filtered = filtered.filter(c => c.usage_cost === 'Free')
+    }
+    if (hideStale) {
+      const twoYearsAgo = Date.now() - (1000 * 60 * 60 * 24 * 365 * 2)
+      filtered = filtered.filter(c => c.date_last_verified && new Date(c.date_last_verified) > twoYearsAgo)
+    }
     setChargers(filtered)
-  }, [allChargers, connector, minPower])
+  }, [allChargers, connector, minPower, publicOnly, freeOnly, hideStale])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -233,9 +246,15 @@ export default function Home() {
         {mode === 'ev' && (
           <EvFilters
             connector={connector}
-            onConnector={setConnector}
+            onConnector={v => { setConnector(v); localStorage.setItem('pumpr_ev_connector', v) }}
             minPower={minPower}
-            onMinPower={setMinPower}
+            onMinPower={v => { setMinPower(v); localStorage.setItem('pumpr_ev_power', v) }}
+            publicOnly={publicOnly}
+            onPublicOnly={v => { setPublicOnly(v); localStorage.setItem('pumpr_ev_public', v) }}
+            freeOnly={freeOnly}
+            onFreeOnly={v => { setFreeOnly(v); localStorage.setItem('pumpr_ev_free', v) }}
+            hideStale={hideStale}
+            onHideStale={v => { setHideStale(v); localStorage.setItem('pumpr_ev_stale', v) }}
           />
         )}
 

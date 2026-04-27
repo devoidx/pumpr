@@ -37,6 +37,11 @@ export default function ChargerCard({ charger: c, isSelected, isHovered, onClick
 
   const maxKw = c.max_power_kw
   const speedColor = SPEED_COLOR(maxKw)
+  const lastVerified = c.date_last_verified ? new Date(c.date_last_verified) : null
+  const monthsOld = lastVerified ? (Date.now() - lastVerified) / (1000 * 60 * 60 * 24 * 30) : null
+  const isStale = monthsOld !== null && monthsOld > 12
+  const isVeryStale = monthsOld !== null && monthsOld > 24
+  const verifiedLabel = lastVerified ? lastVerified.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : null
 
   return (
     <div
@@ -60,9 +65,14 @@ export default function ChargerCard({ charger: c, isSelected, isHovered, onClick
       <div className="cc-left">
         <div className="cc-header">
           <span className="cc-name">{c.name}</span>
-          {!c.is_operational && (
-            <span className="cc-offline">Offline</span>
-          )}
+          {!c.is_operational && <span className="cc-offline">Offline</span>}
+          {(c.usage_type_id === 2) && <span className="cc-tag cc-tag-private">Restricted</span>}
+          {(c.usage_type_id === 6) && <span className="cc-tag cc-tag-private">Visitors only</span>}
+          {(c.usage_type_id === 3) && <span className="cc-tag cc-tag-notice">Notice required</span>}
+          {(c.usage_type_id === 7) && <span className="cc-tag cc-tag-notice">Notice required</span>}
+          {(c.usage_type_id === 4) && <span className="cc-tag cc-tag-members">Membership</span>}
+          {(c.usage_type_id === 1 && c.usage_cost === 'Free') && <span className="cc-tag cc-tag-free">Free</span>}
+          {(c.usage_type_id === 0 || c.usage_type_id == null) && <span className="cc-tag cc-tag-notice">Access unknown</span>}
         </div>
         <div className="cc-meta">
           <span className="cc-network">{c.network}</span>
@@ -77,6 +87,14 @@ export default function ChargerCard({ charger: c, isSelected, isHovered, onClick
           ))}
           {c.total_points > 1 && (
             <span className="cc-points">{c.total_points} points</span>
+          )}
+        </div>
+        <div className="cc-footer">
+          {verifiedLabel && (
+            <span className={`cc-verified ${isVeryStale ? 'cc-very-stale' : isStale ? 'cc-stale' : ''}`}
+              title={`Last verified: ${lastVerified.toLocaleDateString('en-GB', {day: 'numeric', month: 'long', year: 'numeric'})}`}>
+              {isVeryStale ? '⚠️' : isStale ? '⚠' : '✓'} Verified {verifiedLabel}
+            </span>
           )}
         </div>
       </div>

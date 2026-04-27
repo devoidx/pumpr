@@ -126,3 +126,48 @@
 .cc-star-on { color: var(--amber); }
 .cc-star-locked { cursor: default; font-size: 12px; opacity: 0.5; }
 .cc-star-locked:hover { color: var(--text3); }
+
+.cc-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.cc-tag-members {
+  background: rgba(155, 89, 182, 0.2);
+  border: 1px solid rgba(155, 89, 182, 0.4);
+  color: #c39bd3;
+}
+.cc-tag-free {
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.35);
+  color: #2ecc71;
+}
+.cc-tag-private {
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.35);
+  color: #e74c3c;
+}
+.cc-tag-notice {
+  background: rgba(245, 166, 35, 0.15);
+  border: 1px solid rgba(245, 166, 35, 0.35);
+  color: var(--amber);
+}
+
+.cc-footer {
+  margin-top: 4px;
+}
+.cc-verified {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+}
+.cc-stale {
+  color: var(--amber);
+}
+.cc-very-stale {
+  color: var(--red);
+}
