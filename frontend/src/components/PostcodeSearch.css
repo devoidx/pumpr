@@ -4,7 +4,7 @@
 }
 
 .ps-input {
-  width: 110px;
+  width: 140px;
   padding: 6px 10px;
   background: var(--surface2);
   border: 1px solid var(--border2);
@@ -12,8 +12,8 @@
   color: var(--text);
   font-size: 12px;
   font-family: var(--font-mono);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   outline: none;
   transition: var(--transition);
 }
@@ -45,4 +45,50 @@
   border-top-color: var(--text);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+.postcode-search-wrap {
+  position: relative;
+}
+
+.ps-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 500;
+  overflow: hidden;
+}
+
+.ps-suggestion-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  transition: var(--transition);
+  width: 100%;
+}
+.ps-suggestion-item:last-child { border-bottom: none; }
+.ps-suggestion-item:hover { background: var(--surface2); }
+
+.ps-suggestion-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ps-suggestion-meta {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  margin-top: 1px;
 }

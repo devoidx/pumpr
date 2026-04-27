@@ -97,24 +97,52 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
+  const selectedIdRef = useRef(null)
 
   useEffect(() => {
     if (mapInstanceRef.current) return
+    const initialZoom = window._pumprZoomHint || 13
+    window._pumprZoomHint = null
     const map = L.map(mapRef.current, {
       center: [center.lat, center.lng],
-      zoom: 13,
+      zoom: initialZoom,
       zoomControl: true,
     })
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
     }).addTo(map)
-    L.circleMarker([center.lat, center.lng], {
-      radius: 8, fillColor: '#fff', fillOpacity: 1,
-      color: 'rgba(255,255,255,0.3)', weight: 6,
-    }).addTo(map)
+    const locationMarker = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:20px;height:20px;
+        background:#4a9eff;
+        border-radius:50%;
+        border:3px solid #fff;
+        box-shadow:0 0 0 3px rgba(74,158,255,0.4);
+        animation:pulse-loc 2s ease-in-out infinite;
+        position:relative;">
+      </div>
+      <style>
+        @keyframes pulse-loc {
+          0%,100%{box-shadow:0 0 0 3px rgba(74,158,255,0.4)}
+          50%{box-shadow:0 0 0 8px rgba(74,158,255,0.1)}
+        }
+      </style>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    })
+    L.marker([center.lat, center.lng], { icon: locationMarker, zIndexOffset: 2000 }).addTo(map)
     mapInstanceRef.current = map
     return () => { map.remove(); mapInstanceRef.current = null }
   }, [])
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    const zoom = window._pumprZoomHint || map.getZoom()
+    window._pumprZoomHint = null
+    map.setView([center.lat, center.lng], zoom)
+  }, [center])
 
   useEffect(() => {
     const map = mapInstanceRef.current
@@ -144,9 +172,9 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
           </div>
         `)
         marker.bindPopup(popup)
-        marker.on('click', () => onSelect(s))
-        marker.on('mouseover', () => { onHover(s.station_id); marker.openPopup() })
-        marker.on('mouseout', () => { onHover(null); marker.closePopup() })
+        marker.on('click', () => { if (selectedIdRef.current === s.station_id) { onSelect(null); } else { onSelect(s); } })
+        marker.on('mouseover', () => { onHover(s.station_id); if (!selectedIdRef.current) marker.openPopup() })
+        marker.on('mouseout', () => { onHover(null); if (!selectedIdRef.current) marker.closePopup() })
         marker.addTo(map)
         markersRef.current[s.station_id] = marker
       })
@@ -176,9 +204,9 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
           </div>
         `)
         marker.bindPopup(popup)
-        marker.on('click', () => onSelect(c))
-        marker.on('mouseover', () => { onHover(c.id); marker.openPopup() })
-        marker.on('mouseout', () => { onHover(null); marker.closePopup() })
+        marker.on('click', () => { if (selectedIdRef.current === c.id) { onSelect(null); } else { onSelect(c); } })
+        marker.on('mouseover', () => { onHover(c.id); if (!selectedIdRef.current) marker.openPopup() })
+        marker.on('mouseout', () => { onHover(null); if (!selectedIdRef.current) marker.closePopup() })
         marker.addTo(map)
         markersRef.current[c.id] = marker
       })
@@ -212,9 +240,14 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
         : createEvMarker(color, isSelected || isHovered, item.max_power_kw, item.total_points)
       )
       marker.setZIndexOffset(isSelected ? 1000 : isHovered ? 500 : 0)
+      if (!isSelected && !isHovered) marker.closePopup()
       if (isSelected) marker.openPopup()
     })
   }, [selectedId, hoveredId])
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId
+  }, [selectedId])
 
   return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 }

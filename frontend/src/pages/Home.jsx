@@ -46,6 +46,10 @@ export default function Home() {
   const handleSetLocation = (loc) => {
     localStorage.setItem('pumpr_location', JSON.stringify(loc))
     setLocation(loc)
+    // If a zoom hint is provided, store it for Map to use
+    if (loc.zoom) {
+      window._pumprZoomHint = loc.zoom
+    }
   }
 
   const handleClearLocation = () => {
@@ -193,19 +197,23 @@ export default function Home() {
             )}
           </div>
           <div className="panel-meta">
-            {loading ? (
-              <span className="loading-dot">Searching…</span>
-            ) : (
-              <span className="panel-meta-left">
-                {location.postcode ? `${location.postcode} · ` : ''}
-                {count} {mode === 'fuel' ? 'stations' : 'chargers'} within {radiusOptions.find(r => r.km === radius)?.label || radius + unitLabel}
-              </span>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <SavedLocations onSelect={handleSetLocation} />
+            <div className="panel-meta-actions">
               <PostcodeSearch onLocation={handleSetLocation} />
               <ShareButton location={location} fuel={fuel} radius={radius} />
               <button className="location-btn" onClick={handleClearLocation} title="Change location">📍</button>
+              <div style={{marginLeft:'auto'}}>
+                <SavedLocations onSelect={handleSetLocation} />
+              </div>
+            </div>
+            <div className="panel-meta-count">
+              {loading ? (
+                <span className="loading-dot">Searching…</span>
+              ) : (
+                <span>
+                  {location.postcode ? `${location.postcode} · ` : ''}
+                  {count} {mode === 'fuel' ? 'stations' : 'chargers'} within {radiusOptions.find(r => r.km === radius)?.label || radius + unitLabel}
+                </span>
+              )}
             </div>
           </div>
         </div>

@@ -27,20 +27,32 @@ export default function LocationPrompt({ onLocation }) {
 
   const handlePostcode = async (e) => {
     e.preventDefault()
-    const clean = postcode.trim().replace(/\s+/g, '').toUpperCase()
+    const clean = postcode.trim()
     if (!clean) return
     setPostcodeLoading(true)
     setError(null)
+    const isPostcode = /^[A-Z]{1,2}[0-9][0-9A-Z]?(\s?[0-9][A-Z]{2})?$/i.test(clean)
     try {
-      const res = await fetch(`https://api.postcodes.io/postcodes/${clean}`)
-      const data = await res.json()
-      if (data.status === 200) {
-        onLocation({ lat: data.result.latitude, lng: data.result.longitude, postcode: data.result.postcode })
+      if (isPostcode) {
+        const res = await fetch(`https://api.postcodes.io/postcodes/${clean.replace(/\s+/g, '').toUpperCase()}`)
+        const data = await res.json()
+        if (data.status === 200) {
+          onLocation({ lat: data.result.latitude, lng: data.result.longitude, postcode: data.result.postcode })
+        } else {
+          setError('Postcode not found. Please check and try again.')
+        }
       } else {
-        setError('Postcode not found. Please check and try again.')
+        const res = await fetch(`https://api.postcodes.io/places?q=${encodeURIComponent(clean)}&limit=1`)
+        const data = await res.json()
+        if (data.status === 200 && data.result?.length > 0) {
+          const place = data.result[0]
+          onLocation({ lat: place.latitude, lng: place.longitude, postcode: place.name_1 })
+        } else {
+          setError('Place not found. Try a postcode instead.')
+        }
       }
     } catch {
-      setError('Could not look up postcode. Please try again.')
+      setError('Could not look up location. Please try again.')
     } finally {
       setPostcodeLoading(false)
     }
@@ -71,11 +83,11 @@ export default function LocationPrompt({ onLocation }) {
           <input
             className="lp-postcode-input"
             type="text"
-            placeholder="Enter postcode e.g. PE27 5EU"
+            placeholder="Postcode or town e.g. St Ives"
             value={postcode}
             onChange={e => setPostcode(e.target.value)}
             disabled={loading || postcodeLoading}
-            maxLength={8}
+            maxLength={50}
           />
           <button
             className="lp-postcode-btn"

@@ -301,3 +301,22 @@
   margin-left: auto;
 }
 .sort-select:hover { border-color: var(--amber); color: var(--text); }
+
+.panel-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panel-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.panel-meta-count {
+  font-size: 11px;
+  color: var(--text2);
+  font-family: var(--font-mono);
+}
