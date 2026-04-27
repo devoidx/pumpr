@@ -28,7 +28,7 @@ async def poll_prices() -> None:
         count = await ingest_prices()
         logger.info(f"Scheduler: ingested {count} price records")
     except Exception as e:
-        logger.error(f"Scheduler: price poll failed: {e}")
+        logger.exception(f"Scheduler: price poll failed: {e}")
 
 
 async def run_retention() -> None:
