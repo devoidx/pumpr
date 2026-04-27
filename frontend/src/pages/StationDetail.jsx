@@ -67,6 +67,7 @@ export default function StationDetail() {
   if (!station) return <div className="detail-loading">Station not found</div>
 
   const availableFuels = station.latest_prices.map(p => p.fuel_type)
+  const anyFlagged = station.latest_prices.some(p => p.price_flagged)
   const color = FUEL_COLORS[selectedFuel] || 'var(--amber)'
   const openStatus = isOpenNow(station.opening_times)
   const weekHours = getWeekHours(station.opening_times)
@@ -75,6 +76,13 @@ export default function StationDetail() {
     <div className="detail-page">
       <div className="detail-inner">
         <button className="detail-back" onClick={() => navigate(-1)}>← Back</button>
+
+        {anyFlagged && (
+          <div className="detail-flagged-banner">
+            <span className="detail-flagged-icon">⚠️</span>
+            <span>One or more prices at this station have been flagged as potentially unreliable. The price shown may be significantly below the local average, or hasn't been updated by the supplier in over 60 days. We recommend verifying at the pump.</span>
+          </div>
+        )}
 
         <div className="detail-header">
           <div>

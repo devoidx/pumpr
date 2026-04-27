@@ -27,11 +27,11 @@ function priceColor(pricePence, minPrice, maxPrice) {
   }
 }
 
-function createFuelMarker(color, selected = false, rank = null, price = '') {
+function createFuelMarker(color, selected = false, rank = null, price = '', price_flagged = false) {
   const w = selected ? 64 : 56
   const h = selected ? 30 : 26
   const fontSize = selected ? 13 : 11
-  const star = rank === 0 ? '★' : ''
+  const star = (rank === 0 && !price_flagged) ? '★' : ''
   return L.divIcon({
     className: '',
     html: `<div style="
@@ -46,7 +46,7 @@ function createFuelMarker(color, selected = false, rank = null, price = '') {
       padding:2px 4px;
       cursor:pointer;">
       ${star ? `<span style="color:#fff;font-size:10px;line-height:1;text-align:center;width:100%;display:block;">★</span>` : ''}
-      <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;text-align:center;display:block;">${price}p</span>
+      <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;text-align:center;display:block;">${price_flagged ? '⚠️ ' : ''}${price}p</span>
       <div style="
         position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
         width:0;height:0;
@@ -159,7 +159,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
         const isSelected = s.station_id === selectedId
         const isHovered = s.station_id === hoveredId
         const marker = L.marker([s.latitude, s.longitude], {
-          icon: createFuelMarker(color, isSelected || isHovered, i, s.price_pence?.toFixed(1) || ''),
+          icon: createFuelMarker(color, isSelected || isHovered, i, s.price_pence?.toFixed(1) || '', s.price_flagged),
           zIndexOffset: isSelected ? 1000 : isHovered ? 500 : 0,
         })
         const popup = L.popup({ closeButton: false, offset: [0, -28] }).setContent(`
@@ -167,8 +167,9 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
             <div style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:4px;">${s.brand||''}</div>
             <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:8px;line-height:1.3;">${s.station_name}</div>
             <div style="font-size:28px;font-weight:500;font-family:'DM Mono',monospace;color:${color};">
-              ${s.price_pence.toFixed(1)}<span style="font-size:14px;opacity:0.7">p</span>
+              ${s.price_pence.toFixed(1)}<span style="font-size:14px;opacity:0.7">p</span>${s.price_flagged ? '<span style="font-size:12px;color:#e74c3c;margin-left:4px;">⚠</span>' : ''}
             </div>
+            ${s.price_flagged ? '<div style="font-size:10px;color:#e74c3c;margin-top:2px;">Price may be unreliable</div>' : ''}
             ${(useDriving && s.driving_km != null) ? `<div style="font-size:11px;color:#f5a623;margin-top:4px;">🚗 ${units === 'miles' ? (s.driving_km * 0.621371).toFixed(1) + ' mi' : s.driving_km + ' km'}${s.driving_mins ? ' · ' + Math.round(s.driving_mins) + 'min' : ''}</div>` : s.distance_km != null ? `<div style="font-size:11px;color:#aaa;margin-top:4px;">${units === 'miles' ? (s.distance_km * 0.621371).toFixed(1) + ' mi' : s.distance_km + ' km'} away</div>` : ''}
           </div>
         `)
@@ -238,7 +239,7 @@ ${(() => { const kp = parseKwhPrice(c.usage_cost); const c100 = costPer100Miles(
       const isHovered = id === hoveredId
       const color = getColor(item, i)
       marker.setIcon(mode === 'fuel'
-        ? createFuelMarker(color, isSelected || isHovered, i, item.price_pence?.toFixed(1) || '')
+        ? createFuelMarker(color, isSelected || isHovered, i, item.price_pence?.toFixed(1) || '', item.price_flagged)
         : createEvMarker(color, isSelected || isHovered, item.max_power_kw, item.total_points)
       )
       marker.setZIndexOffset(isSelected ? 1000 : isHovered ? 500 : 0)
