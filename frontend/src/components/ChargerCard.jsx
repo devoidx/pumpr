@@ -107,6 +107,7 @@ export default function ChargerCard({ charger: c, isSelected, isHovered, onClick
         <div className="cc-speed" style={{ color: speedColor }}>
           {SPEED_LABEL(maxKw)}
         </div>
+
       </div>
     </div>
   )

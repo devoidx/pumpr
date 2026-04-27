@@ -11,6 +11,31 @@ from app.services.geocoding import lookup_postcodes_batch
 
 logger = logging.getLogger(__name__)
 
+UK_LAT_MIN, UK_LAT_MAX = 49.5, 61.0
+UK_LNG_MIN, UK_LNG_MAX = -8.5, 2.0
+
+def _valid_uk_coords(lat, lng) -> bool:
+    """Check if coordinates are within UK bounding box."""
+    if lat is None or lng is None:
+        return False
+    return UK_LAT_MIN <= lat <= UK_LAT_MAX and UK_LNG_MIN <= lng <= UK_LNG_MAX
+
+
+def _fix_coords(lat, lng, postcode: str | None) -> tuple[float | None, float | None]:
+    """Attempt to fix common coordinate errors before validation."""
+    if lat is None or lng is None:
+        return lat, lng
+    # NI postcodes (BT*): longitude is often stored with wrong sign
+    if postcode and postcode.upper().startswith('BT'):
+        if lng > 0 and _valid_uk_coords(lat, -lng):
+            return lat, -lng
+        if lat < 0 and _valid_uk_coords(lng, -lat):
+            return lng, -lat  # also swapped
+    # Swapped lat/lng (e.g. birmingham road: lat=2.2, lng=52.3)
+    if not _valid_uk_coords(lat, lng) and _valid_uk_coords(lng, lat):
+        return lng, lat
+    return lat, lng
+
 FUEL_TYPE_MAP = {
     "E10":         "E10",
     "E5":          "E5",
@@ -129,8 +154,8 @@ async def sync_stations() -> int:
                     location.get("city"),
                 ])),
                 postcode=postcode or None,
-                latitude=location.get("latitude"),
-                longitude=location.get("longitude"),
+                latitude=_fix_coords(location.get("latitude"), location.get("longitude"), postcode)[0] if _valid_uk_coords(*_fix_coords(location.get("latitude"), location.get("longitude"), postcode)) else None,
+                longitude=_fix_coords(location.get("latitude"), location.get("longitude"), postcode)[1] if _valid_uk_coords(*_fix_coords(location.get("latitude"), location.get("longitude"), postcode)) else None,
                 country=country,
                 county=county,
                 phone=raw.get("public_phone_number"),
@@ -153,8 +178,10 @@ async def sync_stations() -> int:
                         location.get("city"),
                     ])),
                     "postcode": postcode or None,
-                    "latitude": location.get("latitude"),
-                    "longitude": location.get("longitude"),
+                    **({
+                        "latitude": _fix_coords(location.get("latitude"), location.get("longitude"), postcode)[0],
+                        "longitude": _fix_coords(location.get("latitude"), location.get("longitude"), postcode)[1],
+                    } if _valid_uk_coords(*_fix_coords(location.get("latitude"), location.get("longitude"), postcode)) else {}),
                     "phone": raw.get("public_phone_number"),
                     "amenities": raw.get("amenities", []),
                     "opening_times": raw.get("opening_times", {}),

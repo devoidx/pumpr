@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef } from 'react'
 import { FUEL_COLORS } from '../constants/fuels'
 import { SPEED_COLOR } from '../constants/ev'
+import { parseKwhPrice, costPer100Miles } from '../utils/evCost'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -199,7 +200,8 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
             <div style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:4px;">${c.network}</div>
             <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:6px;line-height:1.3;">${c.name}</div>
             ${c.max_power_kw?`<div style="font-size:24px;font-weight:500;font-family:'DM Mono',monospace;color:${color};">${c.max_power_kw}<span style="font-size:12px;opacity:0.7">kW</span></div>`:''}
-            ${c.usage_cost?`<div style="font-size:12px;color:#aaa;margin-top:4px;">${c.usage_cost}</div>`:''}
+${(() => { const kp = parseKwhPrice(c.usage_cost); const c100 = costPer100Miles(kp); if (c100 !== null) return `<div style="font-size:11px;color:#aaa;margin-top:2px;">${c100 === 0 ? 'Free' : '~£' + c100.toFixed(2) + '/100mi'}</div>`; if (c.usage_cost) return `<div style="font-size:11px;color:#aaa;margin-top:2px;">${c.usage_cost}</div>`; return ''; })()}
+            
             ${c.distance_km!=null?`<div style="font-size:11px;color:#aaa;margin-top:2px;">${units === 'miles' ? (c.distance_km * 0.621371).toFixed(1) + ' mi' : c.distance_km + ' km'} away</div>`:''}
           </div>
         `)

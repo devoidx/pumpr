@@ -2707,3 +2707,17 @@ CREATE TABLE
 COPY 100730
 INSERT 0 25184
 Mon Apr 27 03:05:14 PM BST 2026 - Sync complete
+Mon Apr 27 03:35:01 PM BST 2026 - Starting incremental sync to VPS
+Mon Apr 27 03:35:01 PM BST 2026 - Exported 100733 prices, 7704 stations
+CREATE TABLE
+COPY 7703
+INSERT 0 7703
+CREATE TABLE
+COPY 100732
+INSERT 0 25184
+Mon Apr 27 03:35:15 PM BST 2026 - Sync complete
+Mon Apr 27 04:05:01 PM BST 2026 - Starting incremental sync to VPS
+Mon Apr 27 04:05:02 PM BST 2026 - Exported 125919 prices, 7705 stations
+CREATE TABLE
+COPY 7704
+INSERT 0 7704

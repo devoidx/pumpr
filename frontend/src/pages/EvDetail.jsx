@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getCharger } from '../api/client'
 import { CONNECTOR_COLORS, SPEED_COLOR, SPEED_LABEL } from '../constants/ev'
+import { parseKwhPrice, costPer100Miles } from '../utils/evCost'
 import './EvDetail.css'
 
 export default function EvDetail() {
@@ -18,6 +19,8 @@ export default function EvDetail() {
   if (!charger) return <div className="ev-loading">Charger not found</div>
 
   const speedColor = SPEED_COLOR(charger.max_power_kw)
+  const kwhPrice = parseKwhPrice(charger.usage_cost)
+  const cost100mi = costPer100Miles(kwhPrice)
 
   return (
     <div className="ev-detail-page">
@@ -59,6 +62,13 @@ export default function EvDetail() {
             <div className="ev-stat-card">
               <div className="ev-stat-label">Cost</div>
               <div className="ev-stat-value ev-stat-cost">{charger.usage_cost}</div>
+            </div>
+          )}
+          {cost100mi !== null && (
+            <div className="ev-stat-card">
+              <div className="ev-stat-label">Est. per 100mi</div>
+              <div className="ev-stat-value">{cost100mi === 0 ? 'Free' : `~£${cost100mi.toFixed(2)}`}</div>
+              <div className="ev-stat-sub">all points · 3.5mi/kWh avg</div>
             </div>
           )}
           {charger.is_membership_required && (

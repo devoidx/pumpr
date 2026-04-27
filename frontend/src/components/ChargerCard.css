@@ -171,3 +171,18 @@
 .cc-very-stale {
   color: var(--red);
 }
+
+.cc-cost100 {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text2);
+  margin-top: 2px;
+  text-align: right;
+}
+.cc-cost100-label {
+  font-size: 9px;
+  font-weight: 400;
+  opacity: 0.7;
+  display: block;
+}
