@@ -1,17 +1,15 @@
 #!/bin/bash
 set -e
-
 VPS_IP="178.104.239.190"
 PRICES_FILE="/tmp/pumpr_prices_sync.sql"
 STATIONS_FILE="/tmp/pumpr_stations_sync.sql"
-
 echo "$(date) - Starting incremental sync to VPS"
 
 # Export recent prices
 docker exec pumpr_db psql -U pumpr pumpr -c \
-  "COPY (SELECT station_id, fuel_type, price_pence, recorded_at, source_updated_at, price_flagged 
-         FROM price_history 
-         WHERE recorded_at > NOW() - INTERVAL '2 hours') 
+  "COPY (SELECT station_id, fuel_type, price_pence, recorded_at, source_updated_at, price_flagged
+         FROM price_history
+         WHERE recorded_at > NOW() - INTERVAL '2 hours')
    TO STDOUT WITH CSV HEADER" > "$PRICES_FILE"
 
 # Export stations
@@ -28,7 +26,24 @@ ssh root@$VPS_IP "docker cp /tmp/pumpr_stations_sync.sql pumpr_db:/tmp/pumpr_sta
 ssh root@$VPS_IP "docker exec pumpr_db psql -U pumpr pumpr -c \"
   CREATE TEMP TABLE st_tmp (LIKE stations INCLUDING ALL);
   COPY st_tmp FROM '/tmp/pumpr_stations_sync.sql' WITH CSV HEADER;
-  INSERT INTO stations SELECT * FROM st_tmp ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, updated_at = EXCLUDED.updated_at, permanent_closure = EXCLUDED.permanent_closure, temporary_closure = EXCLUDED.temporary_closure;
+  INSERT INTO stations SELECT * FROM st_tmp ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    latitude = EXCLUDED.latitude,
+    longitude = EXCLUDED.longitude,
+    county = EXCLUDED.county,
+    country = EXCLUDED.country,
+    postcode = EXCLUDED.postcode,
+    address = EXCLUDED.address,
+    brand = EXCLUDED.brand,
+    operator = EXCLUDED.operator,
+    phone = EXCLUDED.phone,
+    amenities = EXCLUDED.amenities,
+    opening_times = EXCLUDED.opening_times,
+    fuel_types = EXCLUDED.fuel_types,
+    is_motorway = EXCLUDED.is_motorway,
+    is_supermarket = EXCLUDED.is_supermarket,
+    temporary_closure = EXCLUDED.temporary_closure,
+    permanent_closure = EXCLUDED.permanent_closure;
 \""
 
 # Then import prices
@@ -42,5 +57,4 @@ ssh root@$VPS_IP "docker exec pumpr_db psql -U pumpr pumpr -c \"
 # Cleanup
 ssh root@$VPS_IP "rm /tmp/pumpr_prices_sync.sql /tmp/pumpr_stations_sync.sql"
 rm "$PRICES_FILE" "$STATIONS_FILE"
-
 echo "$(date) - Sync complete"
