@@ -93,7 +93,7 @@ function createEvMarker(color, selected = false, kw = null, points = null) {
   })
 }
 
-export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice }) {
+export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
@@ -140,7 +140,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
             <div style="font-size:28px;font-weight:500;font-family:'DM Mono',monospace;color:${color};">
               ${s.price_pence.toFixed(1)}<span style="font-size:14px;opacity:0.7">p</span>
             </div>
-            ${s.distance_km!=null?`<div style="font-size:11px;color:#aaa;margin-top:4px;">${s.distance_km}km away</div>`:''}
+            ${(useDriving && s.driving_km != null) ? `<div style="font-size:11px;color:#f5a623;margin-top:4px;">🚗 ${units === 'miles' ? (s.driving_km * 0.621371).toFixed(1) + ' mi' : s.driving_km + ' km'}${s.driving_mins ? ' · ' + Math.round(s.driving_mins) + 'min' : ''}</div>` : s.distance_km != null ? `<div style="font-size:11px;color:#aaa;margin-top:4px;">${units === 'miles' ? (s.distance_km * 0.621371).toFixed(1) + ' mi' : s.distance_km + ' km'} away</div>` : ''}
           </div>
         `)
         marker.bindPopup(popup)
@@ -172,7 +172,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
             <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:6px;line-height:1.3;">${c.name}</div>
             ${c.max_power_kw?`<div style="font-size:24px;font-weight:500;font-family:'DM Mono',monospace;color:${color};">${c.max_power_kw}<span style="font-size:12px;opacity:0.7">kW</span></div>`:''}
             ${c.usage_cost?`<div style="font-size:12px;color:#aaa;margin-top:4px;">${c.usage_cost}</div>`:''}
-            ${c.distance_km!=null?`<div style="font-size:11px;color:#aaa;margin-top:2px;">${c.distance_km}km away</div>`:''}
+            ${c.distance_km!=null?`<div style="font-size:11px;color:#aaa;margin-top:2px;">${units === 'miles' ? (c.distance_km * 0.621371).toFixed(1) + ' mi' : c.distance_km + ' km'} away</div>`:''}
           </div>
         `)
         marker.bindPopup(popup)

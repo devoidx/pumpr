@@ -309,6 +309,8 @@ export default function Home() {
           onHover={setHoveredId}
           minPrice={priceRange.min}
           maxPrice={priceRange.max}
+          units={units}
+          useDriving={useDriving}
         />
       </div>
     </div>
