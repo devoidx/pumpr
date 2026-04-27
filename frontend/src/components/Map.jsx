@@ -30,7 +30,7 @@ function createFuelMarker(color, selected = false, rank = null, price = '') {
   const w = selected ? 64 : 56
   const h = selected ? 30 : 26
   const fontSize = selected ? 13 : 11
-  const star = rank === 0 ? '★ ' : ''
+  const star = rank === 0 ? '★' : ''
   return L.divIcon({
     className: '',
     html: `<div style="
@@ -44,7 +44,8 @@ function createFuelMarker(color, selected = false, rank = null, price = '') {
       align-items:center;justify-content:center;
       padding:2px 4px;
       cursor:pointer;">
-      <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;">${star}${price}p</span>
+      ${star ? `<span style="color:#fff;font-size:10px;line-height:1;text-align:center;width:100%;display:block;">★</span>` : ''}
+      <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;text-align:center;display:block;">${price}p</span>
       <div style="
         position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
         width:0;height:0;
