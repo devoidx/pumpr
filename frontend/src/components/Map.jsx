@@ -63,7 +63,6 @@ function createEvMarker(color, selected = false, kw = null, points = null) {
   const w = selected ? 58 : 50
   const h = selected ? 32 : 28
   const kwLabel = kw ? (kw >= 1000 ? `${(kw/1000).toFixed(0)}MW` : `${kw}kW`) : ''
-  const ptLabel = points > 1 ? `<span style="color:rgba(255,255,255,0.8);font-size:9px;font-family:'DM Mono',monospace;">${points}</span>` : ''
   return L.divIcon({
     className: '',
     html: `<div style="
@@ -77,9 +76,8 @@ function createEvMarker(color, selected = false, kw = null, points = null) {
       align-items:center;justify-content:center;
       padding:2px 4px;
       cursor:pointer;gap:1px;">
-      <span style="font-size:11px;line-height:1;">⚡</span>
+      <span style="color:#fff;font-size:10px;line-height:1;">⚡${points ? ` (${points})` : ''}</span>
       <span style="color:#fff;font-size:${selected?12:10}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;">${kwLabel}</span>
-      ${ptLabel}
       <div style="
         position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
         width:0;height:0;
