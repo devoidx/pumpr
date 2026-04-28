@@ -266,12 +266,17 @@ async def ingest_prices() -> int:
             if price is None:
                 continue
             price = float(price)
-            if price < 100:
+            if not _is_valid_price(internal_fuel_type, price, medians):
                 logger.warning(f"Rejected price {price}p for {internal_fuel_type} at {station_id}")
                 continue
             flagged = False
+            # Flag prices that are suspicious but within hard limits (low outliers)
             if internal_fuel_type in medians and price < medians[internal_fuel_type] * 0.6:
                 logger.warning(f"Flagged suspicious price {price}p for {internal_fuel_type} at {station_id}")
+                flagged = True
+            # Flag prices that are high outliers (above 1.4x median) but passed hard limit
+            if internal_fuel_type in medians and price > medians[internal_fuel_type] * 1.4:
+                logger.warning(f"Flagged high price {price}p for {internal_fuel_type} at {station_id}")
                 flagged = True
             # Flag prices not updated by supplier in 60+ days
             source_updated = _parse_dt(fuel_entry.get("price_last_updated"))
