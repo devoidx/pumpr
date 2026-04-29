@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import PumpIcon from './icons/PumpIcon'
 import NavAuthSection from './auth/UserMenu'
+import FeedHealthIndicator from './FeedHealthIndicator'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -12,7 +13,7 @@ export default function Navbar() {
     <nav className="navbar">
       <Link to="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
         <PumpIcon size={26} />
-        <span className="navbar-name">Pumpr</span>
+        <span className="navbar-name">Pumpr</span><FeedHealthIndicator />
       </Link>
 
       {/* Desktop links */}

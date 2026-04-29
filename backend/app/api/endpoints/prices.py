@@ -28,6 +28,37 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
+@router.get("/feed-health")
+async def feed_health(db: AsyncSession = Depends(get_db)) -> dict:
+    """Returns age of most recent price data."""
+    result = await db.execute(text("""
+        SELECT MAX(recorded_at) as latest FROM price_history
+    """))
+    latest = result.scalar()
+    if not latest:
+        return {"status": "red", "message": "No data available", "minutes_ago": None}
+
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    # Make latest timezone-aware if it isn't
+    if latest.tzinfo is None:
+        from datetime import timezone
+        latest = latest.replace(tzinfo=timezone.utc)
+    minutes_ago = (now - latest).total_seconds() / 60
+
+    if minutes_ago <= 30:
+        status = "green"
+        message = f"Data updated {int(minutes_ago)} mins ago"
+    elif minutes_ago <= 120:
+        status = "amber"
+        message = f"Data updated {int(minutes_ago)} mins ago — may be slightly stale"
+    else:
+        status = "red"
+        message = f"Data not updated for {int(minutes_ago // 60)}h {int(minutes_ago % 60)}m — feed may be down"
+
+    return {"status": status, "message": message, "minutes_ago": round(minutes_ago, 1)}
+
+
 @router.get("/cheapest")
 @limiter.limit("60/minute")
 async def get_cheapest(
