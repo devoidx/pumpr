@@ -107,8 +107,11 @@ async def stripe_webhook(
 
     if event_type == "checkout.session.completed":
         session_obj = event["data"]["object"]
-        user_id = (session_obj.get("metadata") or {}).get("user_id")
-        customer_email = (session_obj.get("customer_details") or {}).get("email") or session_obj.get("customer_email")
+        # Convert StripeObject to dict for safe access
+        metadata = dict(session_obj.get("metadata") or {})
+        customer_details = dict(session_obj.get("customer_details") or {})
+        user_id = metadata.get("user_id")
+        customer_email = customer_details.get("email") or session_obj.get("customer_email")
         subscription_id = session_obj.get("subscription")
 
         user = None
