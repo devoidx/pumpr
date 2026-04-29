@@ -23,25 +23,18 @@ export default function ProPage() {
   const [error, setError]     = useState('')
 
   async function handleSubscribe() {
-    if (!isAuthenticated) {
-      // store intent and redirect — NavAuthSection will handle login
-      sessionStorage.setItem('post_login_redirect', '/pro')
-      navigate('/pro')
-      // trigger login modal by dispatching a custom event
-      window.dispatchEvent(new CustomEvent('pumpr:open-login'))
-      return
-    }
-
     setLoading(true)
     setError('')
     try {
       const price_id = billing === 'monthly' ? MONTHLY_PRICE_ID : ANNUAL_PRICE_ID
-      const res = await fetch('/api/v1/stripe/create-checkout-session', {
+      const endpoint = isAuthenticated
+        ? '/api/v1/stripe/create-checkout-session'
+        : '/api/v1/stripe/create-checkout-session-public'
+      const headers = { 'Content-Type': 'application/json' }
+      if (isAuthenticated && accessToken) headers['Authorization'] = `Bearer ${accessToken}`
+      const res = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers,
         body: JSON.stringify({ price_id }),
       })
       const data = await res.json()
