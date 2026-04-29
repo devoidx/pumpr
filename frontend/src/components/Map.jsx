@@ -94,7 +94,7 @@ function createEvMarker(color, selected = false, kw = null, points = null) {
   })
 }
 
-export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false }) {
+export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false, isPro = false, avgPrice = 0 }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
@@ -169,7 +169,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
             <div style="font-size:28px;font-weight:500;font-family:'DM Mono',monospace;color:${color};">
               ${s.price_pence.toFixed(1)}<span style="font-size:14px;opacity:0.7">p</span>${s.price_flagged ? '<span style="font-size:12px;color:#e74c3c;margin-left:4px;">⚠</span>' : ''}
             </div>
-            ${s.price_flagged ? '<div style="font-size:10px;color:#e74c3c;margin-top:2px;">Price may be unreliable</div>' : ''}
+            ${s.price_flagged ? '<div style="font-size:10px;color:#e74c3c;margin-top:2px;">Price may be unreliable</div>' : ''}${isPro ? `<div style="font-size:11px;color:#aaa;margin-top:4px;">50L fill: ~£${((s.price_pence / 100) * 50).toFixed(2)}${avgPrice > 0 ? (() => { const diff = ((avgPrice - s.price_pence) / 100) * 50; const sign = diff >= 0 ? 'save' : 'extra'; return ` <span style="color:${diff >= 0 ? '#2ecc71' : '#e74c3c'};">(${sign} £${Math.abs(diff).toFixed(2)} vs avg)</span>`; })() : ''}</div>` : ''}
             ${(useDriving && s.driving_km != null) ? `<div style="font-size:11px;color:#f5a623;margin-top:4px;">🚗 ${units === 'miles' ? (s.driving_km * 0.621371).toFixed(1) + ' mi' : s.driving_km + ' km'}${s.driving_mins ? ' · ' + Math.round(s.driving_mins) + 'min' : ''}</div>` : s.distance_km != null ? `<div style="font-size:11px;color:#aaa;margin-top:4px;">${units === 'miles' ? (s.distance_km * 0.621371).toFixed(1) + ' mi' : s.distance_km + ' km'} away</div>` : ''}
           </div>
         `)

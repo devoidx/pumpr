@@ -338,6 +338,8 @@ export default function Home() {
           maxPrice={priceRange.max}
           units={units}
           useDriving={useDriving}
+          isPro={!!(user?.role === 'pro' || user?.role === 'admin')}
+          avgPrice={avgPrice}
         />
       </div>
     </div>
