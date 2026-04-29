@@ -34,6 +34,26 @@ def _bsky_client():
     return client
 
 
+def _mastodon_post(content: str) -> bool:
+    """Post to Mastodon. Returns True on success."""
+    if not settings.mastodon_access_token:
+        return False
+    try:
+        import httpx
+        resp = httpx.post(
+            f"{settings.mastodon_instance}/api/v1/statuses",
+            headers={"Authorization": f"Bearer {settings.mastodon_access_token}"},
+            data={"status": content, "visibility": "public"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        logger.info("Posted to Mastodon")
+        return True
+    except Exception as e:
+        logger.error(f"Mastodon post failed: {e}")
+        return False
+
+
 async def _get_uk_averages() -> list[dict]:
     async with AsyncSessionLocal() as session:
         result = await session.execute(text("""
@@ -145,7 +165,7 @@ async def post_daily_averages(dry_run: bool = False) -> str:
             logger.info("Posted daily averages to Bluesky")
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
-            return ""
+        _mastodon_post(text)
 
     return text
 
@@ -180,7 +200,7 @@ async def post_cheapest_station(fuel: str = "E10", dry_run: bool = False) -> str
             logger.info(f"Posted cheapest {fuel} to Bluesky")
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
-            return ""
+        _mastodon_post(text)
 
     return text
 
@@ -209,7 +229,7 @@ async def post_cheapest_by_country(fuel: str = "E10", dry_run: bool = False) -> 
             logger.info("Posted cheapest by country to Bluesky")
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
-            return ""
+        _mastodon_post(text)
 
     return text
 
@@ -314,9 +334,11 @@ async def post_cheapest_by_county(fuel: str = "E10", dry_run: bool = False) -> l
                 client.send_post(text=text)
                 logger.info(f"Posted county cheapest for {region}")
                 posted.append(region)
+                _mastodon_post(text)
                 await aio.sleep(2)
             except Exception as e:
                 logger.error(f"Bluesky county post failed for {region}: {e}")
+                _mastodon_post(text)
         else:
             posted.append(region)
 

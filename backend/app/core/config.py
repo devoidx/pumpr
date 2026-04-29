@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ocm_api_key: str = ""
     ocm_api_url: str = "https://api.openchargemap.io/v3"
     bsky_handle: str = ""
+    mastodon_instance: str = "https://mastodon.social"
+    mastodon_access_token: str = ""
     bsky_app_password: str = ""
     resend_api_key: str = ""
     smtp_host: str = ""
