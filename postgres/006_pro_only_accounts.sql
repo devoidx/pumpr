@@ -7,3 +7,8 @@ ALTER TABLE users
 
 -- Allow null usernames (existing users keep theirs)
 UPDATE users SET username = NULL WHERE username = '';
+
+-- Add setup_password purpose to user_tokens
+ALTER TABLE user_tokens DROP CONSTRAINT IF EXISTS user_tokens_purpose_check;
+ALTER TABLE user_tokens ADD CONSTRAINT user_tokens_purpose_check
+  CHECK (purpose = ANY (ARRAY['verify_email', 'reset_password', 'setup_password']));
