@@ -44,12 +44,15 @@ async def _background_sync() -> None:
     await asyncio.sleep(2)  # let the app finish starting
     try:
         logger.info("Background sync: starting station sync...")
-        await sync_stations()
+        try:
+            await sync_stations()
+        except Exception as e:
+            logger.warning(f"Background sync: station sync failed (will retry later): {e}")
         logger.info("Background sync: starting price ingest...")
         await ingest_prices()
         logger.info("Background sync: complete")
     except Exception as e:
-        logger.error(f"Background sync failed: {e}")
+        logger.exception(f"Background sync failed: {e}")
 
 
 @app.on_event("startup")

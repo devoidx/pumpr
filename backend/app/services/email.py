@@ -93,6 +93,26 @@ async def send_password_reset_email(email: str, token: str) -> None:
     _send(email, "Reset your Pumpr password", html, text)
 
 
+async def send_welcome_setup_email(email: str, token: str) -> None:
+    """Send welcome email with password setup link after Stripe payment."""
+    link = f"{settings.app_base_url}/setup-password?token={token}"
+    html = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #0f0f0f; color: #e8e8e8; padding: 40px;">
+  <div style="max-width: 480px; margin: 0 auto; background: #1a1a1a; border-radius: 12px; padding: 32px; border: 1px solid #2a2a2a;">
+    <h1 style="color: #f5a623; font-size: 28px; margin: 0 0 8px;">⛽ Welcome to Pumpr!</h1>
+    <h2 style="color: #e8e8e8; font-size: 18px; margin: 0 0 24px;">Your Pro account is ready</h2>
+    <p style="color: #a0a0a8; line-height: 1.6;">Thanks for subscribing to Pumpr Pro. Click the button below to set your password and start saving on fuel.</p>
+    <a href="{link}" style="display: inline-block; margin: 24px 0; background: #f5a623; color: #000; font-weight: 700; padding: 12px 28px; border-radius: 8px; text-decoration: none;">Set your password →</a>
+    <p style="color: #5a5a68; font-size: 13px;">This link expires in 24 hours. If you didn't subscribe to Pumpr, please ignore this email.</p>
+  </div>
+</body>
+</html>"""
+    text = f"Welcome to Pumpr!\n\nSet your password:\n{link}\n\nExpires in 24 hours."
+    _send(email, "Welcome to Pumpr — set your password", html, text)
+
+
 async def send_resend_verification_email(email: str) -> None:
     """Resend a new verification email - generates a fresh token."""
     # This is called from the API endpoint - token generation happens there

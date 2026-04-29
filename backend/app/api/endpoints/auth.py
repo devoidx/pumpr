@@ -38,12 +38,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(body: UserCreate, db: AsyncSession = Depends(get_db)) -> dict:
     existing = await db.execute(
-        select(User).where((User.email == body.email) | (User.username == body.username))
+        select(User).where(User.email == body.email)
     )
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email or username already registered")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
-    user = User(email=body.email, username=body.username, password_hash=hash_password(body.password))
+    user = User(email=body.email, username=None, password_hash=hash_password(body.password))
     db.add(user)
     await db.flush()
 
@@ -139,6 +139,58 @@ async def refresh(
         path="/",
     )
     return TokenResponse(access_token=access_token, expires_in=expires_in)
+
+
+@router.post("/setup-password")
+async def setup_password(
+    token: str,
+    password: str,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Complete account setup by setting password. Used after Stripe payment."""
+    token_hash = hash_token(token)
+    result = await db.execute(
+        select(UserToken).where(
+            UserToken.token_hash == token_hash,
+            UserToken.purpose == "setup_password",
+            UserToken.used_at.is_(None),
+            UserToken.expires_at > datetime.now(timezone.utc),
+        )
+    )
+    stored = result.scalar_one_or_none()
+    if not stored:
+        raise HTTPException(status_code=400, detail="Invalid or expired setup link")
+
+    result2 = await db.execute(select(User).where(User.id == stored.user_id))
+    user = result2.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    user.password_hash = hash_password(password)
+    stored.used_at = datetime.now(timezone.utc)
+    await db.commit()
+
+    # Auto login — issue tokens
+    raw_refresh = generate_refresh_token()
+    access_token, expires_in = create_access_token(str(user.id), user.role)
+    db.add(RefreshToken(
+        user_id=user.id,
+        token_hash=hash_token(raw_refresh),
+        expires_at=refresh_token_expiry(),
+    ))
+    await db.commit()
+
+    response.set_cookie(
+        key="refresh_token",
+        value=raw_refresh,
+        httponly=True,
+        secure=settings.environment == "production",
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,
+        path="/",
+    )
+    return {"access_token": access_token, "token_type": "bearer", "expires_in": expires_in}
 
 
 @router.post("/resend-verification")

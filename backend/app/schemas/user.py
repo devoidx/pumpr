@@ -8,7 +8,6 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 class UserCreate(BaseModel):
     email: EmailStr
-    username: str = Field(min_length=3, max_length=30, pattern=r"^[a-zA-Z0-9_\-]+$")
     password: str = Field(min_length=8, max_length=128)
 
     @field_validator("password")
@@ -29,7 +28,7 @@ class UserLogin(BaseModel):
 class UserOut(BaseModel):
     id: uuid.UUID
     email: EmailStr
-    username: str
+    username: str | None = None
     is_verified: bool
     role: str
     created_at: datetime
