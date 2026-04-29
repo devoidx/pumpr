@@ -77,12 +77,15 @@ async def create_checkout_session_public(
     if body.price_id not in allowed:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid price")
 
+    # Stripe will collect the email — we pass it to the checkout
+    # so if an existing customer exists, Stripe will reuse them
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[{"price": body.price_id, "quantity": 1}],
         mode="subscription",
         success_url=f"{settings.app_base_url}/pro/success?session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{settings.app_base_url}/pro",
+        allow_promotion_codes=True,
     )
     return {"checkout_url": session.url}
 
