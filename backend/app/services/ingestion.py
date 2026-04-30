@@ -295,6 +295,18 @@ async def ingest_prices() -> int:
             )
 
     async with AsyncSessionLocal() as session:
+        # Filter out records for stations not in DB to avoid FK violations
+        if records:
+            station_ids = list({r.station_id for r in records})
+            result = await session.execute(
+                text("SELECT id FROM stations WHERE id = ANY(:ids)"),
+                {"ids": station_ids}
+            )
+            known_ids = {row[0] for row in result.fetchall()}
+            unknown = len(records) - sum(1 for r in records if r.station_id in known_ids)
+            if unknown:
+                logger.warning(f"Filtered {unknown} price records for unknown stations")
+                records = [r for r in records if r.station_id in known_ids]
         session.add_all(records)
         await session.commit()
 

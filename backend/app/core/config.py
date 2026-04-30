@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ocm_api_url: str = "https://api.openchargemap.io/v3"
     bsky_handle: str = ""
     mastodon_instance: str = "https://mastodon.social"
+    dvla_api_key: str = ""
     mastodon_access_token: str = ""
     bsky_app_password: str = ""
     resend_api_key: str = ""

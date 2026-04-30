@@ -11,6 +11,7 @@ import VerifyEmailPage from './components/auth/VerifyEmailPage'
 import ResetPasswordPage from './components/auth/ResetPasswordPage'
 import ProPage from './pages/ProPage'
 import SetupPasswordPage from './pages/SetupPasswordPage'
+import MyVehiclesPage from './pages/MyVehiclesPage'
 import UnverifiedBanner from './components/auth/UnverifiedBanner'
 import ProfilePage from './pages/ProfilePage'
 import MyPlacesPage from './pages/MyPlacesPage'
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/my-places" element={<MyPlacesPage />} />
           <Route path="/pro/success" element={<ProSuccessPage />} />
           <Route path="/setup-password" element={<SetupPasswordPage />} />
+          <Route path="/my-vehicles" element={<MyVehiclesPage />} />
         </Routes>
       </div>
     </div>

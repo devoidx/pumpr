@@ -1,0 +1,186 @@
+.mv-page {
+  background: var(--bg);
+  min-height: calc(100vh - var(--nav-h));
+  padding: 2rem 1rem;
+}
+.mv-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+.mv-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.mv-title {
+  color: var(--amber);
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem;
+}
+.mv-sub {
+  color: var(--text2);
+  font-size: 0.85rem;
+  margin: 0;
+}
+.mv-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.2s;
+}
+.mv-card-active {
+  border-color: var(--amber);
+}
+.mv-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.mv-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.mv-reg {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+.mv-nickname {
+  color: var(--text2);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+.mv-active-badge {
+  background: var(--amber);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.mv-card-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.mv-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.mv-detail {
+  color: var(--text2);
+  font-size: 0.875rem;
+}
+.mv-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin-top: 0.25rem;
+}
+.mv-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.mv-form-title {
+  color: var(--amber);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+.mv-lookup-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.mv-reg-input {
+  font-family: 'DM Mono', monospace;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  flex: 1;
+}
+.mv-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.mv-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+.mv-hint {
+  font-size: 0.72rem;
+  color: var(--text3);
+}
+.mv-input {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mv-input:focus { border-color: var(--amber); }
+.mv-form-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.mv-btn {
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  transition: var(--transition);
+}
+.mv-btn-primary { background: var(--amber); color: #000; }
+.mv-btn-primary:hover:not(:disabled) { opacity: 0.85; }
+.mv-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.mv-btn-ghost { background: var(--surface2); color: var(--text2); }
+.mv-btn-ghost:hover { background: var(--border2); }
+.mv-btn-danger { background: transparent; color: var(--red, #e74c3c); border: 1px solid var(--red, #e74c3c); }
+.mv-btn-danger:hover { background: rgba(231,76,60,0.1); }
+.mv-error { color: var(--red, #e74c3c); font-size: 0.85rem; margin: 0.5rem 0; }
+.mv-loading { color: var(--text2); }
+.mv-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text2);
+}
+.mv-empty-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+.mv-empty p { margin-bottom: 1rem; }
+.mv-limit { color: var(--text3); font-size: 0.85rem; text-align: center; margin-top: 0.5rem; }
+@media (max-width: 480px) {
+  .mv-form-grid { grid-template-columns: 1fr; }
+  .mv-header { flex-direction: column; }
+}
