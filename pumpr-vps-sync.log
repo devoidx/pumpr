@@ -3607,3 +3607,345 @@ CREATE TABLE
 COPY 151320
 INSERT 0 50442
 Wed Apr 29 05:05:19 PM BST 2026 - Sync complete
+Wed Apr 29 05:35:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 05:35:02 PM BST 2026 - Exported 151325 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 151324
+INSERT 0 50442
+Wed Apr 29 05:35:21 PM BST 2026 - Sync complete
+Wed Apr 29 06:05:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 06:05:01 PM BST 2026 - Exported 151327 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 151326
+INSERT 0 25221
+Wed Apr 29 06:05:16 PM BST 2026 - Sync complete
+Wed Apr 29 06:35:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 06:35:02 PM BST 2026 - Exported 126106 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 126105
+INSERT 0 0
+Wed Apr 29 06:35:12 PM BST 2026 - Sync complete
+Wed Apr 29 07:05:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 07:05:02 PM BST 2026 - Exported 75664 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 75663
+INSERT 0 0
+Wed Apr 29 07:05:10 PM BST 2026 - Sync complete
+Wed Apr 29 07:35:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 07:35:01 PM BST 2026 - Exported 25222 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 25221
+INSERT 0 0
+Wed Apr 29 07:35:08 PM BST 2026 - Sync complete
+Wed Apr 29 08:05:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 08:05:02 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 08:05:08 PM BST 2026 - Sync complete
+Wed Apr 29 08:35:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 08:35:01 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 08:35:07 PM BST 2026 - Sync complete
+Wed Apr 29 09:05:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 09:05:01 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 09:05:08 PM BST 2026 - Sync complete
+Wed Apr 29 09:35:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 09:35:01 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 09:35:08 PM BST 2026 - Sync complete
+Wed Apr 29 10:05:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 10:05:01 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 10:05:07 PM BST 2026 - Sync complete
+Wed Apr 29 10:35:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 10:35:01 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 10:35:07 PM BST 2026 - Sync complete
+Wed Apr 29 11:05:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 11:05:02 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 11:05:08 PM BST 2026 - Sync complete
+Wed Apr 29 11:35:01 PM BST 2026 - Starting incremental sync to VPS
+Wed Apr 29 11:35:02 PM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Wed Apr 29 11:35:08 PM BST 2026 - Sync complete
+Thu Apr 30 12:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 12:05:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 12:05:07 AM BST 2026 - Sync complete
+Thu Apr 30 12:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 12:35:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 12:35:08 AM BST 2026 - Sync complete
+Thu Apr 30 01:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 01:05:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 01:05:07 AM BST 2026 - Sync complete
+Thu Apr 30 01:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 01:35:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 01:35:08 AM BST 2026 - Sync complete
+Thu Apr 30 02:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 02:05:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 02:05:07 AM BST 2026 - Sync complete
+Thu Apr 30 02:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 02:35:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 02:35:07 AM BST 2026 - Sync complete
+Thu Apr 30 03:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 03:05:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 03:05:08 AM BST 2026 - Sync complete
+Thu Apr 30 03:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 03:35:01 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 03:35:07 AM BST 2026 - Sync complete
+Thu Apr 30 04:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 04:05:02 AM BST 2026 - Exported 1 prices, 7719 stations
+CREATE TABLE
+COPY 7718
+INSERT 0 7718
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 04:05:08 AM BST 2026 - Sync complete
+Thu Apr 30 04:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 04:35:01 AM BST 2026 - Exported 1 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 0
+INSERT 0 0
+Thu Apr 30 04:35:07 AM BST 2026 - Sync complete
+Thu Apr 30 05:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 05:05:02 AM BST 2026 - Exported 25231 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 25230
+INSERT 0 25230
+Thu Apr 30 05:05:11 AM BST 2026 - Sync complete
+Thu Apr 30 05:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 05:35:01 AM BST 2026 - Exported 75691 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 75690
+INSERT 0 50460
+Thu Apr 30 05:35:14 AM BST 2026 - Sync complete
+Thu Apr 30 06:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 06:05:01 AM BST 2026 - Exported 100921 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 100920
+INSERT 0 25230
+Thu Apr 30 06:05:11 AM BST 2026 - Sync complete
+Thu Apr 30 06:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 06:35:02 AM BST 2026 - Exported 100921 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 100920
+INSERT 0 25230
+Thu Apr 30 06:35:12 AM BST 2026 - Sync complete
+Thu Apr 30 07:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 07:05:02 AM BST 2026 - Exported 100921 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 100920
+INSERT 0 25230
+Thu Apr 30 07:05:12 AM BST 2026 - Sync complete
+Thu Apr 30 07:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 07:35:02 AM BST 2026 - Exported 100921 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 100920
+INSERT 0 25230
+Thu Apr 30 07:35:13 AM BST 2026 - Sync complete
+Thu Apr 30 08:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 08:05:01 AM BST 2026 - Exported 100921 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 100920
+INSERT 0 25230
+Thu Apr 30 08:05:13 AM BST 2026 - Sync complete
+Thu Apr 30 08:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 08:35:02 AM BST 2026 - Exported 75691 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 75690
+INSERT 0 0
+Thu Apr 30 08:35:10 AM BST 2026 - Sync complete
+Thu Apr 30 09:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 09:05:02 AM BST 2026 - Exported 75691 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 75690
+INSERT 0 25230
+Thu Apr 30 09:05:26 AM BST 2026 - Sync complete
+Thu Apr 30 09:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 09:35:02 AM BST 2026 - Exported 100921 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 100920
+INSERT 0 50460
+Thu Apr 30 09:35:36 AM BST 2026 - Sync complete
+Thu Apr 30 10:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 10:05:01 AM BST 2026 - Exported 75691 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 75690
+INSERT 0 0
+Thu Apr 30 10:05:11 AM BST 2026 - Sync complete
+Thu Apr 30 10:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 10:35:02 AM BST 2026 - Exported 100921 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 100920
+INSERT 0 25230
+Thu Apr 30 10:35:27 AM BST 2026 - Sync complete
+Thu Apr 30 11:05:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 11:05:02 AM BST 2026 - Exported 50461 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 50460
+INSERT 0 0
+Thu Apr 30 11:05:10 AM BST 2026 - Sync complete
+Thu Apr 30 11:35:01 AM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 11:35:01 AM BST 2026 - Exported 25231 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 25230
+INSERT 0 0
+Thu Apr 30 11:35:09 AM BST 2026 - Sync complete
+Thu Apr 30 12:05:01 PM BST 2026 - Starting incremental sync to VPS
+Thu Apr 30 12:05:01 PM BST 2026 - Exported 25231 prices, 7722 stations
+CREATE TABLE
+COPY 7721
+INSERT 0 7721
+CREATE TABLE
+COPY 25230
+INSERT 0 0
+Thu Apr 30 12:05:08 PM BST 2026 - Sync complete

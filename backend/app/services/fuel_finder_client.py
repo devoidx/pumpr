@@ -13,7 +13,7 @@ class FuelFinderClient:
         self._token: str | None = None
         self._refresh_token: str | None = None
         self._token_expires_at: datetime | None = None
-        self._client = httpx.AsyncClient(timeout=60.0)
+        self._client = httpx.AsyncClient(timeout=60.0, transport=httpx.AsyncHTTPTransport(local_address="0.0.0.0"))
 
     async def _get_token(self) -> str:
         if self._token and self._token_expires_at and datetime.utcnow() < self._token_expires_at:
