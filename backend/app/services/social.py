@@ -87,6 +87,48 @@ def _threads_post(text: str) -> bool:
         return False
 
 
+async def refresh_threads_token() -> bool:
+    """Refresh the Threads long-lived token and update .env on disk."""
+    if not settings.threads_access_token:
+        logger.warning("No Threads token to refresh")
+        return False
+    try:
+        import os
+        import re
+
+        import httpx
+        resp = httpx.get(
+            "https://graph.threads.net/access_token",
+            params={
+                "grant_type": "th_refresh_token",
+                "access_token": settings.threads_access_token,
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        new_token = resp.json().get("access_token")
+        if not new_token:
+            logger.error(f"Threads refresh: no token in response: {resp.text}")
+            return False
+
+        # Write new token back to .env
+        env_path = "/opt/pumpr/.env"
+        if os.path.exists(env_path):
+            with open(env_path, "r") as f:
+                env = f.read()
+            env = re.sub(r"THREADS_ACCESS_TOKEN=.*", f"THREADS_ACCESS_TOKEN={new_token}", env)
+            with open(env_path, "w") as f:
+                f.write(env)
+            logger.info("Threads token refreshed and written to .env")
+        else:
+            logger.warning("Threads token refreshed but .env not found — token not persisted")
+
+        return True
+    except Exception as e:
+        logger.error(f"Threads token refresh failed: {e}")
+        return False
+
+
 async def _get_uk_averages() -> list[dict]:
     async with AsyncSessionLocal() as session:
         result = await session.execute(text("""

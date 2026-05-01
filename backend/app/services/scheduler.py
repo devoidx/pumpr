@@ -87,6 +87,14 @@ async def post_county_e10_job() -> None:
         logger.error(f"Scheduler: county E10 post failed: {e}")
 
 
+async def refresh_threads_token_job() -> None:
+    try:
+        from app.services.social import refresh_threads_token
+        await refresh_threads_token()
+    except Exception as e:
+        logger.error(f"Scheduler: Threads token refresh failed: {e}")
+
+
 async def post_county_diesel_job() -> None:
     try:
         from app.services.social import post_cheapest_by_county
@@ -120,6 +128,7 @@ def start_scheduler() -> None:
         scheduler.add_job(post_by_country_diesel_job, trigger=CronTrigger(hour=16, minute=25, timezone="Europe/London"), id="post_by_country_diesel_pm", replace_existing=True)
         scheduler.add_job(post_county_e10_job,      trigger=CronTrigger(hour=10, minute=0,  timezone="Europe/London"), id="post_county_e10",             replace_existing=True)
         scheduler.add_job(post_county_diesel_job,   trigger=CronTrigger(hour=10, minute=30, timezone="Europe/London"), id="post_county_diesel",          replace_existing=True)
+        scheduler.add_job(refresh_threads_token_job, trigger=IntervalTrigger(days=45), id="refresh_threads_token", replace_existing=True)
 
     if enable_polling:
         scheduler.add_job(sync_stations_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="sync_stations", replace_existing=True)
