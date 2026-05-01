@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './ProPage.css'
 
-const MONTHLY_PRICE_ID = 'price_1TP0qNFSIwexZJECmABnb9ah'
-const ANNUAL_PRICE_ID  = 'price_1TP0qiFSIwexZJECIzFODDj1'
+const MONTHLY_PRICE_ID = 'price_1TSFrOFSIwexZJECkMOrUmds'
+const ANNUAL_PRICE_ID  = 'price_1TSFrzFSIwexZJECO59139Nk'
 
 const BENEFITS = [
   { icon: '📍', title: 'Saved locations',       description: 'Save your home, work, or anywhere else and instantly search fuel prices nearby.', live: true },
