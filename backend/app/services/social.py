@@ -54,6 +54,39 @@ def _mastodon_post(content: str) -> bool:
         return False
 
 
+def _threads_post(text: str) -> bool:
+    """Post to Threads. Returns True on success."""
+    if not settings.threads_access_token or not settings.threads_user_id:
+        return False
+    try:
+        import httpx
+        user_id = settings.threads_user_id
+        token = settings.threads_access_token
+        # Step 1: create media container
+        create = httpx.post(
+            f"https://graph.threads.net/v1.0/{user_id}/threads",
+            params={"media_type": "TEXT", "text": text, "access_token": token},
+            timeout=10,
+        )
+        create.raise_for_status()
+        creation_id = create.json().get("id")
+        if not creation_id:
+            logger.error(f"Threads: no creation_id in response: {create.text}")
+            return False
+        # Step 2: publish
+        publish = httpx.post(
+            f"https://graph.threads.net/v1.0/{user_id}/threads_publish",
+            params={"creation_id": creation_id, "access_token": token},
+            timeout=10,
+        )
+        publish.raise_for_status()
+        logger.info("Posted to Threads")
+        return True
+    except Exception as e:
+        logger.error(f"Threads post failed: {e}")
+        return False
+
+
 async def _get_uk_averages() -> list[dict]:
     async with AsyncSessionLocal() as session:
         result = await session.execute(text("""
@@ -166,6 +199,7 @@ async def post_daily_averages(dry_run: bool = False) -> str:
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
         _mastodon_post(text)
+        _threads_post(text)
 
     return text
 
@@ -201,6 +235,7 @@ async def post_cheapest_station(fuel: str = "E10", dry_run: bool = False) -> str
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
         _mastodon_post(text)
+        _threads_post(text)
 
     return text
 
@@ -230,6 +265,7 @@ async def post_cheapest_by_country(fuel: str = "E10", dry_run: bool = False) -> 
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
         _mastodon_post(text)
+        _threads_post(text)
 
     return text
 
@@ -335,6 +371,7 @@ async def post_cheapest_by_county(fuel: str = "E10", dry_run: bool = False) -> l
                 logger.info(f"Posted county cheapest for {region}")
                 posted.append(region)
                 _mastodon_post(text)
+                _threads_post(text)
                 await aio.sleep(2)
             except Exception as e:
                 logger.error(f"Bluesky county post failed for {region}: {e}")

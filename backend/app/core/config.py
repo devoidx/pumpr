@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     dvla_api_key: str = ""
     mastodon_access_token: str = ""
     bsky_app_password: str = ""
+    threads_access_token: str = ""
+    threads_user_id: str = ""
     resend_api_key: str = ""
     smtp_host: str = ""
     smtp_port: int = 587
