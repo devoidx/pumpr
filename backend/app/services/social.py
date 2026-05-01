@@ -56,12 +56,22 @@ def _mastodon_post(content: str) -> bool:
 
 def _threads_post(text: str) -> bool:
     """Post to Threads. Returns True on success."""
-    if not settings.threads_access_token or not settings.threads_user_id:
+    if not settings.threads_user_id:
         return False
     try:
+        import os
+
         import httpx
         user_id = settings.threads_user_id
-        token = settings.threads_access_token
+        # Prefer token from file (refreshed), fall back to env var
+        token_file = os.getenv("THREADS_TOKEN_FILE", "/app/data/threads_token.txt")
+        if os.path.exists(token_file):
+            with open(token_file) as f:
+                token = f.read().strip()
+        else:
+            token = settings.threads_access_token
+        if not token:
+            return False
         # Step 1: create media container
         create = httpx.post(
             f"https://graph.threads.net/v1.0/{user_id}/threads",
@@ -88,20 +98,25 @@ def _threads_post(text: str) -> bool:
 
 
 async def refresh_threads_token() -> bool:
-    """Refresh the Threads long-lived token and update .env on disk."""
-    if not settings.threads_access_token:
-        logger.warning("No Threads token to refresh")
-        return False
+    """Refresh the Threads long-lived token and persist to file."""
     try:
         import os
-        import re
 
         import httpx
+        token_file = os.getenv("THREADS_TOKEN_FILE", "/app/data/threads_token.txt")
+        if os.path.exists(token_file):
+            with open(token_file) as f:
+                current_token = f.read().strip()
+        else:
+            current_token = settings.threads_access_token
+        if not current_token:
+            logger.warning("No Threads token to refresh")
+            return False
         resp = httpx.get(
             "https://graph.threads.net/access_token",
             params={
                 "grant_type": "th_refresh_token",
-                "access_token": settings.threads_access_token,
+                "access_token": current_token,
             },
             timeout=10,
         )
@@ -111,17 +126,15 @@ async def refresh_threads_token() -> bool:
             logger.error(f"Threads refresh: no token in response: {resp.text}")
             return False
 
-        # Write new token back to .env
-        env_path = "/opt/pumpr/.env"
-        if os.path.exists(env_path):
-            with open(env_path, "r") as f:
-                env = f.read()
-            env = re.sub(r"THREADS_ACCESS_TOKEN=.*", f"THREADS_ACCESS_TOKEN={new_token}", env)
-            with open(env_path, "w") as f:
-                f.write(env)
-            logger.info("Threads token refreshed and written to .env")
-        else:
-            logger.warning("Threads token refreshed but .env not found — token not persisted")
+        # Write new token to file for persistence across restarts
+        token_file = os.getenv("THREADS_TOKEN_FILE", "/app/data/threads_token.txt")
+        try:
+            os.makedirs(os.path.dirname(token_file), exist_ok=True)
+            with open(token_file, "w") as f:
+                f.write(new_token)
+            logger.info(f"Threads token refreshed and written to {token_file}")
+        except Exception as write_err:
+            logger.warning(f"Threads token refreshed but could not write to file: {write_err}")
 
         return True
     except Exception as e:

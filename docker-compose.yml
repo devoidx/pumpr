@@ -49,10 +49,12 @@ services:
       BSKY_APP_PASSWORD: ${BSKY_APP_PASSWORD}
       THREADS_ACCESS_TOKEN: ${THREADS_ACCESS_TOKEN:-}
       THREADS_USER_ID: ${THREADS_USER_ID:-}
+      THREADS_TOKEN_FILE: /app/data/threads_token.txt
     ports:
       - "8002:8000"
     volumes:
       - ./backend:/app
+      - ./data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
