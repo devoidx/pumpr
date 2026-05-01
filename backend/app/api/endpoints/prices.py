@@ -46,10 +46,10 @@ async def feed_health(db: AsyncSession = Depends(get_db)) -> dict:
         latest = latest.replace(tzinfo=timezone.utc)
     minutes_ago = (now - latest).total_seconds() / 60
 
-    if minutes_ago <= 30:
+    if minutes_ago <= 45:
         status = "green"
         message = f"Data updated {int(minutes_ago)} mins ago"
-    elif minutes_ago <= 120:
+    elif minutes_ago <= 180:
         status = "amber"
         message = f"Data updated {int(minutes_ago)} mins ago — may be slightly stale"
     else:
