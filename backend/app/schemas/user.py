@@ -35,6 +35,7 @@ class UserOut(BaseModel):
     subscription_status: str
     current_period_end: datetime | None = None
     use_driving_distance: bool = False
+    economy_units: str = "mpg"
 
     model_config = {"from_attributes": True}
 
@@ -72,3 +73,4 @@ class UserUpdate(BaseModel):
         default=None, min_length=3, max_length=30, pattern=r"^[a-zA-Z0-9_\-]+$"
     )
     use_driving_distance: bool | None = None
+    economy_units: str | None = None

@@ -18,6 +18,23 @@ import './Home.css'
 export default function Home() {
   const { user, accessToken } = useAuth()
   const useDriving = user?.use_driving_distance && (user?.role === 'pro' || user?.role === 'admin')
+
+  function vehicleFuelGroup(fuelType) {
+    if (!fuelType) return null
+    const f = fuelType.toUpperCase()
+    if (f === 'DIESEL') return 'diesel'
+    if (f === 'ELECTRIC') return 'electric'
+    return 'petrol' // PETROL, HYBRID ELECTRIC, PLUG-IN HYBRID ELECTRIC
+  }
+  const PETROL_FUELS = ['E10', 'E5']
+  const DIESEL_FUELS = ['B7', 'SDV', 'B10', 'HVO']
+  function fuelMatchesVehicle(selectedFuel, vehicleFuelType) {
+    if (!vehicleFuelType) return true
+    const group = vehicleFuelGroup(vehicleFuelType)
+    if (group === 'petrol') return PETROL_FUELS.includes(selectedFuel)
+    if (group === 'diesel') return DIESEL_FUELS.includes(selectedFuel)
+    return false
+  }
   const [location, setLocation] = useState(() => {
     const saved = localStorage.getItem('pumpr_location')
     return saved ? JSON.parse(saved) : null
@@ -166,7 +183,16 @@ export default function Home() {
       headers: { Authorization: `Bearer ${accessToken}` }
     })
       .then(r => r.ok ? r.json() : null)
-      .then(v => setActiveVehicle(v || null))
+      .then(v => {
+        setActiveVehicle(v || null)
+        if (v?.fuel_type) {
+          const f = v.fuel_type.toUpperCase()
+          const isDiesel = f === 'DIESEL'
+          const defaultFuel = isDiesel ? 'B7' : 'E10'
+          setFuel(defaultFuel)
+          localStorage.setItem('pumpr_fuel', defaultFuel)
+        }
+      })
       .catch(() => setActiveVehicle(null))
   }, [user, accessToken])
 
@@ -355,6 +381,8 @@ export default function Home() {
           isPro={!!(user?.role === 'pro' || user?.role === 'admin')}
           avgPrice={avgPrice}
           activeVehicle={activeVehicle}
+          vehicleFuelMatch={fuelMatchesVehicle(fuel, activeVehicle?.fuel_type)}
+          economyUnits={user?.economy_units || 'mpg'}
         />
       </div>
     </div>

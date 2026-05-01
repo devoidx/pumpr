@@ -57,6 +57,25 @@ export default function ProfilePage() {
                 <span className="profile-toggle-slider" />
               </label>
             </div>
+            <div className="profile-info-row">
+              <span>
+                <strong style={{color:'var(--text)'}}>Fuel economy units</strong>
+                <div style={{fontSize:'0.78rem',color:'var(--text3)',marginTop:'2px'}}>
+                  Units used for economy figures and savings calculations
+                </div>
+              </span>
+              <select
+                className="profile-select"
+                value={user?.economy_units || 'mpg'}
+                onChange={async e => {
+                  try { await updateProfile({ economy_units: e.target.value }) }
+                  catch { alert('Failed to save preference') }
+                }}
+              >
+                <option value="mpg">MPG</option>
+                <option value="l100km">L/100km</option>
+              </select>
+            </div>
           </div>
         )}
 

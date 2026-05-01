@@ -94,7 +94,7 @@ function createEvMarker(color, selected = false, kw = null, points = null) {
   })
 }
 
-export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false, isPro = false, avgPrice = 0, activeVehicle = null }) {
+export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false, isPro = false, avgPrice = 0, activeVehicle = null, vehicleFuelMatch = true, economyUnits = 'mpg' }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
@@ -193,11 +193,22 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
 
           // Pro savings block
           let savingsBlock = ''
-          if (isPro) {
+          if (isPro && vehicleFuelMatch) {
             const fillLitres = activeVehicle?.tank_litres ? activeVehicle.tank_litres - 5 : 50
             const fillCost = (fillLitres * pricePerLitre).toFixed(2)
+            const rawMpg = activeVehicle?.mpg || null
+            const effectiveMpg = rawMpg
+              ? (economyUnits === 'l100km' ? (282.48 / rawMpg) : rawMpg)
+              : null
+            const economyLabel = rawMpg
+              ? economyUnits === 'l100km'
+                ? `${(282.48 / rawMpg).toFixed(1)}L/100km`
+                : `${rawMpg}mpg`
+              : null
+            const vehicleLine = vehicleLabel ? `
+                <div style="font-size:11px;color:#aaa;margin-bottom:3px;">🚗 In your ${vehicleLabel}</div>` : ''
             const fillLabel = vehicleLabel
-              ? `In your ${vehicleLabel} (${fillLitres}L)`
+              ? `${fillLitres}L${economyLabel ? ' · ' + economyLabel : ''}`
               : `${fillLitres}L fill`
 
             let grossSavingLine = ''
@@ -212,10 +223,12 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
             }
 
             let netSavingLines = ''
-            if (activeVehicle?.mpg && hasDriving && avgPrice > 0) {
+            if (effectiveMpg && hasDriving && avgPrice > 0) {
               const distMiles = s.driving_km * 0.621371
               const roundTripMiles = distMiles * 2
-              const costToGetThere = (roundTripMiles / activeVehicle.mpg) * pricePerLitre
+              const costToGetThere = economyUnits === 'l100km'
+                ? (roundTripMiles * 1.60934 * effectiveMpg / 100) * pricePerLitre
+                : (roundTripMiles / effectiveMpg) * pricePerLitre
               const grossSaving = ((avgPrice - s.price_pence) / 100) * fillLitres
               const netSaving = grossSaving - costToGetThere
               const netColor = netSaving >= 0 ? '#2ecc71' : '#e74c3c'
@@ -237,8 +250,9 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
 
             savingsBlock = `
               <div style="border-top:1px solid #2d2d2d;margin-top:8px;padding-top:8px;">
+                ${vehicleLine}
                 <div style="display:flex;justify-content:space-between;font-size:12px;color:#ccc;">
-                  <span>🚗 ${fillLabel}</span>
+                  <span>${fillLabel}</span>
                   <span style="font-weight:600;color:#fff;">£${fillCost}</span>
                 </div>
                 ${grossSavingLine}

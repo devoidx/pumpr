@@ -216,3 +216,13 @@
 }
 .profile-toggle input:checked + .profile-toggle-slider { background: var(--amber); }
 .profile-toggle input:checked + .profile-toggle-slider::before { transform: translateX(20px); }
+
+.profile-select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}

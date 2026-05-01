@@ -49,6 +49,33 @@ export default function About() {
                 </div>
               </div>
             </a>
+            <a href="https://project-osrm.org" target="_blank" rel="noopener noreferrer" className="about-source-card">
+              <div className="about-source-icon">🗺️</div>
+              <div>
+                <div className="about-source-name">OSRM</div>
+                <div className="about-source-desc">
+                  Open Source Routing Machine — powers real driving distance calculations for Pro users
+                </div>
+              </div>
+            </a>
+            <a href="https://postcodes.io" target="_blank" rel="noopener noreferrer" className="about-source-card">
+              <div className="about-source-icon">📮</div>
+              <div>
+                <div className="about-source-name">Postcodes.io</div>
+                <div className="about-source-desc">
+                  Free UK postcode lookup and geocoding API
+                </div>
+              </div>
+            </a>
+            <a href="https://developer-portal.driver-vehicle-licensing.api.gov.uk" target="_blank" rel="noopener noreferrer" className="about-source-card">
+              <div className="about-source-icon">🚗</div>
+              <div>
+                <div className="about-source-name">DVLA Vehicle Enquiry Service</div>
+                <div className="about-source-desc">
+                  Official DVLA API used to look up vehicle details by registration plate
+                </div>
+              </div>
+            </a>
           </div>
         </div>
 
@@ -73,6 +100,10 @@ export default function About() {
             <a href="https://bsky.app/profile/pumpr-app.bsky.social" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">🦋</span>
               <span>pumpr-app.bsky.social</span>
+            </a>
+            <a href="https://mastodon.social/@pumpr" target="_blank" rel="noopener noreferrer" className="about-social-link">
+              <span className="about-social-icon">🐘</span>
+              <span>@pumpr@mastodon.social</span>
             </a>
             <a href="https://github.com/devoidx/pumpr" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">⌥</span>

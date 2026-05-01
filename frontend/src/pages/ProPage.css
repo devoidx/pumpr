@@ -81,3 +81,30 @@
   .pro-hero h1 { font-size: 2.2rem; }
   .pro-price-amount { font-size: 2.4rem; }
 }
+
+.pro-live-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(46,204,113,0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46,204,113,0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pro-soon-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(245,166,35,0.15);
+  color: #f5a623;
+  border: 1px solid rgba(245,166,35,0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

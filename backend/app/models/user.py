@@ -28,6 +28,7 @@ class User(Base):
     price_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     use_driving_distance: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    economy_units: Mapped[str] = mapped_column(String(10), nullable=False, default="mpg")
 
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(back_populates="user", cascade="all, delete-orphan")
     user_tokens: Mapped[list[UserToken]] = relationship(back_populates="user", cascade="all, delete-orphan")

@@ -7,12 +7,12 @@ const MONTHLY_PRICE_ID = 'price_1TP0qNFSIwexZJECmABnb9ah'
 const ANNUAL_PRICE_ID  = 'price_1TP0qiFSIwexZJECIzFODDj1'
 
 const BENEFITS = [
-  { icon: '★', title: 'Favourite stations',    description: 'Save your most-used stations for instant access.' },
-  { icon: '🔔', title: 'Price alerts',          description: 'Get notified when fuel drops below a price you set.' },
-  { icon: '📍', title: 'Home location',         description: 'Set a home postcode and always see the cheapest fuel near you first.' },
-  { icon: '📊', title: 'Extended price history',description: 'Up to 12 months of price history per station.' },
-  { icon: '🔑', title: 'API access',            description: 'Query Pumpr data with a personal API key.' },
-  { icon: '⚡', title: 'Early access',          description: 'New features before anyone else.' },
+  { icon: '📍', title: 'Saved locations',       description: 'Save your home, work, or anywhere else and instantly search fuel prices nearby.', live: true },
+  { icon: '🚗', title: 'Vehicle profiles',      description: 'Add your vehicles and see personalised fill costs and real savings based on your tank size and fuel economy.', live: true },
+  { icon: '🗺️', title: 'Driving distances',     description: 'See real driving distance and time to the top 10 nearest stations, not just straight-line.', live: true },
+  { icon: '💰', title: 'Smart savings',         description: "Know exactly how much you'll save — or spend — driving to a cheaper station, including the fuel cost to get there.", live: true },
+  { icon: '🔔', title: 'Price alerts',          description: 'Get notified by email when fuel at your local station drops below a price you set.', live: false },
+  { icon: '⚡', title: 'Early access',          description: 'New features land for Pro users first.', live: true },
 ]
 
 export default function ProPage() {
@@ -46,14 +46,14 @@ export default function ProPage() {
     }
   }
 
-  const monthlyTotal = '£2.99'
-  const annualTotal  = '£24.99'
-  const annualMonthly = '£2.08'
+  const monthlyTotal = '£1.99'
+  const annualTotal  = '£20.00'
+  const annualMonthly = '£1.67'
 
   return (
     <div className="pro-page">
       <div className="pro-hero">
-        <div className="pro-hero-badge">Coming soon</div>
+        <div className="pro-hero-badge">Now available</div>
         <h1>Pumpr <span className="pro-highlight">Pro</span></h1>
         <p className="pro-hero-sub">
           Everything you need to stop overpaying for fuel.
@@ -71,7 +71,7 @@ export default function ProPage() {
             className={`pro-toggle-btn ${billing === 'annual' ? 'active' : ''}`}
             onClick={() => setBilling('annual')}
           >
-            Annual <span className="pro-save-badge">Save 30%</span>
+            Annual <span className="pro-save-badge">Save 16%</span>
           </button>
         </div>
 
@@ -90,11 +90,11 @@ export default function ProPage() {
 
         {error && <p className="pro-error">{error}</p>}
 
-        <button className="pro-subscribe-btn" onClick={handleSubscribe} disabled={true}>
-          Coming soon
+        <button className="pro-subscribe-btn" onClick={handleSubscribe} disabled={loading}>
+          {loading ? 'Redirecting…' : billing === 'monthly' ? 'Subscribe — £1.99/mo' : 'Subscribe — £20/yr'}
         </button>
 
-        <p className="pro-cancel-note">Pricing confirmed — launching once Pro features are ready.</p>
+        <p className="pro-cancel-note">Cancel anytime. Payments handled securely by Stripe.</p>
       </div>
 
       <div className="pro-benefits">
@@ -102,7 +102,7 @@ export default function ProPage() {
           <div key={b.title} className="pro-benefit-card">
             <div className="pro-benefit-icon">{b.icon}</div>
             <div>
-              <h3>{b.title}</h3>
+              <h3>{b.title} {b.live ? <span className="pro-live-badge">Live</span> : <span className="pro-soon-badge">Coming soon</span>}</h3>
               <p>{b.description}</p>
             </div>
           </div>
