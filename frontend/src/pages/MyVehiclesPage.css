@@ -137,6 +137,30 @@
   font-size: 0.72rem;
   color: var(--text3);
 }
+.mv-economy-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.mv-economy-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text2);
+}
+.mv-dvla-note {
+  font-size: 0.78rem;
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid #4a9eff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
 .mv-input {
   background: var(--surface2);
   border: 1px solid var(--border2);
@@ -153,6 +177,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+  margin-top: 1rem;
 }
 .mv-btn {
   border: none;

@@ -231,6 +231,26 @@ async def activate_vehicle(
     return {"status": "ok"}
 
 
+
+@router.get("/active")
+async def get_active_vehicle(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict | None:
+    """Return the user's currently active vehicle, or null if none."""
+    if current_user.role not in ("pro", "admin"):
+        return None
+    result = await db.execute(
+        select(UserVehicle).where(
+            UserVehicle.user_id == current_user.id,
+            UserVehicle.is_active.is_(True),
+        )
+    )
+    vehicle = result.scalar_one_or_none()
+    if not vehicle:
+        return None
+    return _vehicle_out(vehicle)
+
 @router.delete("/{vehicle_id}")
 async def delete_vehicle(
     vehicle_id: UUID,

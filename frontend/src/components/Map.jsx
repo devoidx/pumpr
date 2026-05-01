@@ -94,7 +94,7 @@ function createEvMarker(color, selected = false, kw = null, points = null) {
   })
 }
 
-export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false, isPro = false, avgPrice = 0 }) {
+export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false, isPro = false, avgPrice = 0, activeVehicle = null }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
@@ -162,17 +162,105 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
           icon: createFuelMarker(color, isSelected || isHovered, i, s.price_pence?.toFixed(1) || '', s.price_flagged),
           zIndexOffset: isSelected ? 1000 : isHovered ? 500 : 0,
         })
-        const popup = L.popup({ closeButton: false, offset: [0, -28] }).setContent(`
-          <div style="padding:4px;min-width:160px;">
-            <div style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:4px;">${s.brand||''}</div>
-            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:8px;line-height:1.3;">${s.station_name}</div>
-            <div style="font-size:28px;font-weight:500;font-family:'DM Mono',monospace;color:${color};">
-              ${s.price_pence.toFixed(1)}<span style="font-size:14px;opacity:0.7">p</span>${s.price_flagged ? '<span style="font-size:12px;color:#e74c3c;margin-left:4px;">⚠</span>' : ''}
-            </div>
-            ${s.price_flagged ? '<div style="font-size:10px;color:#e74c3c;margin-top:2px;">Price may be unreliable</div>' : ''}${isPro ? `<div style="font-size:11px;color:#aaa;margin-top:4px;">50L fill: ~£${((s.price_pence / 100) * 50).toFixed(2)}${avgPrice > 0 ? (() => { const diff = ((avgPrice - s.price_pence) / 100) * 50; const sign = diff >= 0 ? 'save' : 'extra'; return ` <span style="color:${diff >= 0 ? '#2ecc71' : '#e74c3c'};">(${sign} £${Math.abs(diff).toFixed(2)} vs avg)</span>`; })() : ''}</div>` : ''}
-            ${(useDriving && s.driving_km != null) ? `<div style="font-size:11px;color:#f5a623;margin-top:4px;">🚗 ${units === 'miles' ? (s.driving_km * 0.621371).toFixed(1) + ' mi' : s.driving_km + ' km'}${s.driving_mins ? ' · ' + Math.round(s.driving_mins) + 'min' : ''}</div>` : s.distance_km != null ? `<div style="font-size:11px;color:#aaa;margin-top:4px;">${units === 'miles' ? (s.distance_km * 0.621371).toFixed(1) + ' mi' : s.distance_km + ' km'} away</div>` : ''}
-          </div>
-        `)
+        const popup = L.popup({ closeButton: false, offset: [0, -28] }).setContent((() => {
+          const pricePerLitre = s.price_pence / 100
+
+          // Distance/time header info
+          const hasDriving = useDriving && s.driving_km != null
+          const distDisplay = hasDriving
+            ? `<span style="color:#f5a623;">🚗 ${(s.driving_km * 0.621371).toFixed(1)} mi${s.driving_mins ? ' · ' + Math.round(s.driving_mins) + 'min' : ''}</span>`
+            : s.distance_km != null
+              ? `<span style="color:#aaa;">${(s.distance_km * 0.621371).toFixed(1)} mi</span>`
+              : null
+
+          // Price change
+          const priceChangeLine = s.price_change_pence != null
+            ? Math.abs(s.price_change_pence) < 0.05
+              ? `<div style="font-size:11px;margin-top:2px;color:#888;">— same as yesterday</div>`
+              : `<div style="font-size:11px;margin-top:2px;color:${s.price_change_pence > 0 ? '#e74c3c' : '#2ecc71'};">
+                ${s.price_change_pence > 0 ? '▲' : '▼'} ${Math.abs(s.price_change_pence).toFixed(1)}p since yesterday
+               </div>`
+            : ''
+
+          // Vehicle label
+          const vehicleLabel = activeVehicle
+            ? activeVehicle.nickname
+              ? activeVehicle.nickname
+              : (activeVehicle.make && activeVehicle.model)
+                ? `${activeVehicle.make} ${activeVehicle.model}`
+                : 'Your vehicle'
+            : null
+
+          // Pro savings block
+          let savingsBlock = ''
+          if (isPro) {
+            const fillLitres = activeVehicle?.tank_litres ? activeVehicle.tank_litres - 5 : 50
+            const fillCost = (fillLitres * pricePerLitre).toFixed(2)
+            const fillLabel = vehicleLabel
+              ? `In your ${vehicleLabel} (${fillLitres}L)`
+              : `${fillLitres}L fill`
+
+            let grossSavingLine = ''
+            if (avgPrice > 0) {
+              const diff = ((avgPrice - s.price_pence) / 100) * fillLitres
+              const sign = diff >= 0 ? 'save' : 'extra'
+              grossSavingLine = `
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:4px;">
+                  <span>vs local avg</span>
+                  <span style="color:${diff >= 0 ? '#2ecc71' : '#e74c3c'};">${sign} £${Math.abs(diff).toFixed(2)}</span>
+                </div>`
+            }
+
+            let netSavingLines = ''
+            if (activeVehicle?.mpg && hasDriving && avgPrice > 0) {
+              const distMiles = s.driving_km * 0.621371
+              const roundTripMiles = distMiles * 2
+              const costToGetThere = (roundTripMiles / activeVehicle.mpg) * pricePerLitre
+              const grossSaving = ((avgPrice - s.price_pence) / 100) * fillLitres
+              const netSaving = grossSaving - costToGetThere
+              const netColor = netSaving >= 0 ? '#2ecc71' : '#e74c3c'
+              const netSign = netSaving >= 0 ? '✓' : '✗'
+              netSavingLines = `
+                <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:${netColor};margin-top:6px;">
+                  <span>Net after driving</span>
+                  <span>${netSign} £${Math.abs(netSaving).toFixed(2)}</span>
+                </div>`
+              if (netSaving >= 0 && grossSaving > 0) {
+                const breakEvenMiles = grossSaving / (pricePerLitre / activeVehicle.mpg) / 2
+                netSavingLines += `
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:#888;margin-top:2px;">
+                    <span>Break-even at</span>
+                    <span>${breakEvenMiles.toFixed(1)} mi</span>
+                  </div>`
+              }
+            }
+
+            savingsBlock = `
+              <div style="border-top:1px solid #2d2d2d;margin-top:8px;padding-top:8px;">
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#ccc;">
+                  <span>🚗 ${fillLabel}</span>
+                  <span style="font-weight:600;color:#fff;">£${fillCost}</span>
+                </div>
+                ${grossSavingLine}
+                ${netSavingLines}
+              </div>`
+          }
+
+          return `
+            <div style="padding:6px 4px;min-width:200px;max-width:240px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+                <div style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;text-transform:uppercase;">${s.brand||''}</div>
+                ${distDisplay ? `<div style="font-size:11px;color:#aaa;">${distDisplay}</div>` : ''}
+              </div>
+              <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:6px;line-height:1.3;">${s.station_name}</div>
+              <div style="font-size:30px;font-weight:500;font-family:'DM Mono',monospace;color:${color};line-height:1;">
+                ${s.price_pence.toFixed(1)}<span style="font-size:14px;opacity:0.7">p</span>${s.price_flagged ? '<span style="font-size:12px;color:#e74c3c;margin-left:4px;">⚠</span>' : ''}
+              </div>
+              ${s.price_flagged ? '<div style="font-size:10px;color:#e74c3c;margin-top:2px;">⚠ Price may be unreliable</div>' : ''}
+              ${priceChangeLine}
+              ${savingsBlock}
+            </div>`
+        })())
         marker.bindPopup(popup)
         marker.on('click', () => { if (selectedIdRef.current === s.station_id) { onSelect(null); } else { onSelect(s); } })
         marker.on('mouseover', () => { onHover(s.station_id); if (!selectedIdRef.current) marker.openPopup() })

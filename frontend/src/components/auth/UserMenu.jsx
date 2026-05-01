@@ -47,6 +47,7 @@ function UserMenu() {
               <span className="um-badge">{user.role}</span>
             </div>
             <button className="user-menu-item" onClick={() => go('/my-places')}>📍 My Places</button>
+            <button className="user-menu-item" onClick={() => go('/my-vehicles')}>🚗 My Vehicles</button>
             <button className="user-menu-item" onClick={() => go('/profile')}>👤 My Profile</button>
             <button className="user-menu-item" onClick={() => setOpen(false)} style={{opacity:0.5,cursor:'default'}} title='Coming soon'>🔔 Price alerts</button>
             <button className="user-menu-item danger" onClick={() => { setOpen(false); logout() }}>Sign out</button>

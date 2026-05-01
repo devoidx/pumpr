@@ -64,6 +64,7 @@ function VehicleForm({ initial, onSave, onCancel, accessToken }) {
   const [looked, setLooked] = useState(!!initial)
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [lookupSource, setLookupSource] = useState(null)
 
   const isEV = form.fuel_type === 'ELECTRIC'
 
@@ -90,6 +91,7 @@ function VehicleForm({ initial, onSave, onCancel, accessToken }) {
         mpg: data.mpg ?? defaults.mpg ?? f.mpg ?? 45,
         miles_per_kwh: data.miles_per_kwh ?? defaults.miles_per_kwh ?? f.miles_per_kwh ?? null,
       }))
+      setLookupSource(data.source || null)
       setLooked(true)
     } catch (e) {
       setError(e.message)
@@ -154,6 +156,11 @@ function VehicleForm({ initial, onSave, onCancel, accessToken }) {
 
       {looked && (
         <>
+          {lookupSource === 'dvla' && (
+            <div className="mv-hint mv-dvla-note">
+              ℹ️ Make, year, colour and fuel type were pulled from DVLA. Model is not available from DVLA — please enter it manually. Economy figures are estimates based on fuel type — update them for accurate savings calculations.
+            </div>
+          )}
           <div className="mv-form-grid">
             <label>Nickname (optional)
               <input className="mv-input" placeholder='e.g. "My Golf"' value={form.nickname || ''} onChange={e => set('nickname', e.target.value)} />
@@ -179,28 +186,30 @@ function VehicleForm({ initial, onSave, onCancel, accessToken }) {
                 <option value="PLUG-IN HYBRID ELECTRIC">Plug-in Hybrid</option>
               </select>
             </label>
-            {!isEV && (
-              <>
-                <label>
-                  Tank size (litres)
-                  <span className="mv-hint">Typical: 40–70L. Check your manual if unsure.</span>
-                  <input className="mv-input" type="number" min="10" max="150" value={form.tank_litres || ''} onChange={e => set('tank_litres', e.target.value)} />
-                </label>
-                <label>
-                  Fuel economy (MPG)
-                  <span className="mv-hint">Your real-world MPG. Typical: 35–60 for petrol, 45–70 for diesel.</span>
-                  <input className="mv-input" type="number" min="10" max="200" value={form.mpg || ''} onChange={e => set('mpg', e.target.value)} />
-                </label>
-              </>
-            )}
-            {isEV && (
+          </div>
+          {!isEV && (
+            <div className="mv-economy-row">
+              <label>
+                Tank size (litres)
+                <span className="mv-hint">Typical: 40–70L. Check your manual if unsure. We assume you'll fill up with 5L remaining rather than running dry.</span>
+                <input className="mv-input" type="number" min="10" max="150" value={form.tank_litres || ''} onChange={e => set('tank_litres', e.target.value)} />
+              </label>
+              <label>
+                Fuel economy (MPG)
+                <span className="mv-hint">Your real-world MPG. Typical: 35–60 for petrol, 45–70 for diesel.</span>
+                <input className="mv-input" type="number" min="10" max="200" value={form.mpg || ''} onChange={e => set('mpg', e.target.value)} />
+              </label>
+            </div>
+          )}
+          {isEV && (
+            <div className="mv-economy-row">
               <label>
                 Efficiency (miles/kWh)
                 <span className="mv-hint">Typical EV: 3–4 mi/kWh. Check your car's display or manual.</span>
                 <input className="mv-input" type="number" min="1" max="10" step="0.1" value={form.miles_per_kwh || ''} onChange={e => set('miles_per_kwh', e.target.value)} />
               </label>
-            )}
-          </div>
+            </div>
+          )}
           {error && <p className="mv-error">{error}</p>}
           <div className="mv-form-btns">
             <button className="mv-btn mv-btn-ghost" onClick={onCancel}>Cancel</button>

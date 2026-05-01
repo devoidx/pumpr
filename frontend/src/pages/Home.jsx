@@ -41,6 +41,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [priceRange, setPriceRange] = useState({ min: 0, max: 0 })
   const [avgPrice, setAvgPrice] = useState(0)
+  const [activeVehicle, setActiveVehicle] = useState(null)
   const [error, setError] = useState(null)
   const [selected, setSelected] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
@@ -155,6 +156,19 @@ export default function Home() {
   }, [allChargers, connector, minPower, publicOnly, freeOnly, hideStale])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  useEffect(() => {
+    if (!user || !accessToken || !(user.role === 'pro' || user.role === 'admin')) {
+      setActiveVehicle(null)
+      return
+    }
+    fetch('/api/v1/vehicles/active', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(v => setActiveVehicle(v || null))
+      .catch(() => setActiveVehicle(null))
+  }, [user, accessToken])
 
   useEffect(() => {
     fetch('/api/v1/stations/brands')
@@ -340,6 +354,7 @@ export default function Home() {
           useDriving={useDriving}
           isPro={!!(user?.role === 'pro' || user?.role === 'admin')}
           avgPrice={avgPrice}
+          activeVehicle={activeVehicle}
         />
       </div>
     </div>
