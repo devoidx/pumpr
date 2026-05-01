@@ -311,3 +311,11 @@ async def confirm_password_reset(body: PasswordResetConfirm, db: AsyncSession = 
     await db.execute(update(User).where(User.id == user_token.user_id).values(password_hash=hash_password(body.new_password)))
     await db.commit()
     return {"message": "Password updated. Please log in with your new password."}
+
+
+@router.get("/threads-callback")
+async def threads_callback(code: str | None = None, error: str | None = None) -> dict:
+    """Temporary endpoint to capture Threads OAuth callback code."""
+    if error:
+        return {"error": error}
+    return {"code": code, "message": "Copy this code and paste it into the terminal"}
