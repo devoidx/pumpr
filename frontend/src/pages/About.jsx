@@ -105,6 +105,10 @@ export default function About() {
               <span className="about-social-icon">🐘</span>
               <span>@pumpr@mastodon.social</span>
             </a>
+            <a href="https://www.threads.net/@pumpr_app" target="_blank" rel="noopener noreferrer" className="about-social-link">
+              <span className="about-social-icon">🧵</span>
+              <span>@pumpr_app</span>
+            </a>
             <a href="https://github.com/devoidx/pumpr" target="_blank" rel="noopener noreferrer" className="about-social-link">
               <span className="about-social-icon">⌥</span>
               <span>devoidx/pumpr</span>
