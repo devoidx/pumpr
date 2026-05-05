@@ -66,17 +66,29 @@ class FuelFinderClient:
         return self._token  # type: ignore[return-value]
 
     async def _get_paginated(self, path: str) -> list[dict]:
-        """Fetch all batches from a paginated endpoint."""
+        """Fetch all batches from a paginated endpoint with retry logic."""
+        import asyncio
         token = await self._get_token()
         all_records: list[dict] = []
         batch = 1
+        max_retries = 3
 
         while True:
-            response = await self._client.get(
-                f"{settings.fuel_finder_api_url}{path}",
-                headers={"Authorization": f"Bearer {token}"},
-                params={"batch-number": batch},
-            )
+            for attempt in range(max_retries):
+                try:
+                    response = await self._client.get(
+                        f"{settings.fuel_finder_api_url}{path}",
+                        headers={"Authorization": f"Bearer {token}"},
+                        params={"batch-number": batch},
+                    )
+                    break
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        wait = 5 * (attempt + 1)
+                        logger.warning(f"Batch {batch} attempt {attempt + 1} failed: {e} — retrying in {wait}s")
+                        await asyncio.sleep(wait)
+                    else:
+                        raise
             if response.status_code == 404:
                 logger.info(f"Pagination complete at batch {batch - 1} ({len(all_records)} records)")
                 break
