@@ -85,7 +85,7 @@ class FuelFinderClient:
                 except Exception as e:
                     if attempt < max_retries - 1:
                         wait = 5 * (attempt + 1)
-                        logger.warning(f"Batch {batch} attempt {attempt + 1} failed: {e} — retrying in {wait}s")
+                        logger.warning(f"Batch {batch} attempt {attempt + 1} failed: {type(e).__name__}: {e} — retrying in {wait}s")
                         await asyncio.sleep(wait)
                     else:
                         raise
