@@ -23,15 +23,22 @@ export default function FeedHealthIndicator() {
     <div
       title={health.message}
       style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 24,
+        height: 24,
+        flexShrink: 0,
+        cursor: 'default',
+      }}
+    >
+      <div style={{
         width: 8,
         height: 8,
         borderRadius: '50%',
         background: color,
         boxShadow: `0 0 6px ${color}`,
-        flexShrink: 0,
-        cursor: 'default',
-        marginLeft: 2,
-      }}
-    />
+      }} />
+    </div>
   )
 }
