@@ -259,6 +259,7 @@ export default function MyVehiclesPage() {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.detail || 'Save failed')
+    if (typeof umami !== 'undefined') umami.track(editing ? 'vehicle-updated' : 'vehicle-added', { fuel_type: body.fuel_type })
     setAdding(false)
     setEditing(null)
     load()

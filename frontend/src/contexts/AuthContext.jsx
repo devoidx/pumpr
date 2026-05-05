@@ -61,6 +61,7 @@ export function AuthProvider({ children }) {
     setAccessToken(access_token)
     setUser(userObj)
     scheduleRefresh(expires_in)
+    if (typeof umami !== 'undefined') umami.track('user-login', { role: userObj.role })
   }
 
   async function register(email, username, password) {
@@ -81,6 +82,7 @@ export function AuthProvider({ children }) {
       method: 'POST', credentials: 'include',
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     }).catch(() => {})
+    if (typeof umami !== 'undefined') umami.track('user-logout')
     clearAuth()
   }
 

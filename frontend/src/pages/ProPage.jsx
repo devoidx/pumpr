@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './ProPage.css'
@@ -19,6 +19,10 @@ export default function ProPage() {
   const navigate              = useNavigate()
   const { isAuthenticated, accessToken } = useAuth()
   const [billing, setBilling] = useState('annual')
+
+  useEffect(() => {
+    if (typeof umami !== 'undefined') umami.track('pro-page-view')
+  }, [])
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
 
@@ -39,6 +43,7 @@ export default function ProPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Could not start checkout')
+      if (typeof umami !== 'undefined') umami.track('checkout-started', { billing })
       window.location.href = data.checkout_url
     } catch (err) {
       setError(err.message)

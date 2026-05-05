@@ -67,6 +67,7 @@ export default function Home() {
   const handleSetLocation = (loc) => {
     localStorage.setItem('pumpr_location', JSON.stringify(loc))
     setLocation(loc)
+    if (typeof umami !== 'undefined') umami.track('location-searched')
     // If a zoom hint is provided, store it for Map to use
     if (loc.zoom) {
       window._pumprZoomHint = loc.zoom
@@ -83,11 +84,13 @@ export default function Home() {
     setMode(m)
     if (m === 'ev') setStations([])
     if (m === 'fuel') setChargers([])
+    if (typeof umami !== 'undefined') umami.track('mode-changed', { mode: m })
   }
 
   const handleSetFuel = (f) => {
     localStorage.setItem('pumpr_fuel', f)
     setFuel(f)
+    if (typeof umami !== 'undefined') umami.track('fuel-type-changed', { fuel: f })
   }
 
   const toDisplay = (km) => units === 'miles' ? (km * 0.621371).toFixed(1) : km
@@ -205,6 +208,7 @@ export default function Home() {
 
   const handleSelectItem = (item) => {
     setSelected(item)
+    if (item && typeof umami !== 'undefined') umami.track('station-selected', { mode })
     const id = mode === 'fuel' ? item.station_id : item.id
     const el = document.getElementById(`card-${id}`)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
