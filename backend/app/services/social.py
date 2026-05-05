@@ -171,12 +171,21 @@ async def _get_cheapest_uk(fuel: str) -> dict | None:
                 FROM price_history
                 WHERE fuel_type = :fuel
                 ORDER BY station_id, fuel_type, recorded_at DESC
+            ),
+            national_avg AS (
+                SELECT AVG(l.price_pence) as avg_price
+                FROM latest l
+                JOIN stations s ON l.station_id = s.id
+                WHERE s.permanent_closure = FALSE
+                  AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
             )
             SELECT s.name, s.postcode, s.county, s.country, l.price_pence
             FROM latest l
             JOIN stations s ON l.station_id = s.id
+            CROSS JOIN national_avg
             WHERE s.permanent_closure = FALSE
               AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
+              AND l.price_pence >= (national_avg.avg_price - 15)
             ORDER BY l.price_pence ASC
             LIMIT 1
         """), {"fuel": fuel})
@@ -202,13 +211,24 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
                 WHERE fuel_type = :fuel
                 ORDER BY station_id, fuel_type, recorded_at DESC
             ),
-            regional_min AS (
-                SELECT s.country as region, MIN(l.price_pence) as min_price
+            national_avg AS (
+                SELECT s.country, AVG(l.price_pence) as avg_price
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 WHERE s.permanent_closure = FALSE
                   AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
+                GROUP BY s.country
+            ),
+            regional_min AS (
+                SELECT s.country as region, MIN(l.price_pence) as min_price
+                FROM latest l
+                JOIN stations s ON l.station_id = s.id
+                JOIN national_avg na ON s.country = na.country
+                WHERE s.permanent_closure = FALSE
+                  AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
+                  AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
+                  AND l.price_pence >= (na.avg_price - 15)
                 GROUP BY s.country
             )
             SELECT DISTINCT ON (s.country)
@@ -340,14 +360,25 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
                 WHERE fuel_type = :fuel
                 ORDER BY station_id, fuel_type, recorded_at DESC
             ),
+            national_avg AS (
+                SELECT s.country, AVG(l.price_pence) as avg_price
+                FROM latest l
+                JOIN stations s ON l.station_id = s.id
+                WHERE s.permanent_closure = FALSE
+                  AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
+                  AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
+                GROUP BY s.country
+            ),
             regional_min AS (
                 SELECT s.county as region, s.country, MIN(l.price_pence) as min_price
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
+                JOIN national_avg na ON s.country = na.country
                 WHERE s.permanent_closure = FALSE
                 AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.county IS NOT NULL AND s.county != ''
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
+                  AND l.price_pence >= (na.avg_price - 15)
                 GROUP BY s.county, s.country
             )
             SELECT
