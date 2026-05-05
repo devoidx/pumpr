@@ -191,6 +191,23 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
                 : 'Your vehicle'
             : null
 
+          // Staleness indicator
+          let stalenessLine = ''
+          if (s.source_updated_at && !s.price_flagged) {
+            const updatedAt = new Date(s.source_updated_at)
+            const ageMs = Date.now() - updatedAt.getTime()
+            const ageDays = ageMs / (1000 * 60 * 60 * 24)
+            if (ageDays >= 7) {
+              const ageText = ageDays >= 14
+                ? `${Math.round(ageDays / 7)} weeks ago`
+                : `${Math.round(ageDays)} days ago`
+              stalenessLine = `<div style="font-size:10px;color:#f5a623;margin-top:2px;">⚠ Price may be outdated (updated ${ageText})</div>`
+            } else if (ageDays >= 1) {
+              const ageText = Math.round(ageDays) === 1 ? '1 day ago' : `${Math.round(ageDays)} days ago`
+              stalenessLine = `<div style="font-size:10px;color:#888;margin-top:2px;">Updated ${ageText}</div>`
+            }
+          }
+
           // Pro savings block
           let savingsBlock = ''
           if (isPro && vehicleFuelMatch) {
@@ -272,6 +289,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
               </div>
               ${s.price_flagged ? '<div style="font-size:10px;color:#e74c3c;margin-top:2px;">⚠ Price may be unreliable</div>' : ''}
               ${priceChangeLine}
+              ${stalenessLine}
               ${savingsBlock}
             </div>`
         })())
