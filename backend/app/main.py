@@ -77,5 +77,6 @@ async def shutdown() -> None:
 
 
 @app.get("/health")
+@app.get("/api/v1/health")
 async def health() -> dict:
     return {"status": "ok"}
