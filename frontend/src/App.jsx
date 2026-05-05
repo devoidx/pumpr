@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { Route, Routes, useNavigate } from 'react-router-dom'
+import BlogPage from './pages/BlogPage'
+import BlogPostPage from './pages/BlogPostPage'
 import Navbar from './components/Navbar'
 import StationDetail from './pages/StationDetail'
 import EvDetail from './pages/EvDetail'
@@ -46,6 +48,8 @@ export default function App() {
           <Route path="/pro/success" element={<ProSuccessPage />} />
           <Route path="/setup-password" element={<SetupPasswordPage />} />
           <Route path="/my-vehicles" element={<MyVehiclesPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
         </Routes>
       </div>
     </div>

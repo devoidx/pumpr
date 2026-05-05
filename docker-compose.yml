@@ -49,6 +49,7 @@ services:
       BSKY_APP_PASSWORD: ${BSKY_APP_PASSWORD}
       THREADS_ACCESS_TOKEN: ${THREADS_ACCESS_TOKEN:-}
       THREADS_USER_ID: ${THREADS_USER_ID:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       THREADS_TOKEN_FILE: /app/data/threads_token.txt
     ports:
       - "8002:8000"

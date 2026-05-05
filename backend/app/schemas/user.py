@@ -36,6 +36,7 @@ class UserOut(BaseModel):
     current_period_end: datetime | None = None
     use_driving_distance: bool = False
     economy_units: str = "mpg"
+    blog_newsletter: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -74,3 +75,4 @@ class UserUpdate(BaseModel):
     )
     use_driving_distance: bool | None = None
     economy_units: str | None = None
+    blog_newsletter: bool | None = None

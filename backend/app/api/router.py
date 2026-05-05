@@ -1,6 +1,16 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import auth, ev, locations, prices, stations, stats, stripe_routes, vehicles
+from app.api.endpoints import (
+    auth,
+    blog,
+    ev,
+    locations,
+    prices,
+    stations,
+    stats,
+    stripe_routes,
+    vehicles,
+)
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -11,3 +21,4 @@ api_router.include_router(prices.router)
 api_router.include_router(ev.router)
 api_router.include_router(vehicles.router)
 api_router.include_router(stats.router)
+api_router.include_router(blog.router)

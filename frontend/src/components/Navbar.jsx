@@ -20,6 +20,7 @@ export default function Navbar() {
       <div className="navbar-links">
         <Link to="/"      className={`navbar-link ${loc.pathname === '/'      ? 'active' : ''}`}>Map</Link>
         <Link to="/stats" className={`navbar-link ${loc.pathname === '/stats' ? 'active' : ''}`}>Stats</Link>
+        <Link to="/blog" className={`navbar-link ${loc.pathname.startsWith('/blog') ? 'active' : ''}`}>Insights</Link>
         <Link to="/about" className={`navbar-link ${loc.pathname === '/about' ? 'active' : ''}`}>About</Link>
       </div>
 
@@ -42,6 +43,7 @@ export default function Navbar() {
         <div className="navbar-mobile-menu" onClick={() => setMenuOpen(false)}>
           <Link to="/"      className={`navbar-mobile-link ${loc.pathname === '/'      ? 'active' : ''}`}>Map</Link>
           <Link to="/stats" className={`navbar-mobile-link ${loc.pathname === '/stats' ? 'active' : ''}`}>Stats</Link>
+          <Link to="/blog" className={`navbar-mobile-link ${loc.pathname.startsWith('/blog') ? 'active' : ''}`}>Insights</Link>
           <Link to="/about" className={`navbar-mobile-link ${loc.pathname === '/about' ? 'active' : ''}`}>About</Link>
           <div className="navbar-mobile-auth" onClick={e => e.stopPropagation()}>
             <NavAuthSection />
