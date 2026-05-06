@@ -31,6 +31,7 @@ export default function StationDetail() {
   const navigate = useNavigate()
   const [station, setStation] = useState(null)
   const [history, setHistory] = useState([])
+  const [historyRange, setHistoryRange] = useState('all')
   const [selectedFuel, setSelectedFuel] = useState(fuelParam || 'E10')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -52,16 +53,20 @@ export default function StationDetail() {
 
   useEffect(() => {
     if (!station) return
-    getPriceHistory(id, selectedFuel).then(r => {
+    setHistory([])
+    const now = new Date()
+    const rangeMap = { '7d': 7, '30d': 30, '90d': 90 }
+    const days = rangeMap[historyRange]
+    const params = days ? { from_dt: new Date(now - days * 86400000).toISOString().replace('Z', '').split('.')[0] } : {}
+    getPriceHistory(id, selectedFuel, params).then(r => {
       setHistory(
         r.data.history.map(h => ({
-          date: new Date(h.recorded_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-          time: new Date(h.recorded_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+          ts: new Date(h.recorded_at).getTime(),
           price: h.price_pence,
         }))
       )
     })
-  }, [id, selectedFuel, station])
+  }, [id, selectedFuel, station, historyRange])
 
   if (loading) return <div className="detail-loading">Loading station…</div>
   if (!station) return <div className="detail-loading">Station not found</div>
@@ -138,7 +143,7 @@ export default function StationDetail() {
                   </div>
                 )}
                 <div className="dpc-price" style={{ color: c }}>
-                  {p.price_pence.toFixed(1)}<span className="dpc-unit">p</span>
+                  {p.price_pence.toFixed(2)}<span className="dpc-unit">p</span>
                 </div>
               </div>
             )
@@ -162,20 +167,54 @@ export default function StationDetail() {
               ))}
             </div>
           </div>
+          <div style={{display:'flex', gap:'6px', marginBottom:'8px'}}>
+            {['7d','30d','90d','all'].map(r => (
+              <button key={r} onClick={() => setHistoryRange(r)} style={{
+                padding:'3px 10px', borderRadius:'6px', border:'1px solid',
+                fontSize:'12px', cursor:'pointer',
+                borderColor: historyRange === r ? 'var(--amber)' : 'var(--border)',
+                background: historyRange === r ? 'rgba(245,166,35,0.1)' : 'transparent',
+                color: historyRange === r ? 'var(--amber)' : 'var(--text3)',
+              }}>{r === 'all' ? 'All' : r.toUpperCase()}</button>
+            ))}
+          </div>
           {history.length < 2 ? (
             <div className="detail-no-history">
-              Not enough history yet — check back after a few polling cycles.
+              No data for this period — prices may not have changed. Try All to see full history.
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={history} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+              <LineChart data={history} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#666' }} axisLine={{ stroke: '#2a2a2a' }} tickLine={false} />
-                <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11, fill: '#666' }} axisLine={false} tickLine={false} tickFormatter={v => `${v}p`} />
+                <XAxis
+                  dataKey="ts"
+                  type="number"
+                  scale="time"
+                  domain={['dataMin', 'dataMax']}
+                  tick={{ fontSize: 11, fill: '#666' }}
+                  axisLine={{ stroke: '#2a2a2a' }}
+                  tickLine={false}
+                  minTickGap={60}
+                  tickFormatter={ts => {
+                    const d = new Date(ts)
+                    const day = d.getDate()
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                    const mon = months[d.getMonth()]
+                    const hh = String(d.getHours()).padStart(2,'0')
+                    const mm = String(d.getMinutes()).padStart(2,'0')
+                    if (historyRange === '7d') return `${day} ${mon} ${hh}:${mm}`
+                    return `${day} ${mon}`
+                  }}
+                />
+                <YAxis domain={['auto', 'auto']} width={45} tick={{ fontSize: 11, fill: '#666' }} axisLine={false} tickLine={false} tickFormatter={v => typeof v === 'number' ? `${v.toFixed(1)}p` : v} />
                 <Tooltip
                   contentStyle={{ background: '#181818', border: '1px solid #333', borderRadius: '8px', fontSize: '13px' }}
-                  formatter={v => [`${v.toFixed(1)}p`, selectedFuel]}
+                  formatter={v => [`${v.toFixed(2)}p`, selectedFuel]}
                   labelStyle={{ color: '#888' }}
+                  labelFormatter={ts => {
+                    const d = new Date(ts)
+                    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                  }}
                 />
                 <Line type="monotone" dataKey="price" stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: color }} />
               </LineChart>
