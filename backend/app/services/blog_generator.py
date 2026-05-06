@@ -189,8 +189,8 @@ Requirements:
                     post_url = f"https://pumpr.co.uk/blog/{post.slug}"
                     social_text = f"📊 {post.title}\n\n{post.summary}\n\n{post_url}\n\n#UKFuel #FuelPrices #Pumpr"
                     try:
-                        client = _bsky_client()
-                        client.send_post(text=social_text)
+                        bsky = _bsky_client()
+                        bsky.send_post(text=social_text)
                         logger.info("Blog post shared to Bluesky")
                     except Exception as e:
                         logger.error(f"Blog Bluesky post failed: {e}")

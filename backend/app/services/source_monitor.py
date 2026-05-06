@@ -19,9 +19,17 @@ logger = logging.getLogger(__name__)
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 
 RELEVANT_KEYWORDS = [
-    'fuel', 'petrol', 'diesel', 'oil price', 'opec', 'pump price',
-    'electric vehicle', 'ev charging', 'energy price', 'forecourt',
-    'fuel duty', 'cma', 'fuel finder', 'wholesale fuel',
+    'petrol', 'diesel', 'pump price', 'forecourt',
+    'fuel duty', 'fuel finder', 'wholesale fuel', 'road fuel',
+    'fuel prices', 'fuel costs', 'filling station',
+    'unleaded', 'electric vehicle charging', 'ev charging',
+]
+
+# Keywords that disqualify an article even if relevant keywords match
+EXCLUDE_KEYWORDS = [
+    'aviation', 'jet fuel', 'airline', 'aircraft', 'airport',
+    'veterinary', 'agricultural', 'marine fuel', 'shipping fuel',
+    'heating oil', 'kerosene',
 ]
 
 
@@ -38,6 +46,8 @@ def _hash(content: str) -> str:
 
 def _is_relevant(title: str, summary: str) -> bool:
     text = (title + ' ' + summary).lower()
+    if any(kw in text for kw in EXCLUDE_KEYWORDS):
+        return False
     return any(kw in text for kw in RELEVANT_KEYWORDS)
 
 
