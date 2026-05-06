@@ -178,6 +178,27 @@ Requirements:
             await session.commit()
             await session.refresh(post)
             logger.info(f"Generated blog post: {post.title}")
+
+            # Post to social media
+            try:
+                import os
+
+                from app.services.social import _bsky_client, _mastodon_post, _threads_post
+                enable_social = os.getenv("ENABLE_SOCIAL_POSTS", "false").lower() == "true"
+                if enable_social:
+                    post_url = f"https://pumpr.co.uk/blog/{post.slug}"
+                    social_text = f"📊 {post.title}\n\n{post.summary}\n\n{post_url}\n\n#UKFuel #FuelPrices #Pumpr"
+                    try:
+                        client = _bsky_client()
+                        client.send_post(text=social_text)
+                        logger.info("Blog post shared to Bluesky")
+                    except Exception as e:
+                        logger.error(f"Blog Bluesky post failed: {e}")
+                    _mastodon_post(social_text)
+                    _threads_post(social_text)
+            except Exception as e:
+                logger.error(f"Blog social posting failed: {e}")
+
             return post
 
     except Exception as e:

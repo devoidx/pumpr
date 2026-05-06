@@ -87,6 +87,15 @@ async def post_county_e10_job() -> None:
         logger.error(f"Scheduler: county E10 post failed: {e}")
 
 
+async def check_blog_sources_job() -> None:
+    try:
+        from app.services.source_monitor import check_sources
+        posts = await check_sources()
+        logger.info(f"Scheduler: blog source check complete — {len(posts)} new posts")
+    except Exception as e:
+        logger.error(f"Scheduler: blog source check failed: {e}")
+
+
 async def generate_weekly_blog_post_job() -> None:
     try:
         import datetime
@@ -143,6 +152,7 @@ def start_scheduler() -> None:
         scheduler.add_job(post_county_diesel_job,   trigger=CronTrigger(hour=10, minute=30, timezone="Europe/London"), id="post_county_diesel",          replace_existing=True)
         scheduler.add_job(refresh_threads_token_job, trigger=IntervalTrigger(days=45), id="refresh_threads_token", replace_existing=True)
         scheduler.add_job(generate_weekly_blog_post_job, trigger=CronTrigger(day_of_week="tue", hour=9, minute=30, timezone="Europe/London"), id="weekly_blog_post", replace_existing=True)
+        scheduler.add_job(check_blog_sources_job, trigger=CronTrigger(day_of_week="wed", hour=10, minute=0, timezone="Europe/London"), id="check_blog_sources", replace_existing=True)
 
     if enable_polling:
         scheduler.add_job(sync_stations_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="sync_stations", replace_existing=True)
