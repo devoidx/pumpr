@@ -230,6 +230,29 @@ async def get_subscription(current_user: User = Depends(get_current_user)) -> di
     }
 
 
+@router.post("/resume")
+async def resume_subscription(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    if not current_user.subscription_id:
+        raise HTTPException(status_code=400, detail="No active subscription")
+    if current_user.subscription_status != "canceling":
+        raise HTTPException(status_code=400, detail="Subscription is not set to cancel")
+
+    stripe.Subscription.modify(
+        current_user.subscription_id,
+        cancel_at_period_end=False,
+    )
+    await db.execute(
+        update(User)
+        .where(User.id == current_user.id)
+        .values(subscription_status="active")
+    )
+    await db.commit()
+    return {"message": "Subscription resumed successfully"}
+
+
 @router.post("/cancel")
 async def cancel_subscription(
     current_user: User = Depends(get_current_user),
