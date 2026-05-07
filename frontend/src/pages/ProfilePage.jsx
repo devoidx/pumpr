@@ -80,6 +80,28 @@ export default function ProfilePage() {
         )}
 
         <div className="profile-section">
+          <h2>Notifications</h2>
+          <div className="profile-info-row">
+            <span>
+              <strong style={{color:'var(--text)'}}>Blog newsletter</strong>
+              <div style={{fontSize:'0.78rem',color:'var(--text3)',marginTop:'2px'}}>
+                Get an email when new fuel price insights are published
+              </div>
+            </span>
+            <label className="profile-toggle">
+              <input
+                type="checkbox"
+                checked={user?.blog_newsletter || false}
+                onChange={async e => {
+                  try { await updateProfile({ blog_newsletter: e.target.checked }) }
+                  catch { alert('Failed to save preference') }
+                }}
+              />
+              <span className="profile-toggle-slider" />
+            </label>
+          </div>
+        </div>
+        <div className="profile-section">
           <h2>Actions</h2>
           <div style={{display:'flex', flexDirection:'column', gap:'0.5rem'}}>
             <a href="/my-places" className="profile-upgrade-btn" style={{textAlign:'center'}}>📍 My Places →</a>
