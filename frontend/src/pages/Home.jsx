@@ -333,6 +333,9 @@ export default function Home() {
               rank={i}
               avgPrice={avgPrice}
               useDriving={useDriving}
+              isPro={!!(user?.role === 'pro' || user?.role === 'admin')}
+              userLat={location?.lat}
+              userLng={location?.lng}
               isSelected={selected?.station_id === s.station_id}
               isHovered={hoveredId === s.station_id}
               onClick={() => { setSelected(s); navigate(`/stations/${s.station_id}?fuel=${fuel}`) }}

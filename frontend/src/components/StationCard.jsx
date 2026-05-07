@@ -5,7 +5,7 @@ import './StationCard.css'
 
 const RANK_LABELS = ['Cheapest', '2nd', '3rd']
 
-export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover, units = 'miles', avgPrice = 0, useDriving = false }) {
+export default function StationCard({ station: s, rank, isSelected, isHovered, onClick, onHover, units = 'miles', avgPrice = 0, useDriving = false, isPro = false, userLat = null, userLng = null }) {
   const color = FUEL_COLORS[s.fuel_type] || 'var(--amber)'
   const openStatus = isOpenNow(s.opening_times)
   const todayHours = getTodayHours(s.opening_times)
@@ -76,6 +76,16 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
           {s.price_pence.toFixed(1)}
           <span className="card-price-unit">p</span>
         </div>
+        {isPro && s.latitude && s.longitude && (
+          <a
+            href={["https://maps.google.com/maps?", userLat && userLng ? "saddr=" + userLat + "," + userLng + "&" : "", "daddr=", s.latitude, ",", s.longitude].join("")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card-directions-btn"
+            onClick={e => e.stopPropagation()}
+            title="Get directions"
+          >Directions</a>
+        )}
       </div>
     </div>
   )
