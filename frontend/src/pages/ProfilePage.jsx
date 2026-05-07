@@ -113,67 +113,7 @@ export default function ProfilePage() {
                   onClick={async () => {
                     setSubLoading(true); setSubMsg(null)
                     try {
-                      const r = await fetch('/api/v1/stripe/cancel', {method:'POST', headers:{Authorization:}})
-                      await updateProfile({subscription_status:'canceling'})
-                      setSubMsg('Subscription will cancel at the end of the current period.')
-                    } catch { setSubMsg('Something went wrong. Please try again.') }
-                    finally { setSubLoading(false) }
-                  }}
-                >{subLoading ? 'Cancelling…' : 'Cancel subscription'}</button>
-              )}
-              {user?.subscription_status === 'canceling' && (
-                <button
-                  className="profile-upgrade-btn"
-                  disabled={subLoading}
-                  onClick={async () => {
-                    setSubLoading(true); setSubMsg(null)
-                    try {
-                      const r = await fetch('/api/v1/stripe/resume', {method:'POST', headers:{Authorization:}})
-                      await updateProfile({subscription_status:'active'})
-                      setSubMsg('Subscription resumed successfully.')
-                    } catch { setSubMsg('Something went wrong. Please try again.') }
-                    finally { setSubLoading(false) }
-                  }}
-                >{subLoading ? 'Resuming…' : 'Resume subscription'}</button>
-              )}
-            </div>
-          </div>
-        )}
-        {isPro && (
-          <div className="profile-section">
-            <h2>Subscription</h2>
-            <div className="profile-info-row">
-              <span>Plan</span>
-              <strong style={{color:'var(--amber)'}}>
-                {user?.price_id === 'price_1TU6vtFThYVN7wEdDTNWtnKe' ? 'Monthly' : 'Annual'}
-              </strong>
-            </div>
-            <div className="profile-info-row">
-              <span>Status</span>
-              <strong style={{color: user?.subscription_status === 'active' ? 'var(--green)' : 'var(--amber)'}}>
-                {user?.subscription_status === 'active' ? 'Active' :
-                 user?.subscription_status === 'canceling' ? 'Cancels at period end' :
-                 user?.subscription_status === 'past_due' ? 'Past due' : 'Inactive'}
-              </strong>
-            </div>
-            {user?.current_period_end && (
-              <div className="profile-info-row">
-                <span>{user?.subscription_status === 'canceling' ? 'Access until' : 'Renews'}</span>
-                <strong>{new Date(user.current_period_end).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})}</strong>
-              </div>
-            )}
-            {subMsg && <p style={{fontSize:'0.8rem', color:'var(--text2)', margin:'8px 0 0'}}>{subMsg}</p>}
-            <div style={{marginTop:'12px', display:'flex', gap:'8px'}}>
-              {user?.subscription_status === 'active' && (
-                <button
-                  className="profile-danger-btn"
-                  disabled={subLoading}
-                  onClick={async () => {
-                    if (!window.confirm('Cancel your Pro subscription? You will keep access until the end of the current period.')) return
-                    setSubLoading(true); setSubMsg(null)
-                    try {
                       const r = await fetch('/api/v1/stripe/cancel', {method:'POST', headers:{Authorization:'Bearer ' + accessToken}})
-                      if (!r.ok) throw new Error()
                       await updateProfile({subscription_status:'canceling'})
                       setSubMsg('Subscription will cancel at the end of the current period.')
                     } catch { setSubMsg('Something went wrong. Please try again.') }
@@ -189,7 +129,6 @@ export default function ProfilePage() {
                     setSubLoading(true); setSubMsg(null)
                     try {
                       const r = await fetch('/api/v1/stripe/resume', {method:'POST', headers:{Authorization:'Bearer ' + accessToken}})
-                      if (!r.ok) throw new Error()
                       await updateProfile({subscription_status:'active'})
                       setSubMsg('Subscription resumed successfully.')
                     } catch { setSubMsg('Something went wrong. Please try again.') }
