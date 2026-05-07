@@ -49,7 +49,7 @@ function UserMenu() {
             <button className="user-menu-item" onClick={() => go('/my-places')}>📍 My Places</button>
             <button className="user-menu-item" onClick={() => go('/my-vehicles')}>🚗 My Vehicles</button>
             <button className="user-menu-item" onClick={() => go('/profile')}>👤 My Profile</button>
-            <button className="user-menu-item" onClick={() => setOpen(false)} style={{opacity:0.5,cursor:'default'}} title='Coming soon'>🔔 Price alerts</button>
+            <button className="user-menu-item" onClick={() => go('/my-alerts')}>🔔 Price alerts</button>
             <button className="user-menu-item danger" onClick={() => { setOpen(false); logout() }}>Sign out</button>
           </div>
         </Portal>

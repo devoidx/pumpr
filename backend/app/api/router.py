@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.endpoints import (
+    alerts,
     auth,
     blog,
     ev,
@@ -21,4 +22,5 @@ api_router.include_router(prices.router)
 api_router.include_router(ev.router)
 api_router.include_router(vehicles.router)
 api_router.include_router(stats.router)
+api_router.include_router(alerts.router)
 api_router.include_router(blog.router)

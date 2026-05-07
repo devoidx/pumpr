@@ -184,3 +184,67 @@ async def send_blog_newsletter(post_id: str) -> int:
                 logger.error("Newsletter send failed for %s: %s", user.email, e)
     logger.info("Newsletter sent to %d/%d subscribers", sent, len(subscribers))
     return sent
+
+
+async def send_price_alert_email(
+    email: str,
+    station_name: str,
+    station_id: str,
+    fuel_type: str,
+    alert_type: str,
+    threshold: float,
+    current_price: float,
+    disable_token: str,
+) -> None:
+    """Send a price alert triggered email."""
+    disable_url = f"https://pumpr.co.uk/alerts/disable?token={disable_token}"
+    station_url = f"https://pumpr.co.uk/stations/{station_id}?fuel={fuel_type}"
+
+    if alert_type == "below_pence":
+        subject = f"Price alert: {fuel_type} at {station_name} is now {current_price:.1f}p"
+        alert_desc = f"below your threshold of {threshold:.1f}p"
+        detail_html = f"""
+        <p style="color: #a0a0a8; line-height: 1.7; font-size: 15px;">
+          The price of <strong style="color:#e8e8e8;">{fuel_type}</strong> at <strong style="color:#e8e8e8;">{station_name}</strong>
+          has dropped to <span style="color:#f5a623; font-size:22px; font-weight:700;">{current_price:.1f}p/litre</span> —
+          below your alert threshold of {threshold:.1f}p.
+        </p>"""
+        detail_text = f"{fuel_type} at {station_name} is now {current_price:.1f}p/litre (your threshold: {threshold:.1f}p)"
+    else:
+        subject = f"Price alert: {fuel_type} price changed at {station_name}"
+        alert_desc = f"changed by more than {threshold:.1f}%"
+        detail_html = f"""
+        <p style="color: #a0a0a8; line-height: 1.7; font-size: 15px;">
+          The price of <strong style="color:#e8e8e8;">{fuel_type}</strong> at <strong style="color:#e8e8e8;">{station_name}</strong>
+          has changed by more than {threshold:.1f}% and is now <span style="color:#f5a623; font-size:22px; font-weight:700;">{current_price:.1f}p/litre</span>.
+        </p>"""
+        detail_text = f"{fuel_type} at {station_name} has changed by >{threshold:.1f}% and is now {current_price:.1f}p/litre"
+
+    html = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #0f0f0f; color: #e8e8e8; padding: 40px;">
+  <div style="max-width: 520px; margin: 0 auto; background: #1a1a1a; border-radius: 12px; padding: 32px; border: 1px solid #2a2a2a;">
+    <h1 style="color: #f5a623; font-size: 24px; margin: 0 0 4px;">⛽ Pumpr</h1>
+    <p style="color: #5a5a68; font-size: 12px; margin: 0 0 24px; font-family: monospace;">Price Alert</p>
+    <h2 style="color: #e8e8e8; font-size: 20px; margin: 0 0 16px;">🔔 {station_name}</h2>
+    {detail_html}
+    <div style="background:#111; border-radius:8px; padding:16px; margin:20px 0; border:1px solid #2a2a2a;">
+      <table style="width:100%; font-size:13px; color:#a0a0a8;">
+        <tr><td>Fuel type</td><td style="text-align:right; color:#e8e8e8;"><strong>{fuel_type}</strong></td></tr>
+        <tr><td>Current price</td><td style="text-align:right; color:#f5a623;"><strong>{current_price:.1f}p/litre</strong></td></tr>
+        <tr><td>Your alert</td><td style="text-align:right; color:#e8e8e8;">{alert_desc}</td></tr>
+      </table>
+    </div>
+    <a href="{station_url}" style="display: inline-block; margin: 8px 0; background: #f5a623; color: #000; font-weight: 700; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 15px;">View station →</a>
+    <hr style="border: none; border-top: 1px solid #2a2a2a; margin: 24px 0;" />
+    <p style="color: #3a3a48; font-size: 12px; line-height: 1.8;">
+      You set up this price alert on Pumpr. Alerts fire at most once every 24 hours.<br/>
+      <a href="{disable_url}" style="color: #5a5a68;">Disable this alert</a> &nbsp;·&nbsp;
+      <a href="https://pumpr.co.uk/my-alerts" style="color: #5a5a68;">Manage all alerts</a>
+    </p>
+  </div>
+</body>
+</html>"""
+    text = f"{subject}\n\n{detail_text}\n\nView station: {station_url}\nDisable this alert: {disable_url}\nManage alerts: https://pumpr.co.uk/my-alerts"
+    _send(email, subject, html, text)

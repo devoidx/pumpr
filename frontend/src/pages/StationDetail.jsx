@@ -5,6 +5,7 @@ import {
   Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { getPriceHistory, getStation, getPriceChanges } from '../api/client'
+import { useAuth } from '../hooks/useAuth'
 import { FUEL_COLORS, FUEL_LABELS } from '../constants/fuels'
 import { getWeekHours, isOpenNow } from '../utils/openingHours'
 import { timeAgo } from '../utils/timeAgo'
@@ -36,6 +37,12 @@ export default function StationDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [priceChanges, setPriceChanges] = useState({})
+  const { user, accessToken } = useAuth()
+  const isPro = user?.role === 'pro' || user?.role === 'admin'
+  const [alerts, setAlerts] = useState([])
+  const [alertForm, setAlertForm] = useState({ fuel_type: '', alert_type: 'below_pence', threshold: '' })
+  const [alertMsg, setAlertMsg] = useState(null)
+  const [alertLoading, setAlertLoading] = useState(false)
 
   useEffect(() => {
     Promise.all([getStation(id), getPriceChanges(id)])
@@ -67,6 +74,13 @@ export default function StationDetail() {
       )
     })
   }, [id, selectedFuel, station, historyRange])
+
+  useEffect(() => {
+    if (!isPro || !accessToken || !id) return
+    fetch(`/api/v1/alerts/station/${id}`, {
+      headers: { Authorization: 'Bearer ' + accessToken }
+    }).then(r => r.ok ? r.json() : []).then(setAlerts).catch(() => {})
+  }, [isPro, accessToken, id])
 
   if (loading) return <div className="detail-loading">Loading station…</div>
   if (!station) return <div className="detail-loading">Station not found</div>
@@ -149,6 +163,130 @@ export default function StationDetail() {
             )
           })}
         </div>
+
+        {/* Price Alerts */}
+        {isPro ? (
+          <div className="detail-hours-card">
+            <h2 className="detail-section-title">🔔 Price Alerts</h2>
+
+            {alerts.length > 0 && (
+              <div style={{marginBottom:'12px', display:'flex', flexDirection:'column', gap:'6px'}}>
+                {alerts.map(a => (
+                  <div key={a.id} style={{
+                    display:'flex', alignItems:'center', justifyContent:'space-between',
+                    padding:'8px 12px', background:'var(--surface2)', borderRadius:'8px',
+                    border:'1px solid var(--border)', fontSize:'13px', opacity: a.is_active ? 1 : 0.5
+                  }}>
+                    <span>
+                      <strong>{a.fuel_type}</strong> —{' '}
+                      {a.alert_type === 'below_pence'
+                        ? `below ${a.threshold.toFixed(1)}p`
+                        : `change >${a.threshold.toFixed(1)}%`}
+                      {a.triggered_count > 0 && <span style={{color:'var(--text3)', marginLeft:'6px'}}>· triggered {a.triggered_count}×</span>}
+                    </span>
+                    <div style={{display:'flex', gap:'6px'}}>
+                      <button
+                        onClick={async () => {
+                          const r = await fetch('/api/v1/alerts/' + a.id + '/toggle', {
+                            method:'PATCH', headers:{Authorization:'Bearer ' + accessToken}
+                          })
+                          if (r.ok) setAlerts(prev => prev.map(x => x.id === a.id ? {...x, is_active: !x.is_active} : x))
+                        }}
+                        style={{fontSize:'11px', padding:'3px 8px', borderRadius:'6px', border:'1px solid var(--border2)',
+                          background:'var(--surface)', color:'var(--text2)', cursor:'pointer'}}
+                      >{a.is_active ? 'Pause' : 'Resume'}</button>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm('Delete this alert?')) return
+                          const r = await fetch('/api/v1/alerts/' + a.id, {
+                            method:'DELETE', headers:{Authorization:'Bearer ' + accessToken}
+                          })
+                          if (r.ok) setAlerts(prev => prev.filter(x => x.id !== a.id))
+                        }}
+                        style={{fontSize:'11px', padding:'3px 8px', borderRadius:'6px', border:'1px solid #e74c3c',
+                          background:'transparent', color:'#e74c3c', cursor:'pointer'}}
+                      >Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+              <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                <select
+                  value={alertForm.fuel_type}
+                  onChange={e => setAlertForm(f => ({...f, fuel_type: e.target.value}))}
+                  style={{flex:1, minWidth:'80px', background:'var(--surface2)', border:'1px solid var(--border2)',
+                    color:'var(--text)', padding:'6px 8px', borderRadius:'6px', fontSize:'13px'}}
+                >
+                  <option value="">Fuel type</option>
+                  {station.latest_prices.map(p => (
+                    <option key={p.fuel_type} value={p.fuel_type}>{p.fuel_type}</option>
+                  ))}
+                </select>
+                <select
+                  value={alertForm.alert_type}
+                  onChange={e => setAlertForm(f => ({...f, alert_type: e.target.value}))}
+                  style={{flex:1, minWidth:'120px', background:'var(--surface2)', border:'1px solid var(--border2)',
+                    color:'var(--text)', padding:'6px 8px', borderRadius:'6px', fontSize:'13px'}}
+                >
+                  <option value="below_pence">Below (pence)</option>
+                  <option value="change_pct">Change (%)</option>
+                </select>
+                <input
+                  type="number"
+                  placeholder={alertForm.alert_type === 'below_pence' ? 'e.g. 135.0' : 'e.g. 2.5'}
+                  value={alertForm.threshold}
+                  onChange={e => setAlertForm(f => ({...f, threshold: e.target.value}))}
+                  style={{flex:1, minWidth:'90px', background:'var(--surface2)', border:'1px solid var(--border2)',
+                    color:'var(--text)', padding:'6px 8px', borderRadius:'6px', fontSize:'13px'}}
+                />
+                <button
+                  disabled={alertLoading || !alertForm.fuel_type || !alertForm.threshold}
+                  onClick={async () => {
+                    setAlertLoading(true); setAlertMsg(null)
+                    try {
+                      const r = await fetch('/api/v1/alerts/', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json', Authorization:'Bearer ' + accessToken},
+                        body: JSON.stringify({
+                          station_id: id,
+                          fuel_type: alertForm.fuel_type,
+                          alert_type: alertForm.alert_type,
+                          threshold: parseFloat(alertForm.threshold),
+                        })
+                      })
+                      const data = await r.json()
+                      if (!r.ok) throw new Error(data.detail || 'Failed')
+                      setAlerts(prev => [data, ...prev])
+                      setAlertForm(f => ({...f, threshold: ''}))
+                      setAlertMsg('Alert created.')
+                    } catch (e) { setAlertMsg('Error: ' + e.message) }
+                    finally { setAlertLoading(false) }
+                  }}
+                  style={{padding:'6px 16px', borderRadius:'6px', border:'none', background:'var(--amber)',
+                    color:'#000', fontWeight:700, fontSize:'13px', cursor:'pointer', opacity: alertLoading ? 0.6 : 1}}
+                >{alertLoading ? 'Saving…' : '+ Add alert'}</button>
+              </div>
+              {alertMsg && <p style={{fontSize:'12px', color:'var(--text2)', margin:0}}>{alertMsg}</p>}
+              <p style={{fontSize:'11px', color:'var(--text3)', margin:0}}>
+                Alerts fire once per 24 hours. You'll get an email when the condition is met.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="detail-hours-card" style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'16px'}}>
+            <div>
+              <h2 className="detail-section-title" style={{marginBottom:'4px'}}>🔔 Price Alerts</h2>
+              <p style={{fontSize:'13px', color:'var(--text3)', margin:0}}>Get notified by email when prices drop or change. A Pro feature.</p>
+            </div>
+            <a href="/pro" style={{flexShrink:0, padding:'8px 16px', borderRadius:'8px', background:'var(--amber)',
+              color:'#000', fontWeight:700, fontSize:'13px', textDecoration:'none', whiteSpace:'nowrap'}}>
+              Go Pro →
+            </a>
+          </div>
+        )}
 
         {/* Price history */}
         <div className="detail-chart-card">
@@ -254,6 +392,118 @@ export default function StationDetail() {
                   </div>
                 )
               })}
+            </div>
+          </div>
+        )}
+
+        {false && (
+          <div className="detail-hours-card">
+            <h2 className="detail-section-title">🔔 Price Alerts</h2>
+
+            {alerts.length > 0 && (
+              <div style={{marginBottom:'12px', display:'flex', flexDirection:'column', gap:'6px'}}>
+                {alerts.map(a => (
+                  <div key={a.id} style={{
+                    display:'flex', alignItems:'center', justifyContent:'space-between',
+                    padding:'8px 12px', background:'var(--surface2)', borderRadius:'8px',
+                    border:'1px solid var(--border)', fontSize:'13px', opacity: a.is_active ? 1 : 0.5
+                  }}>
+                    <span>
+                      <strong>{a.fuel_type}</strong> —{' '}
+                      {a.alert_type === 'below_pence'
+                        ? `below ${a.threshold.toFixed(1)}p`
+                        : `change >${a.threshold.toFixed(1)}%`}
+                      {a.triggered_count > 0 && <span style={{color:'var(--text3)', marginLeft:'6px'}}>· triggered {a.triggered_count}×</span>}
+                    </span>
+                    <div style={{display:'flex', gap:'6px'}}>
+                      <button
+                        onClick={async () => {
+                          const r = await fetch('/api/v1/alerts/' + a.id + '/toggle', {
+                            method:'PATCH', headers:{Authorization:'Bearer ' + accessToken}
+                          })
+                          if (r.ok) setAlerts(prev => prev.map(x => x.id === a.id ? {...x, is_active: !x.is_active} : x))
+                        }}
+                        style={{fontSize:'11px', padding:'3px 8px', borderRadius:'6px', border:'1px solid var(--border2)',
+                          background:'var(--surface)', color:'var(--text2)', cursor:'pointer'}}
+                      >{a.is_active ? 'Pause' : 'Resume'}</button>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm('Delete this alert?')) return
+                          const r = await fetch('/api/v1/alerts/' + a.id, {
+                            method:'DELETE', headers:{Authorization:'Bearer ' + accessToken}
+                          })
+                          if (r.ok) setAlerts(prev => prev.filter(x => x.id !== a.id))
+                        }}
+                        style={{fontSize:'11px', padding:'3px 8px', borderRadius:'6px', border:'1px solid #e74c3c',
+                          background:'transparent', color:'#e74c3c', cursor:'pointer'}}
+                      >Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+              <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+                <select
+                  value={alertForm.fuel_type}
+                  onChange={e => setAlertForm(f => ({...f, fuel_type: e.target.value}))}
+                  style={{flex:1, minWidth:'80px', background:'var(--surface2)', border:'1px solid var(--border2)',
+                    color:'var(--text)', padding:'6px 8px', borderRadius:'6px', fontSize:'13px'}}
+                >
+                  <option value="">Fuel type</option>
+                  {station.latest_prices.map(p => (
+                    <option key={p.fuel_type} value={p.fuel_type}>{p.fuel_type}</option>
+                  ))}
+                </select>
+                <select
+                  value={alertForm.alert_type}
+                  onChange={e => setAlertForm(f => ({...f, alert_type: e.target.value}))}
+                  style={{flex:1, minWidth:'120px', background:'var(--surface2)', border:'1px solid var(--border2)',
+                    color:'var(--text)', padding:'6px 8px', borderRadius:'6px', fontSize:'13px'}}
+                >
+                  <option value="below_pence">Below (pence)</option>
+                  <option value="change_pct">Change (%)</option>
+                </select>
+                <input
+                  type="number"
+                  placeholder={alertForm.alert_type === 'below_pence' ? 'e.g. 135.0' : 'e.g. 2.5'}
+                  value={alertForm.threshold}
+                  onChange={e => setAlertForm(f => ({...f, threshold: e.target.value}))}
+                  style={{flex:1, minWidth:'90px', background:'var(--surface2)', border:'1px solid var(--border2)',
+                    color:'var(--text)', padding:'6px 8px', borderRadius:'6px', fontSize:'13px'}}
+                />
+                <button
+                  disabled={alertLoading || !alertForm.fuel_type || !alertForm.threshold}
+                  onClick={async () => {
+                    setAlertLoading(true); setAlertMsg(null)
+                    try {
+                      const r = await fetch('/api/v1/alerts/', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json', Authorization:'Bearer ' + accessToken},
+                        body: JSON.stringify({
+                          station_id: id,
+                          fuel_type: alertForm.fuel_type,
+                          alert_type: alertForm.alert_type,
+                          threshold: parseFloat(alertForm.threshold),
+                        })
+                      })
+                      const data = await r.json()
+                      if (!r.ok) throw new Error(data.detail || 'Failed')
+                      setAlerts(prev => [data, ...prev])
+                      setAlertForm(f => ({...f, threshold: ''}))
+                      setAlertMsg('Alert created.')
+                    } catch (e) { setAlertMsg('Error: ' + e.message) }
+                    finally { setAlertLoading(false) }
+                  }}
+                  style={{padding:'6px 16px', borderRadius:'6px', border:'none', background:'var(--amber)',
+                    color:'#000', fontWeight:700, fontSize:'13px', cursor:'pointer', opacity: alertLoading ? 0.6 : 1}}
+                >{alertLoading ? 'Saving…' : '+ Add alert'}</button>
+              </div>
+              {alertMsg && <p style={{fontSize:'12px', color:'var(--text2)', margin:0}}>{alertMsg}</p>}
+              <p style={{fontSize:'11px', color:'var(--text3)', margin:0}}>
+                Alerts fire once per 24 hours. You'll get an email when the condition is met.
+              </p>
             </div>
           </div>
         )}

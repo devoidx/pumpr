@@ -17,6 +17,8 @@ import MyVehiclesPage from './pages/MyVehiclesPage'
 import UnverifiedBanner from './components/auth/UnverifiedBanner'
 import ProfilePage from './pages/ProfilePage'
 import MyPlacesPage from './pages/MyPlacesPage'
+import MyAlertsPage from './pages/MyAlertsPage'
+import DisableAlertPage from './pages/DisableAlertPage'
 import ProSuccessPage from './pages/ProSuccessPage'
 
 export default function App() {
@@ -48,6 +50,8 @@ export default function App() {
           <Route path="/pro/success" element={<ProSuccessPage />} />
           <Route path="/setup-password" element={<SetupPasswordPage />} />
           <Route path="/my-vehicles" element={<MyVehiclesPage />} />
+          <Route path="/my-alerts" element={<MyAlertsPage />} />
+          <Route path="/alerts/disable" element={<DisableAlertPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
         </Routes>

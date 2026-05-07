@@ -165,6 +165,7 @@ def start_scheduler() -> None:
     if enable_polling:
         scheduler.add_job(sync_stations_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="sync_stations", replace_existing=True)
         scheduler.add_job(poll_prices,   trigger=IntervalTrigger(minutes=settings.poll_interval_minutes), id="poll_prices", replace_existing=True)
+        scheduler.add_job(check_price_alerts_job, trigger=IntervalTrigger(minutes=settings.poll_interval_minutes, start_date='2026-01-01 00:10:00'), id="check_price_alerts", replace_existing=True)
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
 
     scheduler.start()
@@ -189,3 +190,95 @@ async def run_county_fix() -> None:
             logger.error(f"County fix failed: {result.stderr}")
     except Exception as e:
         logger.error(f"County fix error: {e}")
+
+
+async def check_price_alerts_job() -> None:
+    try:
+        from datetime import datetime, timedelta, timezone
+
+        from sqlalchemy import select
+
+        from app.api.endpoints.alerts import _create_disable_token
+        from app.db.session import AsyncSessionLocal
+        from app.models.alert import PriceAlert
+        from app.models.models import Station
+        from app.models.user import User
+        from app.services.email import send_price_alert_email
+
+        COOLDOWN_HOURS = 24
+
+        async with AsyncSessionLocal() as db:
+            # Get all active alerts with user and latest price
+            result = await db.execute(
+                select(PriceAlert, User.email, Station.name)
+                .join(User, PriceAlert.user_id == User.id)
+                .join(Station, PriceAlert.station_id == Station.id)
+                .where(PriceAlert.is_active == True)  # noqa: E712
+            )
+            rows = result.all()
+
+            now = datetime.now(timezone.utc)
+            triggered = 0
+
+            for alert, user_email, station_name in rows:
+                # Cooldown check
+                if alert.last_triggered_at:
+                    last = alert.last_triggered_at.replace(tzinfo=timezone.utc)
+                    if now - last < timedelta(hours=COOLDOWN_HOURS):
+                        continue
+
+                # Get latest price for this station/fuel
+                from sqlalchemy import text
+                price_result = await db.execute(
+                    text("""
+                        SELECT price_pence FROM price_history
+                        WHERE station_id = :sid AND fuel_type = :fuel AND price_flagged = false
+                        ORDER BY recorded_at DESC LIMIT 1
+                    """),
+                    {"sid": alert.station_id, "fuel": alert.fuel_type}
+                )
+                row = price_result.fetchone()
+                if not row:
+                    continue
+                current_price = row[0]
+
+                should_trigger = False
+
+                if alert.alert_type == "below_pence":
+                    should_trigger = current_price <= alert.threshold
+                elif alert.alert_type == "change_pct":
+                    # Get price from 24h ago
+                    prev_result = await db.execute(
+                        text("""
+                            SELECT price_pence FROM price_history
+                            WHERE station_id = :sid AND fuel_type = :fuel AND price_flagged = false
+                            AND recorded_at <= NOW() - INTERVAL '24 hours'
+                            ORDER BY recorded_at DESC LIMIT 1
+                        """),
+                        {"sid": alert.station_id, "fuel": alert.fuel_type}
+                    )
+                    prev_row = prev_result.fetchone()
+                    if prev_row and prev_row[0] > 0:
+                        pct_change = abs((current_price - prev_row[0]) / prev_row[0] * 100)
+                        should_trigger = pct_change >= alert.threshold
+
+                if should_trigger:
+                    disable_token = _create_disable_token(alert.id)
+                    await send_price_alert_email(
+                        email=user_email,
+                        station_name=station_name,
+                        station_id=alert.station_id,
+                        fuel_type=alert.fuel_type,
+                        alert_type=alert.alert_type,
+                        threshold=alert.threshold,
+                        current_price=current_price,
+                        disable_token=disable_token,
+                    )
+                    alert.last_triggered_at = now.replace(tzinfo=None)
+                    alert.triggered_count += 1
+                    await db.commit()
+                    triggered += 1
+
+        logger.info(f"Price alert check complete — {triggered} alerts triggered")
+    except Exception as e:
+        logger.error(f"Scheduler: price alert check failed: {e}")
