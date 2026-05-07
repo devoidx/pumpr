@@ -114,9 +114,11 @@ export default function ProfilePage() {
                     setSubLoading(true); setSubMsg(null)
                     try {
                       const r = await fetch('/api/v1/stripe/cancel', {method:'POST', headers:{Authorization:'Bearer ' + accessToken}})
+                      const data = await r.json()
+                      if (!r.ok) throw new Error(data.detail || 'Request failed')
                       await updateProfile({subscription_status:'canceling'})
                       setSubMsg('Subscription will cancel at the end of the current period.')
-                    } catch { setSubMsg('Something went wrong. Please try again.') }
+                    } catch (e) { setSubMsg('Error: ' + e.message) }
                     finally { setSubLoading(false) }
                   }}
                 >{subLoading ? 'Cancelling…' : 'Cancel subscription'}</button>
