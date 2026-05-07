@@ -92,6 +92,11 @@ async def check_blog_sources_job() -> None:
         from app.services.source_monitor import check_sources
         posts = await check_sources()
         logger.info(f"Scheduler: blog source check complete — {len(posts)} new posts")
+        if posts:
+            from app.services.email import send_blog_newsletter
+            for post in posts:
+                sent = await send_blog_newsletter(str(post.id))
+                logger.info(f"Newsletter sent to {sent} subscribers for '{post.title}'")
     except Exception as e:
         logger.error(f"Scheduler: blog source check failed: {e}")
 
@@ -105,6 +110,9 @@ async def generate_weekly_blog_post_job() -> None:
         post = await generate_weekly_post(style_index=week_num)
         if post:
             logger.info(f"Weekly blog post generated: {post.title}")
+            from app.services.email import send_blog_newsletter
+            sent = await send_blog_newsletter(str(post.id))
+            logger.info(f"Newsletter sent to {sent} subscribers")
     except Exception as e:
         logger.error(f"Scheduler: weekly blog post generation failed: {e}")
 

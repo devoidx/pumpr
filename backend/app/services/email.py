@@ -117,3 +117,70 @@ async def send_resend_verification_email(email: str) -> None:
     """Resend a new verification email - generates a fresh token."""
     # This is called from the API endpoint - token generation happens there
     pass
+
+
+async def send_newsletter_email(email: str, title: str, summary: str, slug: str, post_type: str) -> None:
+    """Send a single blog newsletter email to one subscriber."""
+    url = f"https://pumpr.co.uk/blog/{slug}"
+    label = "Weekly Fuel Price Update" if post_type == "weekly_prices" else "Fuel Industry News"
+    html = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #0f0f0f; color: #e8e8e8; padding: 40px;">
+  <div style="max-width: 520px; margin: 0 auto; background: #1a1a1a; border-radius: 12px; padding: 32px; border: 1px solid #2a2a2a;">
+    <h1 style="color: #f5a623; font-size: 24px; margin: 0 0 4px;">⛽ Pumpr</h1>
+    <p style="color: #5a5a68; font-size: 12px; margin: 0 0 24px; font-family: monospace;">{label}</p>
+    <h2 style="color: #e8e8e8; font-size: 20px; margin: 0 0 16px; line-height: 1.3;">{title}</h2>
+    <p style="color: #a0a0a8; line-height: 1.7; font-size: 15px;">{summary}</p>
+    <a href="{url}" style="display: inline-block; margin: 28px 0 16px; background: #f5a623; color: #000; font-weight: 700; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 15px;">Read full post →</a>
+    <hr style="border: none; border-top: 1px solid #2a2a2a; margin: 24px 0;" />
+    <p style="color: #3a3a48; font-size: 12px; line-height: 1.6;">
+      You're receiving this because you subscribed to Pumpr blog updates.<br/>
+      <a href="https://pumpr.co.uk/profile" style="color: #5a5a68;">Unsubscribe</a>
+    </p>
+  </div>
+</body>
+</html>"""
+    text = f"{label}\n\n{title}\n\n{summary}\n\nRead more: {url}\n\nUnsubscribe: https://pumpr.co.uk/profile"
+    _send(email, f"Pumpr: {title}", html, text)
+
+
+async def send_blog_newsletter(post_id: str) -> int:
+    """Send newsletter email to all opted-in verified subscribers for a given blog post. Returns send count."""
+    import uuid
+
+    from sqlalchemy import select
+
+    from app.db.session import AsyncSessionLocal
+    from app.models.blog import BlogPost
+    from app.models.user import User
+
+    sent = 0
+    async with AsyncSessionLocal() as db:
+        post = await db.get(BlogPost, uuid.UUID(post_id))
+        if not post:
+            logger.error("send_blog_newsletter: post %s not found", post_id)
+            return 0
+        result = await db.execute(
+            select(User).where(
+                User.blog_newsletter,
+                User.is_verified,
+                User.email.is_not(None),
+            )
+        )
+        subscribers = result.scalars().all()
+        logger.info("Sending newsletter for '%s' to %d subscribers", post.title, len(subscribers))
+        for user in subscribers:
+            try:
+                await send_newsletter_email(
+                    email=user.email,
+                    title=post.title,
+                    summary=post.summary,
+                    slug=post.slug,
+                    post_type=post.post_type,
+                )
+                sent += 1
+            except Exception as e:
+                logger.error("Newsletter send failed for %s: %s", user.email, e)
+    logger.info("Newsletter sent to %d/%d subscribers", sent, len(subscribers))
+    return sent
