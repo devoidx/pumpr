@@ -61,7 +61,7 @@ export default function ProfilePage() {
               <span>
                 <strong style={{color:'var(--text)'}}>Fuel economy units</strong>
                 <div style={{fontSize:'0.78rem',color:'var(--text3)',marginTop:'2px'}}>
-                  Units used for economy figures and savings calculations
+                  Units used for economy figures and savings calculations. Only applies when you have an active vehicle set.
                 </div>
               </span>
               <select
