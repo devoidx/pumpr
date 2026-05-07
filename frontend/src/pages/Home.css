@@ -124,22 +124,30 @@
 @media (max-width: 768px) {
   .home {
     flex-direction: column;
+    height: 100%;
+    overflow: hidden;
   }
 
   .panel {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+    flex: 0 0 50%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
 
   .station-list {
-    max-height: 50vh;
+    flex: 1;
+    overflow-y: auto;
+    max-height: none;
   }
 
   .map-container {
-    height: 50vh;
-    flex: none;
+    flex: 0 0 50%;
+    min-height: 0;
+    height: auto;
   }
 
   .panel-controls {
@@ -156,12 +164,12 @@
 }
 
 @media (max-width: 480px) {
-  .station-list {
-    max-height: 45vh;
+  .panel {
+    max-height: 50%;
   }
 
   .map-container {
-    height: 45vh;
+    min-height: 180px;
   }
 
   .panel-header {
