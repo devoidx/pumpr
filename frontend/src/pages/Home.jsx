@@ -12,11 +12,13 @@ import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
 import SavedLocations from '../components/SavedLocations'
 import { useAuth } from '../hooks/useAuth'
+import { useBrandLogos, BRAND_ALIASES } from '../contexts/BrandsContext'
 import ShareButton from '../components/ShareButton'
 import './Home.css'
 
 export default function Home() {
   const { user, accessToken } = useAuth()
+  const brandLogos = useBrandLogos()
   const useDriving = user?.use_driving_distance && (user?.role === 'pro' || user?.role === 'admin')
 
   function vehicleFuelGroup(fuelType) {
@@ -49,6 +51,13 @@ export default function Home() {
   const [mapView, setMapView] = useState('split')
   const [brands, setBrands] = useState([])
   const [selectedBrand, setSelectedBrand] = useState('')
+  const [brandDropdownOpen, setBrandDropdownOpen] = useState(false)
+  useEffect(() => {
+    if (!brandDropdownOpen) return
+    const handler = () => setBrandDropdownOpen(false)
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [brandDropdownOpen])
   const [sortBy, setSortBy] = useState('price') // 'split' | 'hidden' | 'full'
   const [connector, setConnector] = useState(() => localStorage.getItem('pumpr_ev_connector') || '')
   const [minPower, setMinPower] = useState(() => Number(localStorage.getItem('pumpr_ev_power')) || 0)
@@ -241,16 +250,57 @@ export default function Home() {
               {units === 'miles' ? 'mi' : 'km'}
             </button>
             {mode === 'fuel' && (
-              <select
-                className="brand-select"
-                value={selectedBrand}
-                onChange={e => { setSelectedBrand(e.target.value) }}
-              >
-                <option value="">All brands</option>
-                {brands.map(b => (
-                  <option key={b.brand} value={b.brand}>{b.brand}</option>
-                ))}
-              </select>
+              <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
+                <button
+                  className="brand-select"
+                  onClick={() => setBrandDropdownOpen(o => !o)}
+                  style={{display:'flex', alignItems:'center', gap:'4px', cursor:'pointer'}}
+                >
+                  {selectedBrand && brandLogos[selectedBrand.toUpperCase()] && (
+                    <img src={brandLogos[selectedBrand.toUpperCase()]} style={{width:'14px', height:'14px', objectFit:'contain', borderRadius:'2px'}} />
+                  )}
+                  <span style={{fontSize:'12px'}}>{selectedBrand || 'All brands'}</span>
+                  <span style={{fontSize:'10px', color:'var(--text3)'}}>▾</span>
+                </button>
+                {brandDropdownOpen && (
+                  <div style={{
+                    position:'absolute', top:'100%', left:0, zIndex:1000, marginTop:'4px',
+                    background:'var(--surface)', border:'1px solid var(--border2)',
+                    borderRadius:'8px', boxShadow:'0 4px 16px rgba(0,0,0,0.4)',
+                    minWidth:'160px', maxHeight:'280px', overflowY:'auto'
+                  }}>
+                    <div
+                      onClick={() => { setSelectedBrand(''); setBrandDropdownOpen(false) }}
+                      style={{display:'flex', alignItems:'center', gap:'8px', padding:'8px 12px',
+                        cursor:'pointer', fontSize:'13px', color:'var(--text2)'}}
+                      onMouseEnter={e => e.currentTarget.style.background='var(--surface2)'}
+                      onMouseLeave={e => e.currentTarget.style.background=''}
+                    >All brands</div>
+                    {brands
+                      .filter(b => b.brand)
+                      .map(b => {
+                        const canonical = BRAND_ALIASES[b.brand.toUpperCase()] || b.brand.toUpperCase()
+                        const display = BRAND_ALIASES[b.brand.toUpperCase()] || b.brand
+                        return { raw: b.brand, canonical, display }
+                      })
+                      .filter((b, i, arr) => arr.findIndex(x => x.canonical === b.canonical) === i)
+                      .map(b => (
+                      <div
+                        key={b.brand}
+                        onClick={() => { setSelectedBrand(b.brand); setBrandDropdownOpen(false) }}
+                        style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 12px',
+                          cursor:'pointer', fontSize:'13px', color:'var(--text)',
+                          background: selectedBrand === b.raw ? 'var(--surface2)' : ''}}
+                        onMouseEnter={e => e.currentTarget.style.background='var(--surface2)'}
+                        onMouseLeave={e => e.currentTarget.style.background= selectedBrand === b.raw ? 'var(--surface2)' : ''}
+                      >
+                        <img src={brandLogos[b.canonical] || '/favicon.svg'} style={{width:'16px', height:'16px', objectFit:'contain', borderRadius:'2px', flexShrink:0}} />
+                        <span>{b.display}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
           <div className="panel-meta">
@@ -390,6 +440,7 @@ export default function Home() {
           activeVehicle={activeVehicle}
           vehicleFuelMatch={fuelMatchesVehicle(fuel, activeVehicle?.fuel_type)}
           economyUnits={user?.economy_units || 'mpg'}
+          brandLogos={brandLogos}
         />
       </div>
     </div>

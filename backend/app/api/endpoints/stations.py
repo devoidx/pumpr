@@ -271,3 +271,12 @@ async def get_price_changes(
 
     return sorted(changes, key=lambda x: x["fuel_type"])
 
+
+
+@router.get("/brands/logos")
+async def get_brand_logos(db: AsyncSession = Depends(get_db)) -> list[dict]:
+    """Return all brands with their logos."""
+    result = await db.execute(
+        text("SELECT name, display_name, logo_b64 FROM brands WHERE logo_b64 IS NOT NULL")
+    )
+    return [{"name": r.name, "display_name": r.display_name, "logo": r.logo_b64} for r in result.fetchall()]

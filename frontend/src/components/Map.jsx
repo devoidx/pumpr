@@ -27,40 +27,26 @@ function priceColor(pricePence, minPrice, maxPrice) {
   }
 }
 
-function createFuelMarker(color, selected = false, rank = null, price = '', price_flagged = false) {
+function createFuelMarker(color, selected = false, rank = null, price = '', price_flagged = false, logo = null) {
   const w = selected ? 64 : 56
   const h = selected ? 30 : 26
   const fontSize = selected ? 13 : 11
-  const star = (rank === 0 && !price_flagged) ? '★' : ''
+  const logoSize = selected ? 22 : 20
+  const logoSrc = logo || '/favicon.svg'
   return L.divIcon({
     className: '',
-    html: `<div style="
-      position:relative;
-      width:${w}px;
-      background:${color};
-      border-radius:6px;
-      border:2px solid rgba(255,255,255,0.4);
-      box-shadow:0 2px 8px rgba(0,0,0,0.45);
-      display:flex;flex-direction:column;
-      align-items:center;justify-content:center;
-      padding:2px 4px;
-      cursor:pointer;">
-      ${star ? `<span style="color:#fff;font-size:10px;line-height:1;text-align:center;width:100%;display:block;">★</span>` : ''}
-      <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;text-align:center;display:block;">${price_flagged ? '⚠️ ' : ''}${price}p</span>
-      <div style="
-        position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
-        width:0;height:0;
-        border-left:5px solid transparent;
-        border-right:5px solid transparent;
-        border-top:6px solid ${color};">
+    html: `<div style="position:relative;width:${w}px;">
+      <img src="${logoSrc}" style="position:absolute;top:-${logoSize/2+4}px;left:50%;transform:translateX(-50%);width:${logoSize}px;height:${logoSize}px;object-fit:contain;border-radius:50%;background:#fff;padding:2px;box-shadow:0 1px 4px rgba(0,0,0,0.4);z-index:1;" />
+      <div style="margin-top:${logoSize/2}px;width:${w}px;background:${color};border-radius:6px;border:2px solid rgba(255,255,255,0.4);box-shadow:0 2px 8px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:4px 4px 3px;cursor:pointer;">
+        <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;">${price_flagged ? '⚠️' : ''}${price}p</span>
       </div>
+      <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${color};"></div>
     </div>`,
-    iconSize: [w, h + 6],
-    iconAnchor: [w / 2, h + 6],
+    iconSize: [w, h + 6 + logoSize/2],
+    iconAnchor: [w / 2, h + 6 + logoSize/2],
     popupAnchor: [0, -(h + 6)],
   })
 }
-
 function createEvMarker(color, selected = false, kw = null, points = null) {
   const w = selected ? 58 : 50
   const h = selected ? 32 : 28
@@ -94,7 +80,7 @@ function createEvMarker(color, selected = false, kw = null, points = null) {
   })
 }
 
-export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false, isPro = false, avgPrice = 0, activeVehicle = null, vehicleFuelMatch = true, economyUnits = 'mpg' }) {
+export default function Map({ stations = [], chargers = [], center, selectedId, hoveredId, fuel, mode = 'fuel', onSelect, onHover, minPrice, maxPrice, units = 'miles', useDriving = false, isPro = false, avgPrice = 0, activeVehicle = null, vehicleFuelMatch = true, economyUnits = 'mpg', brandLogos = {} }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
@@ -159,7 +145,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
         const isSelected = s.station_id === selectedId
         const isHovered = s.station_id === hoveredId
         const marker = L.marker([s.latitude, s.longitude], {
-          icon: createFuelMarker(color, isSelected || isHovered, i, s.price_pence?.toFixed(1) || '', s.price_flagged),
+          icon: createFuelMarker(color, isSelected || isHovered, i, s.price_pence?.toFixed(1) || '', s.price_flagged, s.brand ? brandLogos[s.brand.toUpperCase()] : null),
           zIndexOffset: isSelected ? 1000 : isHovered ? 500 : 0,
         })
         const popup = L.popup({ closeButton: false, offset: [0, -28] }).setContent((() => {
@@ -359,7 +345,7 @@ ${(() => { const kp = parseKwhPrice(c.usage_cost); const c100 = costPer100Miles(
       const isHovered = id === hoveredId
       const color = getColor(item, i)
       marker.setIcon(mode === 'fuel'
-        ? createFuelMarker(color, isSelected || isHovered, i, item.price_pence?.toFixed(1) || '', item.price_flagged)
+        ? createFuelMarker(color, isSelected || isHovered, i, item.price_pence?.toFixed(1) || '', item.price_flagged, item.brand ? brandLogos[item.brand.toUpperCase()] : null)
         : createEvMarker(color, isSelected || isHovered, item.max_power_kw, item.total_points)
       )
       marker.setZIndexOffset(isSelected ? 1000 : isHovered ? 500 : 0)

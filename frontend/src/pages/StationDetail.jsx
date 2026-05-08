@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { getPriceHistory, getStation, getPriceChanges } from '../api/client'
 import { useAuth } from '../hooks/useAuth'
+import { useBrandLogos } from '../contexts/BrandsContext'
 import { FUEL_COLORS, FUEL_LABELS } from '../constants/fuels'
 import { getWeekHours, isOpenNow } from '../utils/openingHours'
 import { timeAgo } from '../utils/timeAgo'
@@ -38,6 +39,8 @@ export default function StationDetail() {
   const [error, setError] = useState(null)
   const [priceChanges, setPriceChanges] = useState({})
   const { user, accessToken } = useAuth()
+  const brandLogos = useBrandLogos()
+  const brandLogo = station?.brand ? brandLogos[station.brand.toUpperCase()] : null
   const isPro = user?.role === 'pro' || user?.role === 'admin'
   const [alerts, setAlerts] = useState([])
   const [alertForm, setAlertForm] = useState({ fuel_type: '', alert_type: 'below_pence', threshold: '' })
@@ -108,7 +111,12 @@ export default function StationDetail() {
             <h1 className="detail-name">{station.name}</h1>
             <p className="detail-address">{station.address} {station.postcode}</p>
             <div className="detail-tags">
-              {station.brand && <span className="detail-brand">{station.brand}</span>}
+              {station.brand && (
+                <span className="detail-brand" style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                  {brandLogo && <img src={brandLogo} alt={station.brand} style={{width:'24px', height:'24px', objectFit:'contain', borderRadius:'4px', background:'#fff', padding:'2px'}} />}
+                  {station.brand}
+                </span>
+              )}
               {station.is_motorway && <span className="detail-tag detail-tag-motorway">Motorway</span>}
               {station.is_supermarket && <span className="detail-tag detail-tag-supermarket">Supermarket</span>}
               {station.temporary_closure && <span className="detail-tag detail-tag-closed">Temporarily Closed</span>}
