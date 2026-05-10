@@ -9,6 +9,7 @@ export default function MyAlertsPage() {
   const [alerts, setAlerts] = useState([])
   const [fetching, setFetching] = useState(true)
 
+  useEffect(() => { if (typeof umami !== 'undefined') umami.track('my-alerts-viewed') }, [])
   useEffect(() => {
     if (!loading && !isAuthenticated) navigate('/')
   }, [isAuthenticated, loading, navigate])

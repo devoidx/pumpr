@@ -8,6 +8,7 @@ export default function ProfilePage() {
   const [subLoading, setSubLoading] = useState(false)
   const [subMsg, setSubMsg] = useState(null)
   const navigate = useNavigate()
+  useEffect(() => { if (typeof umami !== 'undefined') umami.track('profile-viewed') }, [])
   const isPro = user?.role === 'pro' || user?.role === 'admin'
 
   useEffect(() => {
