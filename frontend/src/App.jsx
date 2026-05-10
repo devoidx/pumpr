@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import BlogPage from './pages/BlogPage'
 import BlogPostPage from './pages/BlogPostPage'
@@ -19,10 +20,12 @@ import ProfilePage from './pages/ProfilePage'
 import MyPlacesPage from './pages/MyPlacesPage'
 import MyAlertsPage from './pages/MyAlertsPage'
 import DisableAlertPage from './pages/DisableAlertPage'
+import CheapFuelPage from './pages/CheapFuelPage'
 import ProSuccessPage from './pages/ProSuccessPage'
 
 export default function App() {
   const navigate = useNavigate()
+  const currentPath = useLocation().pathname
 
   useEffect(() => {
     function handler(e) { navigate(e.detail.path) }
@@ -52,9 +55,34 @@ export default function App() {
           <Route path="/my-vehicles" element={<MyVehiclesPage />} />
           <Route path="/my-alerts" element={<MyAlertsPage />} />
           <Route path="/alerts/disable" element={<DisableAlertPage />} />
+          <Route path="/cheap-fuel/:location" element={<CheapFuelPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
         </Routes>
+        {currentPath !== '/' && <footer style={{
+          borderTop:'1px solid var(--border)', padding:'16px 24px',
+          background:'var(--surface)', fontSize:'11px', color:'var(--text3)',
+          fontFamily:'var(--font-mono)', flexShrink:0
+        }}>
+          <div style={{maxWidth:'900px', margin:'0 auto'}}>
+            <div style={{marginBottom:'8px', fontWeight:600, color:'var(--text2)'}}>Cheap fuel by city:</div>
+            <div style={{display:'flex', flexWrap:'wrap', gap:'8px'}}>
+              {['london','manchester','birmingham','leeds','glasgow','liverpool','edinburgh','bristol','sheffield','newcastle','nottingham','cardiff','leicester','coventry','plymouth','exeter','cambridge','oxford'].map(city => (
+                <a key={city} href={'/cheap-fuel/' + city}
+                  style={{color:'var(--text3)', textDecoration:'none', padding:'2px 6px',
+                    border:'1px solid var(--border)', borderRadius:'4px'}}
+                  onMouseEnter={e => e.currentTarget.style.color='var(--amber)'}
+                  onMouseLeave={e => e.currentTarget.style.color='var(--text3)'}
+                >
+                  {city.charAt(0).toUpperCase() + city.slice(1)}
+                </a>
+              ))}
+            </div>
+            <div style={{marginTop:'12px', color:'var(--text3)'}}>
+              © {new Date().getFullYear()} Pumpr · <a href="/about" style={{color:'var(--text3)'}}>About</a> · <a href="/privacy" style={{color:'var(--text3)'}}>Privacy</a> · <a href="/blog" style={{color:'var(--text3)'}}>Insights</a>
+            </div>
+          </div>
+        </footer>}
       </div>
     </div>
   )

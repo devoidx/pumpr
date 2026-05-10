@@ -6,6 +6,7 @@ from app.api.endpoints import (
     blog,
     ev,
     locations,
+    locations_seo,
     prices,
     sitemap,
     stations,
@@ -18,6 +19,7 @@ api_router = APIRouter()
 api_router.include_router(auth.router)
 api_router.include_router(stripe_routes.router)
 api_router.include_router(locations.router)
+api_router.include_router(locations_seo.router)
 api_router.include_router(stations.router)
 api_router.include_router(prices.router)
 api_router.include_router(ev.router)
