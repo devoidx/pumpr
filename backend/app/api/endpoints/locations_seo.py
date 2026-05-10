@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
+import time as _time
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,6 +13,23 @@ from app.db.session import get_db
 
 router = APIRouter(prefix="/locations", tags=["locations-seo"])
 logger = logging.getLogger(__name__)
+
+# Simple in-memory cache with 10 minute TTL
+_cache: dict = {}
+_CACHE_TTL = 600  # 10 minutes
+
+
+def _cache_get(key: str):
+    if key in _cache:
+        val, ts = _cache[key]
+        if _time.time() - ts < _CACHE_TTL:
+            return val
+        del _cache[key]
+    return None
+
+
+def _cache_set(key: str, val) -> None:
+    _cache[key] = (val, _time.time())
 
 FUEL_TYPES = ["E10", "B7", "E5"]
 
@@ -50,6 +68,12 @@ async def cheap_fuel_location(
     location: str,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    # Check cache
+    cache_key = f"cheap_fuel_{location}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+
     # Try to geocode
     place = await geocode_place(location.replace("-", " "))
     if not place:
@@ -142,9 +166,11 @@ async def cheap_fuel_location(
             stats[fuel] = fuel_stats
     national = results[3]
 
-    return {
+    result = {
         "location": place,
         "cheapest": cheapest,
         "stats": stats,
         "national": national,
     }
+    _cache_set(cache_key, result)
+    return result
