@@ -165,6 +165,7 @@ def start_scheduler() -> None:
     if enable_polling:
         scheduler.add_job(sync_stations_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="sync_stations", replace_existing=True)
         scheduler.add_job(poll_prices,   trigger=IntervalTrigger(minutes=settings.poll_interval_minutes), id="poll_prices", replace_existing=True)
+        scheduler.add_job(generate_sitemap_job, trigger=CronTrigger(hour=2, minute=0, timezone="Europe/London"), id="generate_sitemap", replace_existing=True)
         scheduler.add_job(check_price_alerts_job, trigger=IntervalTrigger(minutes=settings.poll_interval_minutes, start_date='2026-01-01 00:10:00'), id="check_price_alerts", replace_existing=True)
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
 
@@ -190,6 +191,21 @@ async def run_county_fix() -> None:
             logger.error(f"County fix failed: {result.stderr}")
     except Exception as e:
         logger.error(f"County fix error: {e}")
+
+
+async def generate_sitemap_job() -> None:
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["python3", "/app/scripts/generate_sitemap.py"],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            logger.info(f"Sitemap generated: {result.stdout.strip()}")
+        else:
+            logger.error(f"Sitemap generation failed: {result.stderr}")
+    except Exception as e:
+        logger.error(f"Scheduler: sitemap generation failed: {e}")
 
 
 async def check_price_alerts_job() -> None:

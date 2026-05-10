@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /my-alerts
+Disallow: /my-places
+Disallow: /my-vehicles
+Disallow: /profile
+Disallow: /setup-password
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /pro/success
+
+Sitemap: https://pumpr.co.uk/sitemap.xml
