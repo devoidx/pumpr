@@ -7,6 +7,7 @@ from app.api.endpoints import (
     ev,
     locations,
     prices,
+    sitemap,
     stations,
     stats,
     stripe_routes,
@@ -23,4 +24,5 @@ api_router.include_router(ev.router)
 api_router.include_router(vehicles.router)
 api_router.include_router(stats.router)
 api_router.include_router(alerts.router)
+api_router.include_router(sitemap.router)
 api_router.include_router(blog.router)
