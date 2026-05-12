@@ -92,6 +92,9 @@ BRAND_NORMALISE = {
     "applegreen": "APPLEGREEN",
     "certas": "CERTAS",
     "harvest energy": "HARVEST ENERGY",
+    "harvest": "HARVEST ENERGY",
+    "breeze harvest energy": "HARVEST ENERGY",
+    "harvester energy": "HARVEST ENERGY",
 }
 
 BRAND_EXACT_MAP = {
