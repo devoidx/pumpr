@@ -27,6 +27,9 @@ async def poll_prices() -> None:
     try:
         count = await ingest_prices()
         logger.info(f"Scheduler: ingested {count} price records")
+        # Warm city cache in background after poll
+        import asyncio
+        asyncio.ensure_future(warm_city_cache_job())
     except Exception as e:
         logger.exception(f"Scheduler: price poll failed: {e}")
 
@@ -191,6 +194,109 @@ async def run_county_fix() -> None:
             logger.error(f"County fix failed: {result.stderr}")
     except Exception as e:
         logger.error(f"County fix error: {e}")
+
+
+async def warm_city_cache_job() -> None:
+    """Pre-compute city landing page data after price poll. Runs in background."""
+    try:
+        import asyncio
+        import math
+
+        from sqlalchemy import text
+
+        from app.api.endpoints.locations_seo import (
+            FUEL_TYPES,
+            PRECOMPUTE_CITIES,
+            _cache_set,
+            geocode_place,
+        )
+        from app.db.session import AsyncSessionLocal
+
+        def haversine_km(lat1, lon1, lat2, lon2):
+            R = 6371
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+            return R * 2 * math.asin(math.sqrt(a))
+
+        logger.info("Starting city cache warmup...")
+        warmed = 0
+
+        for city in PRECOMPUTE_CITIES:
+            try:
+                place = await geocode_place(city)
+                if not place:
+                    continue
+
+                lat, lng = place["lat"], place["lng"]
+                radius_km = 16
+                lat_margin = radius_km / 111.0
+                lng_margin = radius_km / (111.0 * math.cos(math.radians(lat)))
+
+                cheapest = {}
+                stats = {}
+
+                async with AsyncSessionLocal() as db:
+                    for fuel in FUEL_TYPES:
+                        result = await db.execute(text("""
+                            SELECT DISTINCT ON (ph.station_id)
+                                ph.station_id, ph.price_pence, ph.source_updated_at,
+                                s.name, s.brand, s.address, s.postcode,
+                                s.latitude, s.longitude, s.is_motorway, s.is_supermarket
+                            FROM price_history ph
+                            JOIN stations s ON ph.station_id = s.id
+                            WHERE ph.fuel_type = :fuel
+                              AND ph.price_flagged = false
+                              AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+                              AND s.latitude BETWEEN :lat_min AND :lat_max
+                              AND s.longitude BETWEEN :lng_min AND :lng_max
+                            ORDER BY ph.station_id, ph.recorded_at DESC
+                        """), {
+                            "fuel": fuel,
+                            "lat_min": lat - lat_margin, "lat_max": lat + lat_margin,
+                            "lng_min": lng - lng_margin, "lng_max": lng + lng_margin,
+                        })
+                        rows = result.fetchall()
+                        stations = []
+                        prices = []
+                        for row in rows:
+                            dist = haversine_km(lat, lng, row.latitude, row.longitude)
+                            if dist <= radius_km:
+                                stations.append({
+                                    "station_id": row.station_id, "name": row.name,
+                                    "brand": row.brand, "address": row.address,
+                                    "postcode": row.postcode, "latitude": row.latitude,
+                                    "longitude": row.longitude, "price_pence": row.price_pence,
+                                    "is_motorway": row.is_motorway or False,
+                                    "is_supermarket": row.is_supermarket or False,
+                                    "distance_km": round(dist, 2),
+                                    "source_updated_at": row.source_updated_at.isoformat() if row.source_updated_at else None,
+                                })
+                                prices.append(row.price_pence)
+                        stations.sort(key=lambda x: x["price_pence"])
+                        cheapest[fuel] = stations[:10]
+                        if prices:
+                            stats[fuel] = {"min": round(min(prices), 1), "max": round(max(prices), 1), "avg": round(sum(prices) / len(prices), 1), "count": len(prices)}
+
+                    nat_result = await db.execute(text("""
+                        SELECT fuel_type, ROUND(AVG(price_pence)::numeric, 1) as avg_price
+                        FROM price_history
+                        WHERE fuel_type = ANY(:fuels) AND price_flagged = false
+                        AND recorded_at >= NOW() - INTERVAL '48 hours'
+                        GROUP BY fuel_type
+                    """), {"fuels": FUEL_TYPES})
+                    national = {row.fuel_type: float(row.avg_price) for row in nat_result.fetchall()}
+
+                _cache_set(f"cheap_fuel_{city}", {"location": place, "cheapest": cheapest, "stats": stats, "national": national})
+                warmed += 1
+                await asyncio.sleep(2)
+
+            except Exception as e:
+                logger.warning(f"City cache warmup failed for {city}: {e}")
+
+        logger.info(f"City cache warmup complete — {warmed}/{len(PRECOMPUTE_CITIES)} cities cached")
+    except Exception as e:
+        logger.error(f"Scheduler: city cache warmup failed: {e}")
 
 
 async def generate_sitemap_job() -> None:

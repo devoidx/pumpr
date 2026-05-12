@@ -11,6 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 
+PRECOMPUTE_CITIES = [
+    "london", "manchester", "birmingham", "leeds", "glasgow", "liverpool",
+    "edinburgh", "bristol", "sheffield", "newcastle", "nottingham", "cardiff",
+    "leicester", "coventry", "bradford", "belfast", "wolverhampton", "plymouth",
+    "derby", "reading", "southampton", "portsmouth", "exeter", "cambridge",
+    "oxford", "york", "norwich", "swansea", "aberdeen", "dundee",
+]
+
 router = APIRouter(prefix="/locations", tags=["locations-seo"])
 logger = logging.getLogger(__name__)
 
