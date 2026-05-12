@@ -94,6 +94,18 @@ BRAND_NORMALISE = {
     "harvest energy": "HARVEST ENERGY",
 }
 
+BRAND_EXACT_MAP = {
+    "cole and day - gulf": "GULF",
+    "gulf-nisa whitworth road stn": "GULF",
+    "gulf-nisa hollinwood service station": "GULF",
+    "gulf sutton service station": "GULF",
+    "gulf witham service station": "GULF",
+    "highland group st neots": "HIGHLAND FUELS",
+    "highland group st ives": "HIGHLAND FUELS",
+    "highland group greenfields": "HIGHLAND FUELS",
+    "highland fuels ltd": "HIGHLAND FUELS",
+}
+
 BRAND_PREFIXES = [
     ("bp ", "BP"), ("bp-", "BP"), ("bpd", "BP"),
     ("shell ", "SHELL"), ("shell-", "SHELL"),
@@ -114,6 +126,8 @@ def _normalise_brand(brand: str | None) -> str | None:
     b = brand.lower().strip()
     if b in BRAND_NORMALISE:
         return BRAND_NORMALISE[b]
+    if b in BRAND_EXACT_MAP:
+        return BRAND_EXACT_MAP[b]
     for prefix, canonical in BRAND_PREFIXES:
         if b.startswith(prefix):
             return canonical
