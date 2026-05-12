@@ -5,6 +5,27 @@ function isPostcode(input) {
   return /^[A-Z]{1,2}[0-9][0-9A-Z]?(\s?[0-9][A-Z]{2})?$/i.test(input.trim())
 }
 
+async function nominatimSearch(q) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}, UK&limit=5&format=json&addressdetails=1`, {
+      headers: { 'Accept-Language': 'en' }
+    })
+    const data = await res.json()
+    return data.map(r => ({
+      name_1: r.display_name.split(',')[0],
+      latitude: parseFloat(r.lat),
+      longitude: parseFloat(r.lon),
+      local_type: r.type,
+      county_unitary: r.address?.county || r.address?.state_district || '',
+      region: r.address?.state || r.address?.country || '',
+    }))
+  } catch {
+    return []
+  }
+}
+
+
+
 export default function PostcodeSearch({ onLocation }) {
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState([])
@@ -41,7 +62,14 @@ export default function PostcodeSearch({ onLocation }) {
           setSuggestions(data.result)
           setShowSuggestions(true)
         } else {
-          setSuggestions([])
+          // Fallback to Nominatim for NI and unrecognised places
+          const results = await nominatimSearch(q)
+          if (results.length > 0) {
+            setSuggestions(results)
+            setShowSuggestions(true)
+          } else {
+            setSuggestions([])
+          }
         }
       } catch {
         setSuggestions([])
