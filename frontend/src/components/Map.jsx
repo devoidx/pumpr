@@ -277,6 +277,12 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
               ${priceChangeLine}
               ${stalenessLine}
               ${savingsBlock}
+              ${isPro ? `<div style="margin-top:8px;border-top:1px solid #2d2d2d;padding-top:8px;">
+                <button onclick="window.dispatchEvent(new CustomEvent('pumpr:log-fillup', {detail:{id:'${s.station_id}',name:'${s.station_name.replace(/'/g,"\'")}'}}))"
+                  style="width:100%;padding:6px;background:rgba(245,166,35,0.15);border:1px solid #f5a623;color:#f5a623;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">
+                  ⛽ Log fill-up here
+                </button>
+              </div>` : ''}
             </div>`
         })())
         marker.bindPopup(popup)

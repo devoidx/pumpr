@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import FuelTrackerModal from '../FuelTrackerModal'
 import LoginModal from './LoginModal'
 import RegisterModal from './RegisterModal'
 import Portal from '../Portal'
@@ -7,7 +8,8 @@ import './AuthModal.css'
 
 function UserMenu() {
   const { user, logout } = useAuth()
-  const [open, setOpen]    = useState(false)
+  const [open, setOpen] = useState(false)
+  const [showTracker, setShowTracker] = useState(false)
   const triggerRef         = useRef(null)
   const dropdownRef        = useRef(null)
 
@@ -50,10 +52,12 @@ function UserMenu() {
             <button className="user-menu-item" onClick={() => go('/my-vehicles')}>🚗 My Vehicles</button>
             <button className="user-menu-item" onClick={() => go('/profile')}>👤 My Profile</button>
             <button className="user-menu-item" onClick={() => go('/my-alerts')}>🔔 Price alerts</button>
+            <button className="user-menu-item" onClick={() => { setOpen(false); setShowTracker(true) }}>⛽ Fuel tracker</button>
             <button className="user-menu-item danger" onClick={() => { setOpen(false); logout() }}>Sign out</button>
           </div>
         </Portal>
       )}
+    {showTracker && <FuelTrackerModal onClose={() => setShowTracker(false)} />}
     </div>
   )
 }

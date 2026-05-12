@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { getPriceHistory, getStation, getPriceChanges } from '../api/client'
 import { useAuth } from '../hooks/useAuth'
+import FuelTrackerModal from '../components/FuelTrackerModal'
 import { useBrandLogos } from '../contexts/BrandsContext'
 import { FUEL_COLORS, FUEL_LABELS } from '../constants/fuels'
 import { getWeekHours, isOpenNow } from '../utils/openingHours'
@@ -95,9 +96,20 @@ export default function StationDetail() {
   const weekHours = getWeekHours(station.opening_times)
 
   return (
+    <>
     <div className="detail-page">
       <div className="detail-inner">
-        <button className="detail-back" onClick={() => navigate(-1)}>← Back</button>
+        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0'}}>
+          <button className="detail-back" onClick={() => navigate(-1)}>← Back</button>
+          {isPro && (
+            <button
+              onClick={() => setShowTracker(true)}
+              style={{padding:'6px 14px', borderRadius:'8px', border:'1px solid var(--amber)',
+                background:'rgba(245,166,35,0.1)', color:'var(--amber)', fontSize:'13px',
+                fontWeight:700, cursor:'pointer'}}
+            >⛽ Log fill-up here</button>
+          )}
+        </div>
 
         {anyFlagged && (
           <div className="detail-flagged-banner">
@@ -525,5 +537,7 @@ export default function StationDetail() {
         )}
       </div>
     </div>
+    {showTracker && <FuelTrackerModal onClose={() => setShowTracker(false)} prefillStation={{'id': station?.id, 'name': station?.name}} />}
+    </>
   )
 }

@@ -12,6 +12,7 @@ import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
 import SavedLocations from '../components/SavedLocations'
 import { useAuth } from '../hooks/useAuth'
+import FuelTrackerModal from '../components/FuelTrackerModal'
 import { useBrandLogos, BRAND_ALIASES } from '../contexts/BrandsContext'
 import ShareButton from '../components/ShareButton'
 import './Home.css'
@@ -52,12 +53,19 @@ export default function Home() {
   const [brands, setBrands] = useState([])
   const [selectedBrand, setSelectedBrand] = useState('')
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false)
+  const [trackerStation, setTrackerStation] = useState(null)
   useEffect(() => {
     if (!brandDropdownOpen) return
     const handler = () => setBrandDropdownOpen(false)
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
   }, [brandDropdownOpen])
+
+  useEffect(() => {
+    const handler = e => setTrackerStation(e.detail)
+    window.addEventListener('pumpr:log-fillup', handler)
+    return () => window.removeEventListener('pumpr:log-fillup', handler)
+  }, [])
   const [sortBy, setSortBy] = useState('price') // 'split' | 'hidden' | 'full'
   const [connector, setConnector] = useState(() => localStorage.getItem('pumpr_ev_connector') || '')
   const [minPower, setMinPower] = useState(() => Number(localStorage.getItem('pumpr_ev_power')) || 0)
@@ -229,6 +237,7 @@ export default function Home() {
   const count = items.length
 
   return (
+    <>
     <div className={`home map-${mapView}`}>
       <div className={`panel ${mapView === "full" ? "panel-hidden" : ""}`}>
         <div className="panel-header">
@@ -444,5 +453,7 @@ export default function Home() {
         />
       </div>
     </div>
+    {trackerStation && <FuelTrackerModal onClose={() => setTrackerStation(null)} prefillStation={{'id': trackerStation.id, 'name': trackerStation.name}} />}
+    </>
   )
 }
