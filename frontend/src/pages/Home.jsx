@@ -136,7 +136,7 @@ export default function Home() {
     setSelected(null)
 
     if (mode === 'fuel') {
-      const params = new URLSearchParams({ fuel, lat: location.lat, lng: location.lng, radius_km: radius, limit: 50 })
+      const params = new URLSearchParams({ fuel, lat: location.lat, lng: location.lng, radius_km: radius, limit: 100 })
       if (selectedBrand) params.append('brand', selectedBrand)
       const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
       fetch(`/api/v1/prices/cheapest?${params}`, { headers })
