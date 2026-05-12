@@ -27,9 +27,12 @@ async def poll_prices() -> None:
     try:
         count = await ingest_prices()
         logger.info(f"Scheduler: ingested {count} price records")
-        # Warm city cache in background after poll
+        # Warm city cache in background after poll (delayed to avoid DB contention)
         import asyncio
-        asyncio.ensure_future(warm_city_cache_job())
+        async def _delayed_warmup():
+            await asyncio.sleep(60)
+            await warm_city_cache_job()
+        asyncio.ensure_future(_delayed_warmup())
     except Exception as e:
         logger.exception(f"Scheduler: price poll failed: {e}")
 
