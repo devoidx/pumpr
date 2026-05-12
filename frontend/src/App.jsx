@@ -59,7 +59,8 @@ export default function App() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
         </Routes>
-        {currentPath !== '/' && <footer style={{
+      </div>
+      {currentPath !== '/' && <footer style={{
           borderTop:'1px solid var(--border)', padding:'16px 24px',
           background:'var(--surface)', fontSize:'11px', color:'var(--text3)',
           fontFamily:'var(--font-mono)', flexShrink:0
@@ -83,7 +84,6 @@ export default function App() {
             </div>
           </div>
         </footer>}
-      </div>
     </div>
   )
 }
