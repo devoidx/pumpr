@@ -246,7 +246,9 @@ export default function IntelligencePage() {
                 <td style={{padding:'10px 16px', textAlign:'right', fontFamily:'var(--font-mono)', color:'var(--text3)'}}>{s.price_range}p</td>
                 <td style={{padding:'10px 16px', textAlign:'right', color:'var(--text3)', fontFamily:'var(--font-mono)'}}>{s.stations}</td>
                 <td style={{padding:'10px 16px'}}>
-                  <span style={{fontSize:'11px', padding:'2px 8px', borderRadius:'4px',
+                  <span
+                    title={s.market_type === 'Competitive' ? 'Large price spread (≥10p) — stations are competing on price' : 'Small price spread (<10p) — limited price competition in this area'}
+                    style={{fontSize:'11px', padding:'2px 8px', borderRadius:'4px', cursor:'help',
                     background: s.market_type === 'Competitive' ? '#2ecc7122' : '#e74c3c22',
                     color: s.market_type === 'Competitive' ? '#2ecc71' : '#e74c3c'}}>
                     {s.market_type}
