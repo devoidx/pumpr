@@ -172,6 +172,7 @@ def start_scheduler() -> None:
         scheduler.add_job(sync_stations_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="sync_stations", replace_existing=True)
         scheduler.add_job(poll_prices,   trigger=IntervalTrigger(minutes=settings.poll_interval_minutes), id="poll_prices", replace_existing=True)
         scheduler.add_job(generate_sitemap_job, trigger=CronTrigger(hour=2, minute=0, timezone="Europe/London"), id="generate_sitemap", replace_existing=True)
+        scheduler.add_job(market_intelligence_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="market_intelligence", replace_existing=True)
         scheduler.add_job(check_price_alerts_job, trigger=IntervalTrigger(minutes=settings.poll_interval_minutes, start_date='2026-01-01 00:10:00'), id="check_price_alerts", replace_existing=True)
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
 
@@ -224,6 +225,14 @@ async def warm_city_cache_job() -> None:
         logger.info(f"City cache warmup complete — {warmed}/{len(PRECOMPUTE_CITIES)} cities cached")
     except Exception as e:
         logger.error(f"Scheduler: city cache warmup failed: {e}")
+
+
+async def market_intelligence_job() -> None:
+    try:
+        from app.services.market_intelligence import run_market_intelligence_job
+        await run_market_intelligence_job()
+    except Exception as e:
+        logger.error(f"Scheduler: market intelligence job failed: {e}")
 
 
 async def generate_sitemap_job() -> None:
