@@ -94,10 +94,30 @@ BRAND_NORMALISE = {
     "harvest energy": "HARVEST ENERGY",
 }
 
+BRAND_PREFIXES = [
+    ("bp ", "BP"), ("bp-", "BP"), ("bpd", "BP"),
+    ("shell ", "SHELL"), ("shell-", "SHELL"),
+    ("gulf ", "GULF"), ("gulf-", "GULF"),
+    ("jet ", "JET"), ("jet/", "JET"),
+    ("texaco ", "TEXACO"),
+    ("total ", "TOTAL ENERGIES"), ("totalenergies", "TOTAL ENERGIES"),
+    ("murco ", "MURCO"),
+    ("spar ", "SPAR"),
+    ("valero ", "VALERO"),
+    ("esso ", "ESSO"),
+    ("sainsbury", "SAINSBURY'S"),
+]
+
 def _normalise_brand(brand: str | None) -> str | None:
     if not brand:
         return None
-    return BRAND_NORMALISE.get(brand.lower().strip(), brand.upper().strip())
+    b = brand.lower().strip()
+    if b in BRAND_NORMALISE:
+        return BRAND_NORMALISE[b]
+    for prefix, canonical in BRAND_PREFIXES:
+        if b.startswith(prefix):
+            return canonical
+    return brand.upper().strip()
 
 async def sync_stations() -> int:
     """Fetch station metadata from API and upsert into DB. Returns count."""
