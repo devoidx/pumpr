@@ -217,8 +217,8 @@ async def warm_city_cache_job() -> None:
                     if r.status_code == 200:
                         warmed += 1
                     else:
-                        logger.warning(f"City cache warmup: {city} returned {r.status_code}")
-                    await asyncio.sleep(2)
+                        logger.warning(f"City cache warmup: {city} returned {r.status_code}: {r.text[:200]}")
+                    await asyncio.sleep(5)
                 except Exception as e:
                     logger.warning(f"City cache warmup failed for {city}: {e}")
         logger.info(f"City cache warmup complete — {warmed}/{len(PRECOMPUTE_CITIES)} cities cached")
