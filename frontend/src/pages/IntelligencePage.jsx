@@ -119,12 +119,12 @@ export default function IntelligencePage() {
         <StatCard label="Lowest price" value={`${nat.min?.toFixed(2)}p`} color="#2ecc71" />
         <StatCard label="Highest price" value={`${nat.max?.toFixed(2)}p`} color="#e74c3c" />
       </div>
-      {selectedFuel === 'E10' && (
+      {nat.supermarket_avg > 0 && (
         <div style={{display:'flex', gap:'12px', flexWrap:'wrap', marginBottom:'8px'}}>
-          <StatCard label="Supermarket avg" value={`${natE10.supermarket_avg?.toFixed(2)}p`} sub={`${natE10.supermarket_discount}p cheaper than branded`} color="#2ecc71" />
-          <StatCard label="Branded avg" value={`${natE10.branded_avg?.toFixed(2)}p`} />
-          <StatCard label="Motorway avg" value={`${natE10.motorway_avg?.toFixed(2)}p`} sub={`+${natE10.motorway_premium}p vs national`} color="#e74c3c" />
-          <StatCard label="Diesel premium" value={`+${(natB7.avg - natE10.avg).toFixed(1)}p`} sub="B7 vs E10 national avg" color="#3498db" />
+          <StatCard label="Supermarket avg" value={`${nat.supermarket_avg?.toFixed(2)}p`} sub={`${nat.supermarket_discount?.toFixed(2)}p cheaper than branded`} color="#2ecc71" />
+          <StatCard label="Branded avg" value={`${nat.branded_avg?.toFixed(2)}p`} />
+          <StatCard label="Motorway avg" value={`${nat.motorway_avg?.toFixed(2)}p`} sub={`+${nat.motorway_premium?.toFixed(2)}p vs national`} color="#e74c3c" />
+          {selectedFuel === 'E10' && <StatCard label="Diesel premium" value={`+${(natB7.avg - natE10.avg).toFixed(1)}p`} sub="B7 vs E10 national avg" color="#3498db" />}
         </div>
       )}
 

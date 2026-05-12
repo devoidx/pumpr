@@ -122,7 +122,7 @@ async def compute_market_intelligence() -> dict:
             ) ph
             JOIN stations s ON ph.station_id = s.id
             GROUP BY ph.fuel_type
-        """), {"fuels": ["E10", "B7"]})
+        """), {"fuels": ["E10", "B7", "E5", "SDV"]})
         for row in super_result.fetchall():
             if row.fuel_type in national:
                 national[row.fuel_type]["supermarket_avg"] = float(row.supermarket_avg) if row.supermarket_avg else 0.0
