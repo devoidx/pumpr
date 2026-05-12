@@ -50,8 +50,18 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * 2 * math.asin(math.sqrt(a))
 
 
+PLACE_OVERRIDES = {
+    "belfast": {"name": "Belfast", "lat": 54.5973, "lng": -5.9301, "region": "Northern Ireland", "country": "Northern Ireland"},
+    "derry": {"name": "Derry", "lat": 54.9966, "lng": -7.3086, "region": "Northern Ireland", "country": "Northern Ireland"},
+    "lisburn": {"name": "Lisburn", "lat": 54.5162, "lng": -6.0580, "region": "Northern Ireland", "country": "Northern Ireland"},
+}
+
+
 async def geocode_place(place: str) -> dict | None:
     """Geocode a city/place name using postcodes.io places API."""
+    place_lower = place.lower().replace("-", " ")
+    if place_lower in PLACE_OVERRIDES:
+        return PLACE_OVERRIDES[place_lower]
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.get(f"https://api.postcodes.io/places?q={place}&limit=1")
