@@ -23,6 +23,8 @@ RELEVANT_KEYWORDS = [
     'fuel duty', 'fuel finder', 'wholesale fuel', 'road fuel',
     'fuel prices', 'fuel costs', 'filling station',
     'unleaded', 'electric vehicle charging', 'ev charging',
+    'oil price', 'crude oil', 'opec', 'energy prices',
+    'motoring costs', 'driving costs',
 ]
 
 # Keywords that disqualify an article even if relevant keywords match
