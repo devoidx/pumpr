@@ -94,6 +94,8 @@ BRAND_NORMALISE = {
     "harvest energy": "HARVEST ENERGY",
     "q8": "Q8",
     "q8 petroleum": "Q8",
+    "british petroleum co plc": "BP",
+    "bp oil uk ltd": "BP",
     "harvest": "HARVEST ENERGY",
     "breeze harvest energy": "HARVEST ENERGY",
     "harvester energy": "HARVEST ENERGY",
