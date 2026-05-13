@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { marked } from 'marked'
 import './BlogPage.css'
 
 export default function BlogPostPage() {
@@ -29,9 +30,7 @@ export default function BlogPostPage() {
           <span className="blog-card-date">{new Date(post.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
         </div>
         <h1 className="blog-post-title">{post.title}</h1>
-        <div className="blog-post-content">
-          {post.content.split('\n').map((para, i) => para.trim() ? <p key={i}>{para}</p> : null)}
-        </div>
+        <div className="blog-post-content" dangerouslySetInnerHTML={{__html: marked.parse(post.content)}} />
         {post.source_name && post.source_url && (
           <div className="blog-post-source">
             <strong>Source:</strong> <a href={post.source_url} target="_blank" rel="noopener noreferrer">{post.source_name}</a>
