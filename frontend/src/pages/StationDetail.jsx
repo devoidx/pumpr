@@ -47,6 +47,7 @@ export default function StationDetail() {
   const [alertForm, setAlertForm] = useState({ fuel_type: '', alert_type: 'below_pence', threshold: '' })
   const [alertMsg, setAlertMsg] = useState(null)
   const [alertLoading, setAlertLoading] = useState(false)
+  const [showTracker, setShowTracker] = useState(false)
 
   useEffect(() => {
     Promise.all([getStation(id), getPriceChanges(id)])
