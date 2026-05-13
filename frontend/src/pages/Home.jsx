@@ -12,6 +12,7 @@ import LocationPrompt from '../components/LocationPrompt'
 import PostcodeSearch from '../components/PostcodeSearch'
 import SavedLocations from '../components/SavedLocations'
 import { useAuth } from '../hooks/useAuth'
+import { isOpenNow } from '../utils/openingHours'
 import FuelTrackerModal from '../components/FuelTrackerModal'
 import { useBrandLogos, BRAND_ALIASES } from '../contexts/BrandsContext'
 import ShareButton from '../components/ShareButton'
@@ -53,6 +54,7 @@ export default function Home() {
   const [brands, setBrands] = useState([])
   const [selectedBrand, setSelectedBrand] = useState('')
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false)
+  const [openNowOnly, setOpenNowOnly] = useState(false)
   const [trackerStation, setTrackerStation] = useState(null)
   useEffect(() => {
     if (!brandDropdownOpen) return
@@ -233,7 +235,8 @@ export default function Home() {
 
   if (!location) return <LocationPrompt onLocation={handleSetLocation} />
 
-  const items = mode === 'fuel' ? stations : chargers
+  const filteredStations = openNowOnly ? stations.filter(s => isOpenNow(s.opening_times) === true) : stations
+  const items = mode === 'fuel' ? filteredStations : chargers
   const count = items.length
 
   return (
@@ -259,6 +262,13 @@ export default function Home() {
               {units === 'miles' ? 'mi' : 'km'}
             </button>
             {mode === 'fuel' && (
+              <button
+                className={`units-btn ${openNowOnly ? 'active' : ''}`}
+                onClick={() => setOpenNowOnly(o => !o)}
+                title="Show open stations only"
+              >Open</button>
+            )}
+            {mode === 'fuel' && (
               <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
                 <button
                   className="brand-select"
@@ -268,7 +278,7 @@ export default function Home() {
                   {selectedBrand && brandLogos[selectedBrand.toUpperCase()] && (
                     <img src={brandLogos[selectedBrand.toUpperCase()]} style={{width:'14px', height:'14px', objectFit:'contain', borderRadius:'2px'}} />
                   )}
-                  <span style={{fontSize:'12px'}}>{selectedBrand || 'All brands'}</span>
+                  <span style={{fontSize:'12px'}}>{selectedBrand || 'Brands'}</span>
                   <span style={{fontSize:'10px', color:'var(--text3)'}}>▾</span>
                 </button>
                 {brandDropdownOpen && (
@@ -385,7 +395,7 @@ export default function Home() {
             </div>
           )}
 
-          {mode === 'fuel' && stations.map((s, i) => (
+          {mode === 'fuel' && filteredStations.map((s, i) => (
             <StationCard units={units}
               key={s.station_id}
               station={s}

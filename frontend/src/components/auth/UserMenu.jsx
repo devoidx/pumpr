@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import FuelTrackerModal from '../FuelTrackerModal'
+import MyPlacesModal from '../MyPlacesModal'
+import MyAlertsModal from '../MyAlertsModal'
+import MyVehiclesModal from '../MyVehiclesModal'
+import ProfileModal from '../ProfileModal'
 import LoginModal from './LoginModal'
 import RegisterModal from './RegisterModal'
 import Portal from '../Portal'
@@ -10,6 +14,10 @@ function UserMenu() {
   const { user, logout } = useAuth()
   const [open, setOpen] = useState(false)
   const [showTracker, setShowTracker] = useState(false)
+  const [showPlaces, setShowPlaces] = useState(false)
+  const [showAlerts, setShowAlerts] = useState(false)
+  const [showVehicles, setShowVehicles] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
   const triggerRef         = useRef(null)
   const dropdownRef        = useRef(null)
 
@@ -48,16 +56,20 @@ function UserMenu() {
               <div className="um-email">{user.email}</div>
               <span className="um-badge">{user.role}</span>
             </div>
-            <button className="user-menu-item" onClick={() => go('/my-places')}>📍 My Places</button>
-            <button className="user-menu-item" onClick={() => go('/my-vehicles')}>🚗 My Vehicles</button>
-            <button className="user-menu-item" onClick={() => go('/profile')}>👤 My Profile</button>
-            <button className="user-menu-item" onClick={() => go('/my-alerts')}>🔔 Price alerts</button>
+            <button className="user-menu-item" onClick={() => { setOpen(false); setShowPlaces(true) }}>📍 My Places</button>
+            <button className="user-menu-item" onClick={() => { setOpen(false); setShowVehicles(true) }}>🚗 My Vehicles</button>
+            <button className="user-menu-item" onClick={() => { setOpen(false); setShowProfile(true) }}>👤 My Profile</button>
+            <button className="user-menu-item" onClick={() => { setOpen(false); setShowAlerts(true) }}>🔔 Price alerts</button>
             <button className="user-menu-item" onClick={() => { setOpen(false); setShowTracker(true) }}>⛽ Fuel tracker</button>
             <button className="user-menu-item danger" onClick={() => { setOpen(false); logout() }}>Sign out</button>
           </div>
         </Portal>
       )}
     {showTracker && <FuelTrackerModal onClose={() => setShowTracker(false)} />}
+    {showPlaces && <MyPlacesModal onClose={() => setShowPlaces(false)} />}
+    {showAlerts && <MyAlertsModal onClose={() => setShowAlerts(false)} />}
+    {showVehicles && <MyVehiclesModal onClose={() => setShowVehicles(false)} />}
+    {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
     </div>
   )
 }
