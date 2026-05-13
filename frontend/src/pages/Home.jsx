@@ -326,7 +326,7 @@ export default function Home() {
             <div className="panel-meta-actions">
               <PostcodeSearch onLocation={handleSetLocation} />
               <ShareButton location={location} fuel={fuel} radius={radius} />
-              <button className="location-btn" onClick={handleClearLocation} title="Change location">📍</button>
+              <button className="location-btn" onClick={handleClearLocation} title="Change location">🏠</button>
               <div style={{marginLeft:'auto'}}>
                 <SavedLocations onSelect={handleSetLocation} />
               </div>
