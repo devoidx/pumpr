@@ -92,6 +92,8 @@ BRAND_NORMALISE = {
     "applegreen": "APPLEGREEN",
     "certas": "CERTAS",
     "harvest energy": "HARVEST ENERGY",
+    "q8": "Q8",
+    "q8 petroleum": "Q8",
     "harvest": "HARVEST ENERGY",
     "breeze harvest energy": "HARVEST ENERGY",
     "harvester energy": "HARVEST ENERGY",
@@ -107,6 +109,7 @@ BRAND_EXACT_MAP = {
     "highland group st ives": "HIGHLAND FUELS",
     "highland group greenfields": "HIGHLAND FUELS",
     "highland fuels ltd": "HIGHLAND FUELS",
+    "q8 petroleum ltd": "Q8",
 }
 
 BRAND_PREFIXES = [
