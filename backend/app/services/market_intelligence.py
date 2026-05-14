@@ -266,13 +266,47 @@ async def compute_market_intelligence() -> dict:
                 "price_leader": row.price_leader_brand,
             })
 
-        logger.info(f"Market intelligence computed: {len(brands)} brands, {len(regional)} regions, {len(postcode_sectors)} postcode sectors")
+        # ── Motorway brand breakdown ─────────────────────────────────────────
+        motorway_result = await db.execute(text("""
+            SELECT
+                s.brand,
+                ph.fuel_type,
+                ROUND(AVG(ph.price_pence)::numeric, 2) as avg_price,
+                COUNT(DISTINCT ph.station_id) as station_count
+            FROM (
+                SELECT DISTINCT ON (station_id, fuel_type)
+                    station_id, fuel_type, price_pence
+                FROM price_history
+                WHERE fuel_type = ANY(:fuels)
+                  AND price_flagged = false
+                  AND price_pence BETWEEN 50 AND 350
+                ORDER BY station_id, fuel_type, recorded_at DESC
+            ) ph
+            JOIN stations s ON ph.station_id = s.id
+            WHERE s.is_motorway = true
+              AND s.brand IS NOT NULL
+            GROUP BY s.brand, ph.fuel_type
+            HAVING COUNT(DISTINCT ph.station_id) >= 2
+            ORDER BY ph.fuel_type, avg_price ASC
+        """), {"fuels": ["E10", "B7"]})
+
+        motorway_brands: dict = {}
+        for row in motorway_result.fetchall():
+            if row.brand not in motorway_brands:
+                motorway_brands[row.brand] = {"brand": row.brand}
+            motorway_brands[row.brand][row.fuel_type] = float(row.avg_price)
+            motorway_brands[row.brand][f"{row.fuel_type}_stations"] = int(row.station_count)
+
+        motorway_brand_list = sorted(motorway_brands.values(), key=lambda x: x.get("E10", 999))
+
+        logger.info(f"Market intelligence computed: {len(brands)} brands, {len(regional)} regions, {len(postcode_sectors)} postcode sectors, {len(motorway_brand_list)} motorway brands")
 
         return {
             "national": national,
             "regional": regional,
             "brands": brands,
             "postcode_sectors": postcode_sectors,
+            "motorway_brands": motorway_brand_list,
         }
 
 
@@ -352,7 +386,7 @@ async def run_market_intelligence_job() -> None:
                     narrative = EXCLUDED.narrative
             """), {
                 "date": today,
-                "national": json.dumps(data["national"]),
+                "national": json.dumps({**data["national"], "_motorway_brands": data["motorway_brands"]}),
                 "regional": json.dumps(data["regional"]),
                 "brands": json.dumps(data["brands"]),
                 "postcode_sectors": json.dumps(data["postcode_sectors"]),

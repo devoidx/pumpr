@@ -92,8 +92,8 @@ export default function IntelligencePage() {
           {id:'brands', label:'Brands'},
           {id:'postcodes', label:'Postcodes'},
           {id:'supermarkets', label:'Supermarkets'},
-          {id:'trends', label:'Trends', disabled:true},
-          {id:'motorway', label:'Motorway', disabled:true},
+          {id:'trends', label:'Trends'},
+          {id:'motorway', label:'Motorway'},
         ].map(tab => (
           <button
             key={tab.id}
@@ -351,6 +351,98 @@ export default function IntelligencePage() {
               })}
             </tbody>
           </table>
+        </div>
+      </>}
+
+      {/* Trends tab */}
+      {activeTab === 'trends' && <>
+        <SectionTitle>National Price Trends</SectionTitle>
+        <div style={{background:'var(--surface)', border:'1px solid var(--amber)', borderRadius:'10px', padding:'16px', marginBottom:'24px', display:'flex', gap:'12px', alignItems:'flex-start'}}>
+          <span style={{fontSize:'24px', flexShrink:0}}>📈</span>
+          <div>
+            <div style={{fontWeight:700, color:'var(--amber)', marginBottom:'4px', fontSize:'14px'}}>Building up historical data</div>
+            <div style={{fontSize:'13px', color:'var(--text2)', lineHeight:1.7}}>
+              Pumpr started storing daily market snapshots on {data.date}. The trends chart will become available once we have accumulated enough historical data (typically 7+ days).
+              Check back soon — this section will show national E10 and B7 price trends over time, motorway premium evolution, and regional price changes.
+            </div>
+          </div>
+        </div>
+        <SectionTitle>Available Data Points</SectionTitle>
+        <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'16px', fontSize:'13px', color:'var(--text2)'}}>
+          <p>Currently tracking daily snapshots. Data collected so far covers <strong style={{color:'var(--amber)'}}>1 day</strong>. 
+          Full trend charts require a minimum of 7 days of data.</p>
+          <p style={{marginTop:'8px', color:'var(--text3)', fontSize:'12px'}}>Metrics tracked daily: national E10/B7/E5/SDV averages, supermarket discount, motorway premium, regional breakdowns, brand pricing.</p>
+        </div>
+      </>}
+
+      {/* Motorway tab */}
+      {activeTab === 'motorway' && <>
+        <SectionTitle>Motorway vs National Pricing</SectionTitle>
+        <div style={{display:'flex', gap:'12px', flexWrap:'wrap', marginBottom:'24px'}}>
+          {Object.entries(FUEL_LABELS).filter(([f]) => national[f]?.motorway_avg).map(([f, label]) => {
+            const nat = national[f]
+            return (
+              <div key={f} style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'16px', flex:'1', minWidth:'140px'}}>
+                <div style={{fontSize:'11px', color:'var(--text3)', fontFamily:'var(--font-mono)', marginBottom:'6px'}}>{label}</div>
+                <div style={{fontSize:'22px', fontWeight:700, color:'#e74c3c', fontFamily:'var(--font-mono)'}}>{nat.motorway_avg?.toFixed(2)}p</div>
+                <div style={{fontSize:'12px', color:'var(--text3)', marginTop:'4px'}}>+{nat.motorway_premium?.toFixed(2)}p vs national avg</div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'16px', marginBottom:'24px'}}>
+          <div style={{fontSize:'13px', color:'var(--text2)', lineHeight:1.8}}>
+            Motorway fuel prices carry a significant premium over the national average. Drivers paying motorway prices for E10 are spending
+            an extra <strong style={{color:'#e74c3c'}}>{national.E10?.motorway_premium?.toFixed(1)}p per litre</strong> compared to the UK average,
+            or approximately <strong style={{color:'#e74c3c'}}>£{((national.E10?.motorway_premium || 0) * 0.55).toFixed(2)} extra per fill-up</strong> (based on a 55L tank).
+            Planning ahead and filling up before joining a motorway can deliver meaningful savings.
+          </div>
+        </div>
+
+        <SectionTitle>Motorway Service Operator Comparison (E10)</SectionTitle>
+        <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', overflow:'hidden', marginBottom:'24px'}}>
+          <table style={{width:'100%', borderCollapse:'collapse', fontSize:'13px'}}>
+            <thead>
+              <tr style={{background:'var(--surface2)', borderBottom:'1px solid var(--border)'}}>
+                <th style={{padding:'10px 16px', textAlign:'left', color:'var(--text2)', fontWeight:600}}>#</th>
+                <th style={{padding:'10px 16px', textAlign:'left', color:'var(--text2)', fontWeight:600}}>Operator</th>
+                <th style={{padding:'10px 16px', textAlign:'right', color:'var(--text2)', fontWeight:600}}>E10 avg</th>
+                <th style={{padding:'10px 16px', textAlign:'right', color:'var(--text2)', fontWeight:600}}>B7 avg</th>
+                <th style={{padding:'10px 16px', textAlign:'right', color:'var(--text2)', fontWeight:600}}>Stations</th>
+                <th style={{padding:'10px 16px', textAlign:'right', color:'var(--text2)', fontWeight:600}}>vs national</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(national._motorway_brands || []).map((b, i) => {
+                const logo = brandLogos[b.brand?.toUpperCase()]
+                const vsNat = b.E10 ? (b.E10 - (national.E10?.avg || 0)).toFixed(2) : null
+                return (
+                  <tr key={b.brand} style={{borderBottom:'1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--surface2)'}}>
+                    <td style={{padding:'10px 16px', color:'var(--text3)', fontFamily:'var(--font-mono)', fontSize:'11px'}}>{i+1}</td>
+                    <td style={{padding:'10px 16px'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                        {logo && <img src={logo} style={{width:'16px', height:'16px', objectFit:'contain', borderRadius:'2px', background:'#fff', padding:'1px'}} />}
+                        <span style={{color:'var(--text)', fontWeight: i === 0 ? 700 : 400}}>{b.brand}</span>
+                      </div>
+                    </td>
+                    <td style={{padding:'10px 16px', textAlign:'right', fontFamily:'var(--font-mono)', color: i === 0 ? '#2ecc71' : 'var(--text)'}}>{b.E10?.toFixed(2)}p</td>
+                    <td style={{padding:'10px 16px', textAlign:'right', fontFamily:'var(--font-mono)', color:'var(--text2)'}}>{b.B7 ? b.B7.toFixed(2) + 'p' : '—'}</td>
+                    <td style={{padding:'10px 16px', textAlign:'right', color:'var(--text3)', fontFamily:'var(--font-mono)'}}>{b.E10_stations || '—'}</td>
+                    <td style={{padding:'10px 16px', textAlign:'right', fontFamily:'var(--font-mono)', color: vsNat < 0 ? '#2ecc71' : '#e74c3c'}}>
+                      {vsNat ? (vsNat > 0 ? '+' : '') + vsNat + 'p' : '—'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'16px', fontSize:'12px', color:'var(--text3)', lineHeight:1.7}}>
+          <strong style={{color:'var(--text2)'}}>Note:</strong> Applegreen operates exclusively on Northern Ireland motorways (M1/M2), where prices are generally lower than GB. 
+          For GB motorway travellers, Shell and Esso are typically the most competitive options. 
+          Wherever possible, plan your journey to fill up at a supermarket or town forecourt before joining the motorway.
         </div>
       </>}
 
