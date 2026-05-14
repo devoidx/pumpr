@@ -68,6 +68,12 @@ export default function Home() {
     window.addEventListener('pumpr:log-fillup', handler)
     return () => window.removeEventListener('pumpr:log-fillup', handler)
   }, [])
+
+  useEffect(() => {
+    const handler = e => handleSetLocation(e.detail)
+    window.addEventListener('pumpr:go-to-location', handler)
+    return () => window.removeEventListener('pumpr:go-to-location', handler)
+  }, [])
   const [sortBy, setSortBy] = useState('price') // 'split' | 'hidden' | 'full'
   const [connector, setConnector] = useState(() => localStorage.getItem('pumpr_ev_connector') || '')
   const [minPower, setMinPower] = useState(() => Number(localStorage.getItem('pumpr_ev_power')) || 0)

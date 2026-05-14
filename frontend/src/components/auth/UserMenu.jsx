@@ -66,7 +66,7 @@ function UserMenu() {
         </Portal>
       )}
     {showTracker && <FuelTrackerModal onClose={() => setShowTracker(false)} />}
-    {showPlaces && <MyPlacesModal onClose={() => setShowPlaces(false)} />}
+    {showPlaces && <MyPlacesModal onClose={() => setShowPlaces(false)} onSelectLocation={loc => { setShowPlaces(false); window.dispatchEvent(new CustomEvent('pumpr:go-to-location', {detail: loc})) }} />}
     {showAlerts && <MyAlertsModal onClose={() => setShowAlerts(false)} />}
     {showVehicles && <MyVehiclesModal onClose={() => setShowVehicles(false)} />}
     {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}

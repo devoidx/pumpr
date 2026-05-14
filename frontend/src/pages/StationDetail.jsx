@@ -48,6 +48,7 @@ export default function StationDetail() {
   const [alertMsg, setAlertMsg] = useState(null)
   const [alertLoading, setAlertLoading] = useState(false)
   const [showTracker, setShowTracker] = useState(false)
+  useEffect(() => { if (typeof umami !== 'undefined') umami.track('station-detail-viewed') }, [])
 
   useEffect(() => {
     Promise.all([getStation(id), getPriceChanges(id)])

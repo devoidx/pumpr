@@ -11,6 +11,7 @@ const COUNTRIES = ['England', 'Scotland', 'Wales', 'Northern Ireland']
 
 export default function Stats() {
   const [stats, setStats] = useState([])
+  const [intel, setIntel] = useState(null)
   useSEO({ title: 'UK Fuel Price Statistics', description: 'Live UK fuel price statistics including cheapest counties, national averages and price history.', path: '/stats' })
   const [loading, setLoading] = useState(true)
   const [fuel, setFuel] = useState('E10')
@@ -27,7 +28,9 @@ export default function Stats() {
   })
 
   useEffect(() => {
+    if (typeof umami !== 'undefined') umami.track('stats-viewed')
     getStats().then(r => setStats(r.data)).finally(() => setLoading(false))
+    fetch('/api/v1/intelligence/latest').then(r => r.ok ? r.json() : null).then(setIntel)
   }, [])
 
   useEffect(() => {
@@ -102,6 +105,23 @@ export default function Stats() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* Market Intelligence Panel */}
+        {intel && (
+          <div style={{display:'flex', gap:'10px', flexWrap:'wrap', margin:'8px 0 24px'}}>
+            {[
+              {label:'Supermarket discount', value:`-${intel.national?.E10?.supermarket_discount?.toFixed(2)}p`, sub:'vs branded E10', color:'#2ecc71'},
+              {label:'Motorway premium', value:`+${intel.national?.E10?.motorway_premium?.toFixed(2)}p`, sub:'vs national E10', color:'#e74c3c'},
+              {label:'Diesel premium', value:`+${(intel.national?.B7?.avg - intel.national?.E10?.avg)?.toFixed(1)}p`, sub:'B7 vs E10 national avg', color:'#3498db'},
+            ].map(s => (
+              <div key={s.label} style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'12px 16px', flex:'1', minWidth:'130px'}}>
+                <div style={{fontSize:'11px', color:'var(--text3)', fontFamily:'var(--font-mono)', marginBottom:'6px'}}>{s.label}</div>
+                <div style={{fontSize:'20px', fontWeight:700, color: s.color, fontFamily:'var(--font-mono)'}}>{s.value}</div>
+                <div style={{fontSize:'11px', color:'var(--text3)', marginTop:'3px'}}>{s.sub}</div>
+              </div>
+            ))}
           </div>
         )}
 

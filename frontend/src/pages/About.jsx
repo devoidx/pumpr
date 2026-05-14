@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import './About.css'
 import { VERSION, BUILD_HASH } from '../version'
 import PumpIcon from '../components/icons/PumpIcon'
@@ -7,6 +8,7 @@ import BoltIcon from '../components/icons/BoltIcon'
 const GOV_URL = 'https://www.gov.uk/guidance/access-the-latest-fuel-prices-and-forecourt-data-via-api-or-email'
 
 export default function About() {
+  useEffect(() => { if (typeof umami !== 'undefined') umami.track('about-viewed') }, [])
   return (
     <div className="about-page">
       <div className="about-inner">
