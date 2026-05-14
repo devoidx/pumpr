@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useSEO } from '../hooks/useSEO'
 import { useNavigate } from 'react-router-dom'
 import './BlogPage.css'
 
 export default function BlogPage() {
   const [posts, setPosts] = useState([])
+  useSEO({ title: 'Fuel Price Insights', description: 'Latest UK fuel price news, analysis and weekly updates from Pumpr.', path: '/blog' })
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 

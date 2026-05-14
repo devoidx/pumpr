@@ -57,17 +57,7 @@ async def sitemap(db: AsyncSession = Depends(get_db)) -> Response:
     <priority>0.6</priority>
   </url>""")
 
-    # County pages
-    result = await db.execute(
-        text("SELECT DISTINCT LOWER(REPLACE(county, ' ', '-')) as slug FROM stations WHERE county IS NOT NULL ORDER BY slug")
-    )
-    for row in result.fetchall():
-        urls.append(f"""  <url>
-    <loc>{base}/cheap-fuel/{row.slug}</loc>
-    <lastmod>{now}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>""")
+    # County pages removed - only cities are geocodable via postcodes.io
 
     # City pages
     for city in CITIES:
@@ -91,6 +81,7 @@ async def robots() -> Response:
     content = """User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /search/
 Disallow: /my-alerts
 Disallow: /my-places
 Disallow: /my-vehicles

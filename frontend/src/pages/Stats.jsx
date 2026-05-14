@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSEO } from '../hooks/useSEO'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { getStats } from '../api/client'
 import { FUEL_COLORS, FUEL_LABELS, FUEL_TYPES } from '../constants/fuels'
@@ -10,6 +11,7 @@ const COUNTRIES = ['England', 'Scotland', 'Wales', 'Northern Ireland']
 
 export default function Stats() {
   const [stats, setStats] = useState([])
+  useSEO({ title: 'UK Fuel Price Statistics', description: 'Live UK fuel price statistics including cheapest counties, national averages and price history.', path: '/stats' })
   const [loading, setLoading] = useState(true)
   const [fuel, setFuel] = useState('E10')
   const [countryStats, setCountryStats] = useState([])

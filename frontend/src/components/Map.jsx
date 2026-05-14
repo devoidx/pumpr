@@ -90,6 +90,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
     if (mapInstanceRef.current) return
     const initialZoom = window._pumprZoomHint || 13
     window._pumprZoomHint = null
+    mapRef.current.style.background = '#f2f0eb'
     const map = L.map(mapRef.current, {
       center: [center.lat, center.lng],
       zoom: initialZoom,
@@ -97,6 +98,10 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
     })
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
+      keepBuffer: 4,
+      updateWhenIdle: false,
+      updateWhenZooming: false,
+      crossOrigin: true,
     }).addTo(map)
     const locationMarker = L.divIcon({
       className: '',

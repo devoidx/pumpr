@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSEO } from '../hooks/useSEO'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useBrandLogos } from '../contexts/BrandsContext'
 import { timeAgo } from '../utils/timeAgo'
@@ -20,6 +21,7 @@ export default function CheapFuelPage() {
   const [selectedFuel, setSelectedFuel] = useState('E10')
 
   const locationName = toTitleCase(location)
+  useSEO({ title: `Cheap Petrol & Diesel in ${locationName}`, description: `Compare live fuel prices at petrol stations near ${locationName}. Find the cheapest petrol and diesel updated every 30 minutes.`, path: `/cheap-fuel/${location}` })
 
   useEffect(() => {
     setLoading(true)

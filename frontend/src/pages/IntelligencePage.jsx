@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useBrandLogos } from '../contexts/BrandsContext'
+import { useSEO } from '../hooks/useSEO'
 
 const FUEL_LABELS = { E10: 'Petrol (E10)', B7: 'Diesel (B7)', E5: 'Premium (E5)', SDV: 'Super Diesel' }
 const FUEL_COLORS = { E10: '#2ecc71', B7: '#3498db', E5: '#9b59b6', SDV: '#e67e22' }
@@ -25,6 +26,7 @@ export default function IntelligencePage() {
   const [sectorSearch, setSectorSearch] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
   const brandLogos = useBrandLogos()
+  useSEO({ title: 'UK Fuel Market Intelligence', description: 'Daily UK fuel market analysis including brand pricing, regional breakdowns and postcode sector data.', path: '/intelligence' })
 
   useEffect(() => {
     if (typeof umami !== 'undefined') umami.track('intelligence-viewed')
