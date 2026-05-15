@@ -362,14 +362,14 @@ export default function IntelligencePage() {
           <div>
             <div style={{fontWeight:700, color:'var(--amber)', marginBottom:'4px', fontSize:'14px'}}>Building up historical data</div>
             <div style={{fontSize:'13px', color:'var(--text2)', lineHeight:1.7}}>
-              Pumpr started storing daily market snapshots on {data.date}. The trends chart will become available once we have accumulated enough historical data (typically 7+ days).
+              Pumpr started storing daily market snapshots on {data.first_date}. The trends chart will become available once we have accumulated enough historical data (typically 7+ days).
               Check back soon — this section will show national E10 and B7 price trends over time, motorway premium evolution, and regional price changes.
             </div>
           </div>
         </div>
         <SectionTitle>Available Data Points</SectionTitle>
         <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'16px', fontSize:'13px', color:'var(--text2)'}}>
-          <p>Currently tracking daily snapshots. Data collected so far covers <strong style={{color:'var(--amber)'}}>1 day</strong>. 
+          <p>Currently tracking daily snapshots. Data collected so far covers <strong style={{color:'var(--amber)'}}>{data.day_count} {data.day_count === 1 ? 'day' : 'days'}</strong>. 
           Full trend charts require a minimum of 7 days of data.</p>
           <p style={{marginTop:'8px', color:'var(--text3)', fontSize:'12px'}}>Metrics tracked daily: national E10/B7/E5/SDV averages, supermarket discount, motorway premium, regional breakdowns, brand pricing.</p>
         </div>
