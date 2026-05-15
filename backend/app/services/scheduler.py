@@ -123,6 +123,14 @@ async def generate_weekly_blog_post_job() -> None:
         logger.error(f"Scheduler: weekly blog post generation failed: {e}")
 
 
+async def monthly_spending_digest_job() -> None:
+    try:
+        from app.services.email import send_monthly_spending_digests
+        sent = await send_monthly_spending_digests()
+        logger.info(f"Monthly spending digest sent to {sent} users")
+    except Exception as e:
+        logger.error(f"Scheduler: monthly spending digest failed: {e}")
+
 async def refresh_threads_token_job() -> None:
     try:
         from app.services.social import refresh_threads_token
@@ -167,6 +175,7 @@ def start_scheduler() -> None:
         scheduler.add_job(refresh_threads_token_job, trigger=IntervalTrigger(days=45), id="refresh_threads_token", replace_existing=True)
         scheduler.add_job(generate_weekly_blog_post_job, trigger=CronTrigger(day_of_week="tue", hour=9, minute=30, timezone="Europe/London"), id="weekly_blog_post", replace_existing=True)
         scheduler.add_job(check_blog_sources_job, trigger=CronTrigger(day_of_week="wed", hour=10, minute=0, timezone="Europe/London"), id="check_blog_sources", replace_existing=True)
+        scheduler.add_job(monthly_spending_digest_job, trigger=CronTrigger(day=1, hour=8, minute=0, timezone="Europe/London"), id="monthly_spending_digest", replace_existing=True)
 
     if enable_polling:
         scheduler.add_job(sync_stations_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="sync_stations", replace_existing=True)

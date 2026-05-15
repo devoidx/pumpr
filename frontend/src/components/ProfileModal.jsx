@@ -171,6 +171,16 @@ export default function ProfileModal({ onClose }) {
             catch { alert('Failed to save') }
           }} />
         </div>
+        <div style={{...rowStyle, borderBottom:'none', marginTop:'12px'}}>
+          <div>
+            <div style={labelStyle}>Monthly spending digest</div>
+            <div style={subLabelStyle}>Requires fuel tracker usage — monthly summary per vehicle, sent on the 1st</div>
+          </div>
+          <Toggle checked={user?.spending_digest || false} onChange={async e => {
+            try { await updateProfile({ spending_digest: e.target.checked }) }
+            catch { alert('Failed to save') }
+          }} />
+        </div>
       </div>
     </ModalOverlay>
   )

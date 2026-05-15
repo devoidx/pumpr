@@ -30,6 +30,7 @@ class User(Base):
     use_driving_distance: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     economy_units: Mapped[str] = mapped_column(String(10), nullable=False, default="mpg")
     blog_newsletter: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    spending_digest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(back_populates="user", cascade="all, delete-orphan")
     user_tokens: Mapped[list[UserToken]] = relationship(back_populates="user", cascade="all, delete-orphan")
