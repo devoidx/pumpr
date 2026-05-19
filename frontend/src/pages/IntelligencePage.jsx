@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useBrandLogos } from '../contexts/BrandsContext'
 import { useSEO } from '../hooks/useSEO'
 
@@ -25,6 +26,7 @@ export default function IntelligencePage() {
   const [selectedFuel, setSelectedFuel] = useState('E10')
   const [sectorSearch, setSectorSearch] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
+  const [trendsData, setTrendsData] = useState(null)
   const brandLogos = useBrandLogos()
   useSEO({ title: 'UK Fuel Market Intelligence', description: 'Daily UK fuel market analysis including brand pricing, regional breakdowns and postcode sector data.', path: '/intelligence' })
 
@@ -34,6 +36,10 @@ export default function IntelligencePage() {
       .then(r => r.ok ? r.json() : null)
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
+    fetch('/api/v1/intelligence/trends')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setTrendsData(d.days) })
+      .catch(() => {})
   }, [])
 
   if (loading) return <div style={{padding:'40px', color:'var(--text2)'}}>Loading market intelligence...</div>
@@ -357,22 +363,49 @@ export default function IntelligencePage() {
       {/* Trends tab */}
       {activeTab === 'trends' && <>
         <SectionTitle>National Price Trends</SectionTitle>
-        <div style={{background:'var(--surface)', border:'1px solid var(--amber)', borderRadius:'10px', padding:'16px', marginBottom:'24px', display:'flex', gap:'12px', alignItems:'flex-start'}}>
+        {trendsData && trendsData.length >= 2 ? <>
+          <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'20px', marginBottom:'24px'}}>
+            <div style={{fontSize:'13px', color:'var(--text2)', marginBottom:'16px', fontWeight:600}}>Petrol (E10) — pence per litre</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={trendsData} margin={{top:4, right:16, left:0, bottom:4}}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="date" tick={{fontSize:11, fill:'var(--text3)'}} tickFormatter={d => d.slice(5)} />
+                <YAxis tick={{fontSize:11, fill:'var(--text3)'}} domain={['auto','auto']} tickFormatter={v => `${v}p`} width={44} />
+                <Tooltip formatter={(v, n) => [`${v.toFixed(1)}p`, n]} labelFormatter={l => `Date: ${l}`} contentStyle={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'8px', fontSize:'12px'}} />
+                <Legend wrapperStyle={{fontSize:'12px', color:'var(--text2)'}} />
+                <Line type="monotone" dataKey="e10_avg" name="National avg" stroke="#2ecc71" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="e10_supermarket_avg" name="Supermarket avg" stroke="#f5a623" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                <Line type="monotone" dataKey="e10_motorway_avg" name="Motorway avg" stroke="#e74c3c" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'20px', marginBottom:'24px'}}>
+            <div style={{fontSize:'13px', color:'var(--text2)', marginBottom:'16px', fontWeight:600}}>Diesel (B7) — pence per litre</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={trendsData} margin={{top:4, right:16, left:0, bottom:4}}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="date" tick={{fontSize:11, fill:'var(--text3)'}} tickFormatter={d => d.slice(5)} />
+                <YAxis tick={{fontSize:11, fill:'var(--text3)'}} domain={['auto','auto']} tickFormatter={v => `${v}p`} width={44} />
+                <Tooltip formatter={(v, n) => [`${v.toFixed(1)}p`, n]} labelFormatter={l => `Date: ${l}`} contentStyle={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'8px', fontSize:'12px'}} />
+                <Legend wrapperStyle={{fontSize:'12px', color:'var(--text2)'}} />
+                <Line type="monotone" dataKey="b7_avg" name="National avg" stroke="#3498db" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="b7_supermarket_avg" name="Supermarket avg" stroke="#f5a623" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                <Line type="monotone" dataKey="b7_motorway_avg" name="Motorway avg" stroke="#e74c3c" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{fontSize:'12px', color:'var(--text3)', textAlign:'right', marginTop:'-16px', marginBottom:'24px'}}>
+            Tracking {trendsData.length} days of data · {trendsData[0]?.date} → {trendsData[trendsData.length-1]?.date}
+          </div>
+        </> : <div style={{background:'var(--surface)', border:'1px solid var(--amber)', borderRadius:'10px', padding:'16px', marginBottom:'24px', display:'flex', gap:'12px', alignItems:'flex-start'}}>
           <span style={{fontSize:'24px', flexShrink:0}}>📈</span>
           <div>
             <div style={{fontWeight:700, color:'var(--amber)', marginBottom:'4px', fontSize:'14px'}}>Building up historical data</div>
             <div style={{fontSize:'13px', color:'var(--text2)', lineHeight:1.7}}>
-              Pumpr started storing daily market snapshots on {data.first_date}. The trends chart will become available once we have accumulated enough historical data (typically 7+ days).
-              Check back soon — this section will show national E10 and B7 price trends over time, motorway premium evolution, and regional price changes.
+              Pumpr started storing daily market snapshots on {data.first_date}. Check back soon — trends require at least 2 days of data.
             </div>
           </div>
-        </div>
-        <SectionTitle>Available Data Points</SectionTitle>
-        <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'10px', padding:'16px', fontSize:'13px', color:'var(--text2)'}}>
-          <p>Currently tracking daily snapshots. Data collected so far covers <strong style={{color:'var(--amber)'}}>{data.day_count} {data.day_count === 1 ? 'day' : 'days'}</strong>. 
-          Full trend charts require a minimum of 7 days of data.</p>
-          <p style={{marginTop:'8px', color:'var(--text3)', fontSize:'12px'}}>Metrics tracked daily: national E10/B7/E5/SDV averages, supermarket discount, motorway premium, regional breakdowns, brand pricing.</p>
-        </div>
+        </div>}
       </>}
 
       {/* Motorway tab */}

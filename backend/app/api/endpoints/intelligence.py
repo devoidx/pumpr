@@ -36,3 +36,35 @@ async def get_latest_intelligence(db: AsyncSession = Depends(get_db)) -> dict:
         "first_date": first_date,
         "day_count": day_count,
     }
+
+@router.get("/trends")
+async def get_intelligence_trends(db: AsyncSession = Depends(get_db)) -> dict:
+    result = await db.execute(text("""
+        SELECT
+            date,
+            (national->'E10'->>'avg')::float as e10_avg,
+            (national->'E10'->>'supermarket_avg')::float as e10_supermarket_avg,
+            (national->'E10'->>'motorway_avg')::float as e10_motorway_avg,
+            (national->'B7'->>'avg')::float as b7_avg,
+            (national->'B7'->>'supermarket_avg')::float as b7_supermarket_avg,
+            (national->'B7'->>'motorway_avg')::float as b7_motorway_avg
+        FROM market_intelligence
+        ORDER BY date ASC
+    """))
+    rows = result.fetchall()
+    if not rows:
+        raise HTTPException(status_code=404, detail="No trend data available yet")
+    return {
+        "days": [
+            {
+                "date": r.date.isoformat(),
+                "e10_avg": r.e10_avg,
+                "e10_supermarket_avg": r.e10_supermarket_avg,
+                "e10_motorway_avg": r.e10_motorway_avg,
+                "b7_avg": r.b7_avg,
+                "b7_supermarket_avg": r.b7_supermarket_avg,
+                "b7_motorway_avg": r.b7_motorway_avg,
+            }
+            for r in rows
+        ]
+    }
