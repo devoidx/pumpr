@@ -35,30 +35,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(body: UserCreate, db: AsyncSession = Depends(get_db)) -> dict:
-    existing = await db.execute(
-        select(User).where(User.email == body.email)
+@router.post("/register", status_code=status.HTTP_410_GONE)
+async def register(body: UserCreate) -> dict:
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Direct registration is not available. Please subscribe via pumpr.co.uk/pro to create an account.",
     )
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
-
-    user = User(email=body.email, username=None, password_hash=hash_password(body.password))
-    db.add(user)
-    await db.flush()
-
-    raw_token = generate_link_token()
-    db.add(UserToken(
-        user_id=user.id,
-        token_hash=hash_token(raw_token),
-        purpose="verify_email",
-        expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
-    ))
-    await db.commit()
-
-    await send_verification_email(body.email, raw_token)
-    logger.info("Registered user %s", body.email)
-    return {"message": "Account created. Please check your email to verify your address."}
 
 
 @router.post("/login", response_model=TokenResponse)

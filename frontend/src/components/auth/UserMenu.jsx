@@ -93,7 +93,6 @@ export default function NavAuthSection() {
       <button className="nav-btn-ghost" onClick={() => setModal('login')}>Sign in</button>
       <button className="nav-btn-filled" onClick={() => { if (typeof umami !== 'undefined') umami.track('go-pro-clicked'); window.dispatchEvent(new CustomEvent('pumpr:navigate', { detail: { path: '/pro' } })) }}>Go Pro</button>
       {modal === 'login'    && <Portal><LoginModal    onClose={() => setModal(null)} onSwitchToRegister={() => setModal('register')} /></Portal>}
-      {modal === 'register' && <Portal><RegisterModal onClose={() => setModal(null)} onSwitchToLogin={() => setModal('login')} /></Portal>}
     </>
   )
 }

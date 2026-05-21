@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import './AuthModal.css'
 
-export default function LoginModal({ onClose, onSwitchToRegister }) {
+export default function LoginModal({ onClose, onSwitchToRegister = null }) {
   const { login, requestPasswordReset } = useAuth()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
@@ -47,7 +47,7 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
           </form>
         )}
         {resetSent && <p className="auth-success" style={{textAlign:'center'}}>Reset link sent — check your inbox.</p>}
-        <p className="auth-switch">Don't have an account? <button className="auth-link" onClick={onSwitchToRegister}>Create one</button></p>
+        <p className="auth-switch">Don't have an account? <a className="auth-link" href="/pro">Get Pro access</a></p>
       </div>
     </div>
   )

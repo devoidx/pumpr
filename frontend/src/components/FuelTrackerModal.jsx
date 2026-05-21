@@ -190,7 +190,7 @@ export default function FuelTrackerModal({ onClose, prefillStation = null }) {
               <div>
                 <label style={labelStyle}>Fuel type</label>
                 <select style={inputStyle} value={form.fuel_type} onChange={e => setForm(f => ({...f, fuel_type: e.target.value}))}>
-                  {['E10','B7','E5','SDV','HVO','B10'].map(ft => <option key={ft} value={ft}>{ft}</option>)}
+                  {[['E10','Unleaded (E10)'],['B7','Diesel (B7)'],['E5','Premium (E5)'],['SDV','Super Diesel'],['HVO','HVO'],['B10','Biodiesel (B10)']].map(([ft, label]) => <option key={ft} value={ft}>{label}</option>)}
                 </select>
               </div>
               <div>
@@ -247,7 +247,7 @@ export default function FuelTrackerModal({ onClose, prefillStation = null }) {
                     <div style={{minWidth:0}}>
                       <div style={{display:'flex', gap:'8px', alignItems:'center', marginBottom:'4px'}}>
                         <span style={{fontSize:'13px', fontWeight:700, color:'var(--text)'}}>{new Date(f.filled_at).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})}</span>
-                        <span style={{fontSize:'11px', padding:'1px 6px', borderRadius:'4px', background:'var(--surface2)', color:'var(--text3)'}}>{f.fuel_type}</span>
+                        <span style={{fontSize:'11px', padding:'1px 6px', borderRadius:'4px', background:'var(--surface2)', color:'var(--text3)'}}>{{'E10':'Unleaded (E10)','B7':'Diesel (B7)','E5':'Premium (E5)','SDV':'Super Diesel','HVO':'HVO','B10':'Biodiesel (B10)'}[f.fuel_type] || f.fuel_type}</span>
                         {f.vehicle_name && <span style={{fontSize:'11px', color:'var(--text3)'}}>{f.vehicle_name}</span>}
                       </div>
                       <div style={{fontSize:'13px', color:'var(--text2)'}}>
