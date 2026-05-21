@@ -238,6 +238,22 @@ async def sync_stations() -> int:
             await session.execute(stmt)
         await session.commit()
 
+    # Mark stations absent from the feed as temporary closure
+    api_ids = {s["node_id"] for s in stations if not s.get("permanent_closure")}
+    async with AsyncSessionLocal() as absent_session:
+        result = await absent_session.execute(
+            text("SELECT id FROM stations WHERE permanent_closure = FALSE AND temporary_closure = FALSE")
+        )
+        db_ids = {row[0] for row in result.fetchall()}
+        absent_ids = list(db_ids - api_ids)
+        if absent_ids:
+            await absent_session.execute(
+                text("UPDATE stations SET temporary_closure = TRUE, updated_at = NOW() WHERE id = ANY(:ids)"),
+                {"ids": absent_ids},
+            )
+            await absent_session.commit()
+            logger.info(f"Marked {len(absent_ids)} stations as temporary closure (absent from feed)")
+
     logger.info(f"Synced {len(stations)} stations")
     return len(stations)
 
