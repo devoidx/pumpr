@@ -111,6 +111,44 @@ class FuelFinderClient:
         """Fetch all fuel prices across all batches."""
         return await self._get_paginated("/api/v1/pfs/fuel-prices")
 
+    async def get_prices_incremental(self, since: datetime) -> list[dict]:
+        """Fetch only fuel prices updated since the given datetime."""
+        import asyncio
+        token = await self._get_token()
+        all_records: list[dict] = []
+        batch = 1
+        max_retries = 3
+        since_str = since.strftime("%Y-%m-%d %H:%M:%S")
+
+        while True:
+            for attempt in range(max_retries):
+                try:
+                    response = await self._client.get(
+                        f"{settings.fuel_finder_api_url}/api/v1/pfs/fuel-prices",
+                        headers={"Authorization": f"Bearer {token}"},
+                        params={"batch-number": batch, "effective-start-timestamp": since_str},
+                    )
+                    break
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        wait = 5 * (2 ** attempt)
+                        logger.warning(f"Incremental batch {batch} attempt {attempt + 1} failed: {e} — retrying in {wait}s")
+                        await asyncio.sleep(wait)
+                    else:
+                        raise
+            if response.status_code == 404:
+                break
+            response.raise_for_status()
+            data = response.json()
+            records = data if isinstance(data, list) else data.get("data", [])
+            if not records:
+                break
+            all_records.extend(records)
+            logger.info(f"Incremental fetch batch {batch} ({len(records)} records, since {since_str})")
+            batch += 1
+
+        return all_records
+
     async def close(self) -> None:
         await self._client.aclose()
 

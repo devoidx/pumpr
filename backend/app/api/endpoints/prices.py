@@ -31,20 +31,27 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 @router.get("/feed-health")
 async def feed_health(db: AsyncSession = Depends(get_db)) -> dict:
     """Returns age of most recent price data."""
-    result = await db.execute(text("""
-        SELECT MAX(recorded_at) as latest FROM price_history
-    """))
-    latest = result.scalar()
-    if not latest:
-        return {"status": "red", "message": "No data available", "minutes_ago": None}
-
     from datetime import datetime, timezone
+
+    from app.services.ingestion import get_last_successful_poll_at
+
     now = datetime.now(timezone.utc)
-    # Make latest timezone-aware if it isn't
-    if latest.tzinfo is None:
-        from datetime import timezone
-        latest = latest.replace(tzinfo=timezone.utc)
-    minutes_ago = (now - latest).total_seconds() / 60
+
+    # Prefer in-memory last poll timestamp (accurate even when 0 records written)
+    last_poll = get_last_successful_poll_at()
+    if last_poll:
+        if last_poll.tzinfo is None:
+            last_poll = last_poll.replace(tzinfo=timezone.utc)
+        minutes_ago = (now - last_poll).total_seconds() / 60
+    else:
+        # Fall back to DB on first run before any poll has completed
+        result = await db.execute(text("SELECT MAX(recorded_at) as latest FROM price_history"))
+        latest = result.scalar()
+        if not latest:
+            return {"status": "red", "message": "No data available", "minutes_ago": None}
+        if latest.tzinfo is None:
+            latest = latest.replace(tzinfo=timezone.utc)
+        minutes_ago = (now - latest).total_seconds() / 60
 
     if minutes_ago <= 45:
         status = "green"

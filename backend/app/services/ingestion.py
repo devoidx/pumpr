@@ -297,10 +297,39 @@ def _is_valid_price(fuel_type: str, price: float, medians: dict[str, float]) -> 
     return True
 
 
+# Track last successful price poll for incremental fetching
+_last_price_poll_at: datetime | None = None
+_last_successful_poll_at: datetime | None = None
+
+def get_last_successful_poll_at() -> datetime | None:
+    return _last_successful_poll_at
+
 async def ingest_prices() -> int:
     """Fetch current prices from API and write to price_history. Returns count."""
-    prices = await fuel_finder_client.get_prices()
+    global _last_price_poll_at
+
+    # Use incremental fetch if we have a recent last poll (within 2 hours)
+    # Fall back to full fetch on first run or after a long gap
+    now_utc = datetime.utcnow()
+    use_incremental = (
+        _last_price_poll_at is not None
+        and (now_utc - _last_price_poll_at).total_seconds() < 7200
+    )
+
+    if use_incremental:
+        assert _last_price_poll_at is not None
+        logger.info(f"Using incremental price fetch since {_last_price_poll_at}")
+        prices = await fuel_finder_client.get_prices_incremental(_last_price_poll_at)
+    else:
+        logger.info("Using full price fetch")
+        prices = await fuel_finder_client.get_prices()
+
     if not prices:
+        if use_incremental:
+            logger.info("No price changes since last poll")
+            _last_price_poll_at = now_utc
+            _last_successful_poll_at = now_utc
+            return 0
         logger.warning("No prices returned from API")
         return 0
 
@@ -370,6 +399,8 @@ async def ingest_prices() -> int:
 
     flagged_count = sum(1 for r in records if r.price_flagged)
     logger.info(f"Ingested {len(records)} price records ({flagged_count} flagged)")
+    _last_price_poll_at = now_utc
+    _last_successful_poll_at = now_utc
     return len(records)
 
 def _parse_dt(value: str | None) -> datetime | None:
