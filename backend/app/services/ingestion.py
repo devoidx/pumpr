@@ -397,6 +397,28 @@ async def ingest_prices() -> int:
         session.add_all(records)
         await session.commit()
 
+        # Upsert into latest_prices for fast stats/query access
+        if records:
+            await session.execute(text("""
+                INSERT INTO latest_prices (station_id, fuel_type, price_pence, recorded_at, source_updated_at, price_flagged)
+                SELECT unnest(:station_ids::varchar[]), unnest(:fuel_types::varchar[]), unnest(:prices::float8[]),
+                       unnest(:recorded_ats::timestamp[]), unnest(:source_updated_ats::timestamp[]), unnest(:flagged::bool[])
+                ON CONFLICT (station_id, fuel_type) DO UPDATE SET
+                    price_pence = EXCLUDED.price_pence,
+                    recorded_at = EXCLUDED.recorded_at,
+                    source_updated_at = EXCLUDED.source_updated_at,
+                    price_flagged = EXCLUDED.price_flagged
+                WHERE EXCLUDED.recorded_at >= latest_prices.recorded_at
+            """), {
+                "station_ids": [r.station_id for r in records],
+                "fuel_types": [r.fuel_type for r in records],
+                "prices": [r.price_pence for r in records],
+                "recorded_ats": [r.recorded_at for r in records],
+                "source_updated_ats": [r.source_updated_at for r in records],
+                "flagged": [r.price_flagged for r in records],
+            })
+            await session.commit()
+
     flagged_count = sum(1 for r in records if r.price_flagged)
     logger.info(f"Ingested {len(records)} price records ({flagged_count} flagged)")
     _last_price_poll_at = now_utc

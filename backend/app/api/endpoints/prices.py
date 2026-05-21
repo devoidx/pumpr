@@ -197,16 +197,12 @@ async def get_cheapest(
         county_params = {f"c{i}": c for i, c in enumerate(counties)}
         county_params["fuel"] = fuel
         cp_result = await db.execute(text(f"""
-            SELECT s.county, MIN(ph.price_pence) as min_price
-            FROM price_history ph
-            JOIN stations s ON ph.station_id = s.id
+            SELECT s.county, MIN(lp.price_pence) as min_price
+            FROM latest_prices lp
+            JOIN stations s ON lp.station_id = s.id
             WHERE s.county IN ({placeholders})
-              AND ph.fuel_type = :fuel
-              AND ph.price_flagged = FALSE
-              AND ph.recorded_at = (
-                SELECT MAX(ph2.recorded_at) FROM price_history ph2
-                WHERE ph2.station_id = ph.station_id AND ph2.fuel_type = ph.fuel_type
-              )
+              AND lp.fuel_type = :fuel
+              AND lp.price_flagged = FALSE
             GROUP BY s.county
         """), county_params)
         county_cheapest = {r.county: float(r.min_price) for r in cp_result.fetchall()}
@@ -222,15 +218,11 @@ async def get_cheapest(
 @router.get("/stats", response_model=list[StatsOut])
 async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
     sql = text("""
-        SELECT DISTINCT ON (ph.station_id, ph.fuel_type)
-            ph.fuel_type,
-            ph.price_pence
-        FROM price_history ph
-        JOIN stations s ON ph.station_id = s.id
+        SELECT lp.fuel_type, lp.price_pence
+        FROM latest_prices lp
+        JOIN stations s ON lp.station_id = s.id
         WHERE (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
-          AND (ph.price_flagged = FALSE OR ph.price_flagged IS NULL)
-          AND ph.price_flagged = FALSE
-        ORDER BY ph.station_id, ph.fuel_type, ph.recorded_at DESC
+          AND lp.price_flagged = FALSE
     """)
     result = await db.execute(sql)
     rows = result.fetchall()
