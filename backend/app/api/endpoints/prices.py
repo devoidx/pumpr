@@ -203,7 +203,10 @@ async def get_cheapest(
             WHERE s.county IN ({placeholders})
               AND ph.fuel_type = :fuel
               AND ph.price_flagged = FALSE
-              AND ph.recorded_at > NOW() - INTERVAL '2 hours'
+              AND ph.recorded_at = (
+                SELECT MAX(ph2.recorded_at) FROM price_history ph2
+                WHERE ph2.station_id = ph.station_id AND ph2.fuel_type = ph.fuel_type
+              )
             GROUP BY s.county
         """), county_params)
         county_cheapest = {r.county: float(r.min_price) for r in cp_result.fetchall()}
@@ -226,7 +229,7 @@ async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
         JOIN stations s ON ph.station_id = s.id
         WHERE (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
           AND (ph.price_flagged = FALSE OR ph.price_flagged IS NULL)
-          AND ph.recorded_at > NOW() - INTERVAL '2 hours'
+          AND ph.price_flagged = FALSE
         ORDER BY ph.station_id, ph.fuel_type, ph.recorded_at DESC
     """)
     result = await db.execute(sql)
