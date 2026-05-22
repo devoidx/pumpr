@@ -8,6 +8,7 @@ import ProfileModal from '../ProfileModal'
 import LoginModal from './LoginModal'
 import RegisterModal from './RegisterModal'
 import Portal from '../Portal'
+import OnboardingModal from '../OnboardingModal'
 import './AuthModal.css'
 
 function UserMenu() {
@@ -18,6 +19,7 @@ function UserMenu() {
   const [showAlerts, setShowAlerts] = useState(false)
   const [showVehicles, setShowVehicles] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const triggerRef         = useRef(null)
   const dropdownRef        = useRef(null)
 
@@ -31,8 +33,19 @@ function UserMenu() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    if (user && (user.role === 'pro' || user.role === 'admin')) {
+      const key = 'pumpr_onboarded_' + user.email
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1')
+        setShowOnboarding(true)
+      }
+    }
+  }, [user])
+
   if (!user) return null
   const initial = (user.username?.[0] ?? user.email[0]).toUpperCase()
+  const isPro = user.role === 'pro' || user.role === 'admin' 
 
   function go(path) {
     setOpen(false)
@@ -44,6 +57,7 @@ function UserMenu() {
     <div className="user-menu" ref={triggerRef}>
       <button className="user-menu-trigger" onClick={() => setOpen(o => !o)}>
         <span className="avatar">{initial}</span>{user.username}
+        {isPro && <span style={{fontSize:"9px",fontWeight:700,letterSpacing:"0.06em",background:"var(--amber)",color:"#000",borderRadius:"3px",padding:"1px 4px",marginLeft:"2px"}}>PRO</span>}
       </button>
       {open && (
         <Portal>
@@ -56,6 +70,7 @@ function UserMenu() {
               <div className="um-email">{user.email}</div>
               <span className="um-badge">{user.role}</span>
             </div>
+            {isPro && <button className="user-menu-item" style={{color:"var(--amber)",borderBottom:"1px solid var(--border)",marginBottom:"4px",paddingBottom:"8px"}} onClick={() => { setOpen(false); setShowOnboarding(true) }}>⚡ Pro features</button>}
             <button className="user-menu-item" onClick={() => { setOpen(false); setShowPlaces(true) }}>📍 My Places</button>
             <button className="user-menu-item" onClick={() => { setOpen(false); setShowVehicles(true) }}>🚗 My Vehicles</button>
             <button className="user-menu-item" onClick={() => { setOpen(false); setShowProfile(true) }}>👤 My Profile</button>
@@ -70,6 +85,7 @@ function UserMenu() {
     {showAlerts && <MyAlertsModal onClose={() => setShowAlerts(false)} />}
     {showVehicles && <MyVehiclesModal onClose={() => setShowVehicles(false)} />}
     {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+    {showOnboarding && <OnboardingModal onClose={() => setShowOnboarding(false)} openTracker={() => { setShowOnboarding(false); setShowTracker(true) }} openPlaces={() => { setShowOnboarding(false); setShowPlaces(true) }} openAlerts={() => { setShowOnboarding(false); setShowAlerts(true) }} openVehicles={() => { setShowOnboarding(false); setShowVehicles(true) }} />}
     </div>
   )
 }
