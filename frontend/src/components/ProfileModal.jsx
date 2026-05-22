@@ -20,6 +20,19 @@ export default function ProfileModal({ onClose }) {
   const isPro = user?.role === 'pro' || user?.role === 'admin'
   const [subLoading, setSubLoading] = useState(false)
   const [subMsg, setSubMsg] = useState(null)
+  const [editingName, setEditingName] = useState(false)
+  const [nameVal, setNameVal] = useState(user?.username || '')
+  const [nameError, setNameError] = useState('')
+
+  async function saveName() {
+    try {
+      await updateProfile({ username: nameVal.trim() || null })
+      setEditingName(false)
+      setNameError('')
+    } catch {
+      setNameError('That name may already be taken.')
+    }
+  }
 
   const rowStyle = {display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 0', borderBottom:'1px solid var(--border)'}
   const labelStyle = {fontSize:'14px', color:'var(--text)', fontWeight:500}
@@ -52,8 +65,22 @@ export default function ProfileModal({ onClose }) {
           <div style={{fontSize:'13px', color:'var(--text2)', fontFamily:'var(--font-mono)'}}>{user?.email}</div>
         </div>
         <div style={rowStyle}>
-          <div><div style={labelStyle}>Username</div></div>
-          <div style={{fontSize:'13px', color:'var(--text2)'}}>{user?.username || '—'}</div>
+          <div><div style={labelStyle}>Name</div></div>
+          {editingName ? (
+            <div style={{display:'flex',flexDirection:'column',gap:'4px',alignItems:'flex-end'}}>
+              <div style={{display:'flex',gap:'6px'}}>
+                <input value={nameVal} onChange={e => setNameVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveName()} placeholder="Your name" style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:'6px',color:'var(--text)',fontSize:'13px',padding:'4px 8px',outline:'none',width:'130px'}} />
+                <button onClick={saveName} style={{background:'var(--amber)',border:'none',borderRadius:'6px',color:'#000',cursor:'pointer',fontSize:'12px',fontWeight:700,padding:'4px 10px'}}>Save</button>
+                <button onClick={() => { setEditingName(false); setNameError('') }} style={{background:'none',border:'1px solid var(--border)',borderRadius:'6px',color:'var(--text3)',cursor:'pointer',fontSize:'12px',padding:'4px 8px'}}>Cancel</button>
+              </div>
+              {nameError && <div style={{fontSize:'11px',color:'#e74c3c'}}>{nameError}</div>}
+            </div>
+          ) : (
+            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+              <span style={{fontSize:'13px',color:'var(--text2)'}}>{user?.username || '—'}</span>
+              <button onClick={() => { setNameVal(user?.username || ''); setEditingName(true) }} style={{background:'none',border:'none',color:'var(--text3)',cursor:'pointer',fontSize:'11px',textDecoration:'underline',padding:0}}>Edit</button>
+            </div>
+          )}
         </div>
         <div style={{...rowStyle, borderBottom:'none'}}>
           <div><div style={labelStyle}>Plan</div></div>

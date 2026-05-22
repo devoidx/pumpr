@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import Portal from './Portal'
+import { useAuth } from '../hooks/useAuth'
 
 const FEATURES = [
   {
@@ -33,17 +35,48 @@ const FEATURES = [
 
 export default function OnboardingModal({ onClose, openTracker, openPlaces, openAlerts, openVehicles }) {
   const handlers = { openTracker, openPlaces, openAlerts, openVehicles }
+  const { user, updateProfile } = useAuth()
+  const [username, setUsername] = useState(user?.username || '')
+  const [usernameSaved, setUsernameSaved] = useState(!!user?.username)
+  const [usernameError, setUsernameError] = useState('')
+
+  async function saveUsername() {
+    if (!username.trim()) return
+    try {
+      await updateProfile({ username: username.trim() })
+      setUsernameSaved(true)
+      setUsernameError('')
+    } catch (e) {
+      setUsernameError('That username may already be taken.')
+    }
+  }
 
   return (
     <Portal>
       <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:10000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
         <div style={{background:'var(--surface,#1a1a1a)',border:'1px solid var(--border,#2d2d2d)',borderRadius:'14px',padding:'28px 24px',maxWidth:'480px',width:'100%',maxHeight:'90vh',overflowY:'auto',position:'relative'}}>
           <button onClick={onClose} style={{position:'absolute',top:'14px',right:'16px',background:'none',border:'none',color:'var(--text3)',fontSize:'20px',cursor:'pointer',lineHeight:1}}>×</button>
-          <div style={{textAlign:'center',marginBottom:'24px'}}>
+          <div style={{textAlign:'center',marginBottom:'20px'}}>
             <div style={{fontSize:'28px',marginBottom:'8px'}}>⚡</div>
             <h2 style={{color:'var(--amber)',fontSize:'20px',fontWeight:700,margin:'0 0 6px'}}>Welcome to Pumpr Pro</h2>
             <p style={{color:'var(--text2)',fontSize:'13px',margin:0}}>Here's everything included in your subscription.</p>
           </div>
+          {!usernameSaved && <div style={{background:'var(--bg,#111)',border:'1px solid var(--border,#2d2d2d)',borderRadius:'10px',padding:'14px 16px',marginBottom:'16px'}}>
+            <div style={{fontWeight:700,color:'var(--text)',fontSize:'14px',marginBottom:'4px'}}>👤 What's your name?</div>
+            <div style={{color:'var(--text2)',fontSize:'12px',marginBottom:'10px'}}>What should we call you? This appears in the menu and your profile.</div>
+            <div style={{display:'flex',gap:'8px'}}>
+              <input
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveUsername()}
+                placeholder="Your name"
+                style={{flex:1,background:'var(--surface,#1a1a1a)',border:'1px solid var(--border,#2d2d2d)',borderRadius:'6px',color:'var(--text)',fontSize:'13px',padding:'6px 10px',outline:'none'}}
+              />
+              <button onClick={saveUsername} style={{background:'rgba(245,158,11,0.12)',border:'1px solid rgba(245,158,11,0.3)',borderRadius:'6px',color:'var(--amber)',cursor:'pointer',fontSize:'12px',fontWeight:600,padding:'6px 12px',whiteSpace:'nowrap'}}>Save</button>
+            </div>
+            {usernameError && <div style={{color:'#e74c3c',fontSize:'11px',marginTop:'6px'}}>{usernameError}</div>}
+          </div>}
+          {usernameSaved && user?.username && <div style={{background:'rgba(245,158,11,0.07)',border:'1px solid rgba(245,158,11,0.2)',borderRadius:'8px',padding:'8px 14px',marginBottom:'16px',fontSize:'12px',color:'var(--text2)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>  <span>👤 Signed in as <strong style={{color:'var(--amber)'}}>{user.username}</strong></span>  <button onClick={() => setUsernameSaved(false)} style={{background:'none',border:'none',color:'var(--text3)',cursor:'pointer',fontSize:'11px',textDecoration:'underline'}}>Edit</button></div>}
           <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
             {FEATURES.map(f => (
               <div key={f.title} style={{background:'var(--bg,#111)',border:'1px solid var(--border,#2d2d2d)',borderRadius:'10px',padding:'14px 16px',display:'flex',gap:'14px',alignItems:'flex-start'}}>
