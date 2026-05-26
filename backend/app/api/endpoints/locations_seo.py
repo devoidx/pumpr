@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
+from app.db.session import AsyncSessionLocal, get_db
 
 PRECOMPUTE_CITIES = [
     "london", "manchester", "birmingham", "leeds", "glasgow", "liverpool",
@@ -104,35 +104,36 @@ async def cheap_fuel_location(
     lng_margin = radius_km / (111.0 * math.cos(math.radians(lat)))
 
     async def fetch_fuel(fuel: str) -> tuple:
-        result = await db.execute(text("""
-            SELECT DISTINCT ON (ph.station_id)
-                ph.station_id,
-                ph.price_pence,
-                ph.source_updated_at,
-                s.name,
-                s.brand,
-                s.address,
-                s.postcode,
-                s.latitude,
-                s.longitude,
-                s.is_motorway,
-                s.is_supermarket
-            FROM price_history ph
-            JOIN stations s ON ph.station_id = s.id
-            WHERE ph.fuel_type = :fuel
-              AND ph.price_flagged = false
-              AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
-              AND s.latitude BETWEEN :lat_min AND :lat_max
-              AND s.longitude BETWEEN :lng_min AND :lng_max
-            ORDER BY ph.station_id, ph.recorded_at DESC
-        """), {
-            "fuel": fuel,
-            "lat_min": lat - lat_margin,
-            "lat_max": lat + lat_margin,
-            "lng_min": lng - lng_margin,
-            "lng_max": lng + lng_margin,
-        })
-        rows = result.fetchall()
+        async with AsyncSessionLocal() as fuel_db:
+            result = await fuel_db.execute(text("""
+                SELECT DISTINCT ON (ph.station_id)
+                    ph.station_id,
+                    ph.price_pence,
+                    ph.source_updated_at,
+                    s.name,
+                    s.brand,
+                    s.address,
+                    s.postcode,
+                    s.latitude,
+                    s.longitude,
+                    s.is_motorway,
+                    s.is_supermarket
+                FROM latest_prices ph
+                JOIN stations s ON ph.station_id = s.id
+                WHERE ph.fuel_type = :fuel
+                  AND ph.price_flagged = false
+                  AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+                  AND s.latitude BETWEEN :lat_min AND :lat_max
+                  AND s.longitude BETWEEN :lng_min AND :lng_max
+                ORDER BY ph.station_id, ph.price_pence ASC
+            """), {
+                "fuel": fuel,
+                "lat_min": lat - lat_margin,
+                "lat_max": lat + lat_margin,
+                "lng_min": lng - lng_margin,
+                "lng_max": lng + lng_margin,
+            })
+            rows = result.fetchall()
         stations = []
         prices = []
         for row in rows:
@@ -158,15 +159,15 @@ async def cheap_fuel_location(
         return fuel, stations[:10], fuel_stats
 
     async def fetch_national() -> dict:
-        nat_result = await db.execute(text("""
-            SELECT fuel_type, ROUND(AVG(price_pence)::numeric, 1) as avg_price
-            FROM price_history
-            WHERE fuel_type = ANY(:fuels)
-              AND price_flagged = false
-              AND recorded_at >= NOW() - INTERVAL '48 hours'
-            GROUP BY fuel_type
-        """), {"fuels": FUEL_TYPES})
-        return {row.fuel_type: float(row.avg_price) for row in nat_result.fetchall()}
+        async with AsyncSessionLocal() as nat_db:
+            nat_result = await nat_db.execute(text("""
+                SELECT fuel_type, ROUND(AVG(price_pence)::numeric, 1) as avg_price
+                FROM latest_prices
+                WHERE fuel_type = ANY(:fuels)
+                  AND price_flagged = false
+                GROUP BY fuel_type
+            """), {"fuels": FUEL_TYPES})
+            return {row.fuel_type: float(row.avg_price) for row in nat_result.fetchall()}
 
     import asyncio
     results = await asyncio.gather(
