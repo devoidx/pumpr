@@ -1,2 +1,2 @@
-export const VERSION = '1.8.12'
+export const VERSION = '1.8.13'
 export const BUILD_HASH = import.meta.env.VITE_BUILD_HASH || 'dev'

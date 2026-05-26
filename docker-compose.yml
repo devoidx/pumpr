@@ -57,6 +57,7 @@ services:
     volumes:
       - ./backend:/app
       - ./data:/app/data
+      - ./snapshots:/app/snapshots
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
