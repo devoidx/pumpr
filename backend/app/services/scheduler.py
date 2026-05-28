@@ -99,10 +99,9 @@ async def check_blog_sources_job() -> None:
         posts = await check_sources()
         logger.info(f"Scheduler: blog source check complete — {len(posts)} new posts")
         if posts:
-            from app.services.email import send_blog_newsletter
-            for post in posts:
-                sent = await send_blog_newsletter(str(post.id))
-                logger.info(f"Newsletter sent to {sent} subscribers for '{post.title}'")
+            from app.services.email import send_external_digest_email_to_subscribers
+            sent = await send_external_digest_email_to_subscribers(posts)
+            logger.info(f"External digest email sent to {sent} subscribers for {len(posts)} posts")
     except Exception as e:
         logger.error(f"Scheduler: blog source check failed: {e}")
 

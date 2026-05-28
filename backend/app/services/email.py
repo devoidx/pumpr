@@ -495,3 +495,73 @@ async def send_monthly_spending_digests() -> int:
 
     logger.info("Spending digest sent to %d/%d eligible users", sent, len(users))
     return sent
+
+
+async def send_external_digest_email(email: str, posts: list) -> None:
+    """Send a single digest email covering all new external blog posts."""
+    post_items_html = ""
+    post_items_text = ""
+    for post in posts:
+        url = f"https://pumpr.co.uk/blog/{post.slug}"
+        post_items_html += f"""
+    <div style="border-bottom:1px solid #2a2a2a; padding:16px 0;">
+      <div style="font-size:14px; font-weight:700; color:#e8e8e8; margin-bottom:6px;">{post.title}</div>
+      <div style="font-size:13px; color:#a0a0a8; line-height:1.6; margin-bottom:10px;">{post.summary}</div>
+      <div style="font-size:11px; color:#5a5a68; margin-bottom:8px;">Source: {post.source_name}</div>
+      <a href="{url}" style="font-size:12px; color:#f5a623; text-decoration:none;">Read more on Pumpr →</a>
+    </div>"""
+        post_items_text += f"\n{post.title}\n{post.summary}\nSource: {post.source_name}\n{url}\n"
+
+    count = len(posts)
+    subject = f"Pumpr: {count} new fuel industry article{'s' if count != 1 else ''} this week"
+
+    html = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background: #0f0f0f; color: #e8e8e8; padding: 40px;">
+  <div style="max-width: 520px; margin: 0 auto; background: #1a1a1a; border-radius: 12px; padding: 32px; border: 1px solid #2a2a2a;">
+    <h1 style="color: #f5a623; font-size: 24px; margin: 0 0 4px;">⛽ Pumpr</h1>
+    <p style="color: #5a5a68; font-size: 12px; margin: 0 0 24px; font-family: monospace;">Fuel Industry News</p>
+    <h2 style="color: #e8e8e8; font-size: 18px; margin: 0 0 4px;">This week in fuel</h2>
+    <p style="color: #5a5a68; font-size: 13px; margin: 0 0 20px;">{count} article{'s' if count != 1 else ''} from around the industry.</p>
+    {post_items_html}
+    <a href="https://pumpr.co.uk/blog" style="display: inline-block; margin: 24px 0 16px; background: #f5a623; color: #000; font-weight: 700; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 15px;">View all on Pumpr →</a>
+    <hr style="border: none; border-top: 1px solid #2a2a2a; margin: 24px 0;" />
+    <p style="color: #3a3a48; font-size: 12px; line-height: 1.6;">
+      You're receiving this because you subscribed to Pumpr blog updates.<br/>
+      <a href="https://pumpr.co.uk/profile" style="color: #5a5a68;">Unsubscribe</a>
+    </p>
+  </div>
+</body>
+</html>"""
+
+    text = f"Pumpr — This week in fuel\n\n{count} new article{'s' if count != 1 else ''}:{post_items_text}\nView all: https://pumpr.co.uk/blog\nUnsubscribe: https://pumpr.co.uk/profile"
+    _send(email, subject, html, text)
+
+
+async def send_external_digest_email_to_subscribers(posts: list) -> int:
+    """Send external article digest to all opted-in verified subscribers. Returns send count."""
+    from sqlalchemy import select
+
+    from app.db.session import AsyncSessionLocal
+    from app.models.user import User
+
+    sent = 0
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(User).where(
+                User.blog_newsletter.is_(True),
+                User.is_verified.is_(True),
+                User.email.is_not(None),
+            )
+        )
+        subscribers = result.scalars().all()
+        logger.info("Sending external digest to %d subscribers for %d posts", len(subscribers), len(posts))
+        for user in subscribers:
+            try:
+                await send_external_digest_email(email=user.email, posts=posts)
+                sent += 1
+            except Exception as e:
+                logger.error("External digest send failed for %s: %s", user.email, e)
+    logger.info("External digest sent to %d/%d subscribers", sent, len(subscribers))
+    return sent
