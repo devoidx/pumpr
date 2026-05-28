@@ -1,0 +1,20 @@
+{
+  "name": "Pumpr — UK Fuel Price Tracker",
+  "short_name": "Pumpr",
+  "description": "Find the cheapest petrol and diesel near you. Live UK fuel prices updated every 30 minutes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#f5a623",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["navigation", "utilities"],
+  "lang": "en-GB"
+}
