@@ -3,6 +3,8 @@
   "appName": "Pumpr",
   "webDir": "dist",
   "server": {
+    "url": "https://pumpr.co.uk",
+    "cleartext": false,
     "androidScheme": "https"
   },
   "android": {
