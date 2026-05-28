@@ -377,6 +377,9 @@ export default function Home() {
           />
         )}
 
+        {mapView === "hidden" && (
+          <button className="map-ctrl-btn map-ctrl-show" onClick={() => setMapView("split")} style={{margin:'6px 12px 0', alignSelf:'flex-start'}}>🗺 Show map</button>
+        )}
         <div className="station-list">
           {loading && !error && (
             <div className="skeleton-list">
@@ -442,9 +445,7 @@ export default function Home() {
           {mapView === "full" && (
             <button className="map-ctrl-btn" onClick={() => setMapView("split")} title="Split view">⊡</button>
           )}
-          {mapView === "hidden" && (
-            <button className="map-ctrl-btn map-ctrl-show" onClick={() => setMapView("split")} title="Show map">Show map</button>
-          )}
+
         </div>
         <Map
           stations={stations}

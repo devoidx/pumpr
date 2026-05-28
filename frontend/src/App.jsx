@@ -68,8 +68,11 @@ export default function App() {
           fontFamily:'var(--font-mono)', flexShrink:0
         }}>
           <div style={{maxWidth:'900px', margin:'0 auto'}}>
-            <div style={{marginBottom:'8px', fontWeight:600, color:'var(--text2)'}}>Cheap fuel by city:</div>
-            <div style={{display:'flex', flexWrap:'wrap', gap:'8px'}}>
+            <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'6px', cursor:'pointer'}} onClick={() => {const el = document.getElementById('footer-cities'); el.style.display = el.style.display === 'none' ? 'flex' : 'none'}}>
+              <span style={{fontWeight:600, color:'var(--text2)', fontSize:'11px'}}>Cheap fuel by city</span>
+              <span style={{color:'var(--text3)', fontSize:'10px'}}>▾</span>
+            </div>
+            <div id="footer-cities" style={{display:'none', flexWrap:'wrap', gap:'8px', marginBottom:'8px'}}>
               {['london','manchester','birmingham','leeds','glasgow','liverpool','edinburgh','bristol','sheffield','newcastle','nottingham','cardiff','leicester','coventry','plymouth','exeter','cambridge','oxford'].map(city => (
                 <a key={city} href={'/cheap-fuel/' + city}
                   style={{color:'var(--text3)', textDecoration:'none', padding:'2px 6px',
@@ -81,7 +84,7 @@ export default function App() {
                 </a>
               ))}
             </div>
-            <div style={{marginTop:'12px', color:'var(--text3)'}}>
+            <div style={{color:'var(--text3)'}}>
               © {new Date().getFullYear()} Pumpr · <a href="/about" style={{color:'var(--text3)'}}>About</a> · <a href="/privacy" style={{color:'var(--text3)'}}>Privacy</a> · <a href="/blog" style={{color:'var(--text3)'}}>Insights</a>
             </div>
           </div>

@@ -181,7 +181,8 @@
 
 /* Map view states */
 .map-hidden .map-container { display: none; }
-.map-hidden .station-list { max-height: calc(100vh - 140px); }
+.map-hidden .panel { flex: 1; max-height: none; }
+.map-hidden .station-list { max-height: none; flex: 1; }
 
 .map-full .panel-hidden { display: none; }
 .map-full .map-container { flex: 1; height: 100%; }
