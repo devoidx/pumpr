@@ -272,7 +272,13 @@ export default function Home() {
                 className={`units-btn ${openNowOnly ? 'active' : ''}`}
                 onClick={() => setOpenNowOnly(o => !o)}
                 title="Show open stations only"
-              >Open</button>
+                style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 7px'}}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </button>
             )}
             {mode === 'fuel' && (
               <div style={{position:'relative'}} onClick={e => e.stopPropagation()}>
