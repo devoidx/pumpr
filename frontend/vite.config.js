@@ -13,11 +13,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react':  ['react', 'react-dom', 'react-router-dom'],
-          'vendor-chakra': ['@chakra-ui/react', '@emotion/react', '@emotion/styled', 'framer-motion'],
-          'vendor-map':    ['leaflet', 'react-leaflet'],
-          'vendor-charts': ['recharts'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('leaflet') || id.includes('react-leaflet')) return 'vendor-map'
+            if (id.includes('recharts')) return 'vendor-charts'
+            if (id.includes('@chakra-ui') || id.includes('@emotion') || id.includes('framer-motion')) return 'vendor-chakra'
+            if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-react'
+            return 'vendor'
+          }
         },
       },
     },
