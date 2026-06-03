@@ -19,7 +19,7 @@ echo ""
 # --- Read current versions ---
 CURRENT_CODE=$(grep -oP 'versionCode \K\d+' "$BUILD_GRADLE")
 CURRENT_NAME=$(grep -oP 'versionName "\K[^"]+' "$BUILD_GRADLE")
-CURRENT_WEB=$(grep -oP "version: '\K[^']+" "$VERSION_JS" || grep -oP 'version: "\K[^"]+' "$VERSION_JS")
+CURRENT_WEB=$(grep -oP "VERSION = '\K[^']+" "$VERSION_JS")
 
 echo "Current Android versionCode : $CURRENT_CODE"
 echo "Current Android versionName : $CURRENT_NAME"
