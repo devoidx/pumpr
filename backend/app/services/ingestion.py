@@ -401,8 +401,8 @@ async def ingest_prices() -> int:
         if records:
             await session.execute(text("""
                 INSERT INTO latest_prices (station_id, fuel_type, price_pence, recorded_at, source_updated_at, price_flagged)
-                SELECT unnest(:station_ids::varchar[]), unnest(:fuel_types::varchar[]), unnest(:prices::float8[]),
-                       unnest(:recorded_ats::timestamp[]), unnest(:source_updated_ats::timestamp[]), unnest(:flagged::bool[])
+                SELECT unnest(CAST(:station_ids AS varchar[])), unnest(CAST(:fuel_types AS varchar[])), unnest(CAST(:prices AS float8[])),
+                       unnest(CAST(:recorded_ats AS timestamp[])), unnest(CAST(:source_updated_ats AS timestamp[])), unnest(CAST(:flagged AS bool[]))
                 ON CONFLICT (station_id, fuel_type) DO UPDATE SET
                     price_pence = EXCLUDED.price_pence,
                     recorded_at = EXCLUDED.recorded_at,
