@@ -246,6 +246,25 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
         ]
 
 
+
+async def post_play_store_launch(dry_run: bool = False) -> str:
+    """Announce Pumpr's availability on Google Play Store."""
+    text = "🎉 Pumpr is now live on Google Play!\n\n"
+    text += "Find the cheapest petrol and diesel near you, set price alerts, and track your fuel spending — all in one free app.\n\n"
+    text += "📲 https://play.google.com/store/apps/details?id=co.uk.pumpr\n\n"
+    text += "#UKFuel #FuelPrices #Pumpr"
+    logger.info(f"Play Store launch post:\n{text}")
+    if not dry_run:
+        try:
+            client = _bsky_client()
+            client.send_post(text=text)
+            logger.info("Posted Play Store launch to Bluesky")
+        except Exception as e:
+            logger.error(f"Bluesky post failed: {e}")
+        _mastodon_post(text)
+        _threads_post(text)
+    return text
+
 async def post_daily_averages(dry_run: bool = False) -> str:
     """Post UK average fuel prices to Bluesky."""
     averages = await _get_uk_averages()

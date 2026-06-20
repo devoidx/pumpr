@@ -45,6 +45,12 @@ async def run_retention() -> None:
         logger.error(f"Scheduler: retention failed: {e}")
 
 
+async def post_play_store_launch_job() -> None:
+    try:
+        from app.services.social import post_play_store_launch
+        await post_play_store_launch(dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: play store launch post failed: {e}")
 async def post_daily_averages_job() -> None:
     try:
         from app.services.social import post_daily_averages
@@ -169,6 +175,8 @@ def start_scheduler() -> None:
         scheduler.add_job(post_cheapest_diesel_job, trigger=CronTrigger(hour=16, minute=15, timezone="Europe/London"), id="post_cheapest_diesel_pm",     replace_existing=True)
         scheduler.add_job(post_by_country_job,      trigger=CronTrigger(hour=16, minute=20, timezone="Europe/London"), id="post_by_country_pm",          replace_existing=True)
         scheduler.add_job(post_by_country_diesel_job, trigger=CronTrigger(hour=16, minute=25, timezone="Europe/London"), id="post_by_country_diesel_pm", replace_existing=True)
+        scheduler.add_job(post_play_store_launch_job, trigger=CronTrigger(hour=8,  minute=30, timezone="Europe/London"), id="post_play_store_launch_am", replace_existing=True)
+        scheduler.add_job(post_play_store_launch_job, trigger=CronTrigger(hour=16, minute=30, timezone="Europe/London"), id="post_play_store_launch_pm", replace_existing=True)
         scheduler.add_job(post_county_e10_job,      trigger=CronTrigger(hour=10, minute=0,  timezone="Europe/London"), id="post_county_e10",             replace_existing=True)
         scheduler.add_job(post_county_diesel_job,   trigger=CronTrigger(hour=10, minute=30, timezone="Europe/London"), id="post_county_diesel",          replace_existing=True)
         scheduler.add_job(refresh_threads_token_job, trigger=IntervalTrigger(days=45), id="refresh_threads_token", replace_existing=True)
