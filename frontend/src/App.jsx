@@ -4,6 +4,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom'
 import BlogPage from './pages/BlogPage'
 import BlogPostPage from './pages/BlogPostPage'
 import Navbar from './components/Navbar'
+import PlayStoreBanner from './components/PlayStoreBanner'
 import StationDetail from './pages/StationDetail'
 import EvDetail from './pages/EvDetail'
 import Home from './pages/Home'
@@ -37,6 +38,7 @@ export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Navbar />
+      <PlayStoreBanner />
       <UnverifiedBanner />
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         <Routes>
