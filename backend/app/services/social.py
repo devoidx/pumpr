@@ -249,21 +249,30 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
 
 async def post_play_store_launch(dry_run: bool = False) -> str:
     """Announce Pumpr's availability on Google Play Store."""
-    text = "🎉 Pumpr is now live on Google Play!\n\n"
-    text += "Find the cheapest petrol and diesel near you, set price alerts, and track your fuel spending — all in one free app.\n\n"
-    text += "📲 https://play.google.com/store/apps/details?id=co.uk.pumpr\n\n"
-    text += "#UKFuel #FuelPrices #Pumpr"
-    logger.info(f"Play Store launch post:\n{text}")
+    plain_text = "🎉 Pumpr is now live on Google Play!\n\n"
+    plain_text += "Find the cheapest petrol and diesel near you, set price alerts, and track your fuel spending — all in one free app.\n\n"
+    plain_text += "📲 https://play.google.com/store/apps/details?id=co.uk.pumpr\n\n"
+    plain_text += "#UKFuel #FuelPrices #Pumpr"
+    logger.info(f"Play Store launch post:\n{plain_text}")
     if not dry_run:
         try:
+            from atproto import client_utils
+            rich_text = (
+                client_utils.TextBuilder()
+                .text("🎉 Pumpr is now live on Google Play!\n\n")
+                .text("Find the cheapest petrol and diesel near you, set price alerts, and track your fuel spending — all in one free app.\n\n")
+                .text("📲 ")
+                .link("Get it on Google Play", "https://play.google.com/store/apps/details?id=co.uk.pumpr")
+                .text("\n\n#UKFuel #FuelPrices #Pumpr")
+            )
             client = _bsky_client()
-            client.send_post(text=text)
+            client.send_post(text=rich_text)
             logger.info("Posted Play Store launch to Bluesky")
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
-        _mastodon_post(text)
-        _threads_post(text)
-    return text
+        _mastodon_post(plain_text)
+        _threads_post(plain_text)
+    return plain_text
 
 async def post_daily_averages(dry_run: bool = False) -> str:
     """Post UK average fuel prices to Bluesky."""
