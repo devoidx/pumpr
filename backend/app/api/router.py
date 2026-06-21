@@ -5,6 +5,7 @@ from app.api.endpoints import (
     auth,
     blog,
     ev,
+    feedback,
     fillups,
     intelligence,
     locations,
@@ -32,3 +33,4 @@ api_router.include_router(alerts.router)
 api_router.include_router(intelligence.router)
 api_router.include_router(sitemap.router)
 api_router.include_router(blog.router)
+api_router.include_router(feedback.router)

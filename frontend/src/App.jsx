@@ -4,6 +4,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom'
 import BlogPage from './pages/BlogPage'
 import BlogPostPage from './pages/BlogPostPage'
 import Navbar from './components/Navbar'
+import Feedback from './pages/Feedback'
 import PlayStoreBanner from './components/PlayStoreBanner'
 import StationDetail from './pages/StationDetail'
 import EvDetail from './pages/EvDetail'
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/stats" element={<Stats />} />
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/feedback" element={<Feedback />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/pro" element={<ProPage />} />
@@ -87,7 +89,7 @@ export default function App() {
               ))}
             </div>
             <div style={{color:'var(--text3)'}}>
-              © {new Date().getFullYear()} Pumpr · <a href="/about" style={{color:'var(--text3)'}}>About</a> · <a href="/privacy" style={{color:'var(--text3)'}}>Privacy</a> · <a href="/blog" style={{color:'var(--text3)'}}>Insights</a>
+              © {new Date().getFullYear()} Pumpr · <a href="/about" style={{color:'var(--text3)'}}>About</a> · <a href="/privacy" style={{color:'var(--text3)'}}>Privacy</a> · <a href="/blog" style={{color:'var(--text3)'}}>Insights</a> · <a href="/feedback" style={{color:'var(--text3)'}}>Feedback</a>
             </div>
           </div>
         </footer>}
