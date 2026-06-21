@@ -76,6 +76,7 @@ function UserMenu() {
             <button className="user-menu-item" onClick={() => { setOpen(false); setShowProfile(true) }}>👤 My Profile</button>
             <button className="user-menu-item" onClick={() => { setOpen(false); setShowAlerts(true) }}>🔔 Price alerts</button>
             <button className="user-menu-item" onClick={() => { setOpen(false); setShowTracker(true) }}>⛽ Fuel tracker</button>
+            {user.role === 'admin' && <button className="user-menu-item" onClick={() => go('/admin/feedback')}>🗂️ Feedback (admin)</button>}
             <button className="user-menu-item danger" onClick={() => { setOpen(false); logout() }}>Sign out</button>
           </div>
         </Portal>
