@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime
 
 from sqlalchemy import text
@@ -31,6 +32,11 @@ def _fix_coords(lat, lng, postcode: str | None) -> tuple[float | None, float | N
             return lat, -lng
         if lat < 0 and _valid_uk_coords(lng, -lat):
             return lng, -lat  # also swapped
+    # Birmingham postcodes (B followed by digits, not BT/BN/BR/BL/BA/BS/BD/BB):
+    # longitude is sometimes stored with wrong sign, placing station off the East coast
+    if postcode and re.match(r'^B\d', postcode.upper().strip()):
+        if lng > 0 and _valid_uk_coords(lat, -lng):
+            return lat, -lng
     # Swapped lat/lng (e.g. birmingham road: lat=2.2, lng=52.3)
     if not _valid_uk_coords(lat, lng) and _valid_uk_coords(lng, lat):
         return lng, lat
