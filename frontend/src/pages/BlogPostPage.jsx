@@ -9,7 +9,7 @@ export default function BlogPostPage() {
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  useSEO({ title: post?.title, description: post?.summary, path: post ? `/blog/${post.slug}` : '/blog' })
+  useSEO({ title: post?.title, description: post?.summary, path: `/blog/${slug}` })
   const navigate = useNavigate()
 
   useEffect(() => {
