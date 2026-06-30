@@ -278,7 +278,7 @@ async def generate_blog_snapshots() -> int:
     generated = 0
     async with httpx.AsyncClient(timeout=30, base_url="http://localhost:8000") as client:
         try:
-            r = await client.get("/api/v1/blog?limit=200")
+            r = await client.get("/api/v1/blog?limit=50")
             if r.status_code == 200:
                 posts = r.json().get("posts", [])
                 # List page
