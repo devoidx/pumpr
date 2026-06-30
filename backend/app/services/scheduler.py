@@ -240,8 +240,14 @@ async def warm_city_cache_job() -> None:
                     logger.warning(f"City cache warmup failed for {city}: {e}")
         logger.info(f"City cache warmup complete — {warmed}/{len(PRECOMPUTE_CITIES)} cities cached")
         # Generate static SEO snapshots after cache is warm
-        from app.services.seo_snapshots import generate_city_snapshots
+        from app.services.seo_snapshots import (
+            generate_blog_snapshots,
+            generate_city_snapshots,
+            generate_intelligence_snapshot,
+        )
         await generate_city_snapshots()
+        await generate_blog_snapshots()
+        await generate_intelligence_snapshot()
     except Exception as e:
         logger.error(f"Scheduler: city cache warmup failed: {e}")
 

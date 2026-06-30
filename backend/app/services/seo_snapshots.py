@@ -139,3 +139,188 @@ async def generate_city_snapshots() -> int:
                 logger.warning(f"Snapshot: {city} failed: {e}")
     logger.info(f"Generated {generated}/{len(CITIES)} city snapshots")
     return generated
+
+
+def _render_blog_post_snapshot(post: dict) -> str:
+    title = f"{post['title']} | Pumpr Insights"
+    description = post.get('summary', '')[:300]
+    canonical = f"https://pumpr.co.uk/blog/{post['slug']}"
+    published = post.get('published_at', '')[:10]
+    content_html = post.get('content', '').replace('\n\n', '</p><p>').replace('\n', '<br>')
+    source_name = post.get('source_name', '')
+    source_url = post.get('source_url', '')
+    source_line = f'<p class="source">Source: <a href="{source_url}">{source_name}</a></p>' if source_url else ''
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content="{description}">
+  <link rel="canonical" href="{canonical}">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{description}">
+  <meta property="og:url" content="{canonical}">
+  <style>
+    body {{ font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #0f0f0f; color: #e8e8e8; line-height: 1.6; }}
+    h1 {{ color: #f5a623; font-size: 1.5rem; }}
+    p {{ margin: 1rem 0; }}
+    a {{ color: #f5a623; }}
+    .meta {{ font-size: 0.85rem; color: #a0a0a8; margin-bottom: 1.5rem; }}
+    .source {{ font-size: 0.8rem; color: #a0a0a8; margin-top: 2rem; border-top: 1px solid #2a2a2a; padding-top: 1rem; }}
+  </style>
+</head>
+<body>
+  <p><a href="https://pumpr.co.uk">⛽ Pumpr</a> · <a href="https://pumpr.co.uk/blog">Insights</a></p>
+  <h1>{post['title']}</h1>
+  <p class="meta">Published {published}</p>
+  <p>{content_html}</p>
+  {source_line}
+</body>
+</html>"""
+
+
+def _render_blog_list_snapshot(posts: list[dict]) -> str:
+    title = "Fuel Market Insights & News | Pumpr"
+    description = "UK fuel market news, price trends, and insights — updated regularly with the latest developments affecting petrol and diesel prices."
+    canonical = "https://pumpr.co.uk/blog"
+    rows = ""
+    for p in posts:
+        rows += f"""
+  <article>
+    <h2><a href="https://pumpr.co.uk/blog/{p['slug']}">{p['title']}</a></h2>
+    <p class="meta">{p.get('published_at', '')[:10]}</p>
+    <p>{p.get('summary', '')}</p>
+  </article>"""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content="{description}">
+  <link rel="canonical" href="{canonical}">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{description}">
+  <meta property="og:url" content="{canonical}">
+  <style>
+    body {{ font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #0f0f0f; color: #e8e8e8; }}
+    h1 {{ color: #f5a623; }}
+    article {{ border-bottom: 1px solid #2a2a2a; padding: 1rem 0; }}
+    h2 {{ font-size: 1.05rem; margin: 0 0 4px; }}
+    a {{ color: #f5a623; text-decoration: none; }}
+    .meta {{ font-size: 0.75rem; color: #a0a0a8; margin: 0 0 8px; }}
+  </style>
+</head>
+<body>
+  <p><a href="https://pumpr.co.uk">⛽ Pumpr</a></p>
+  <h1>Fuel Market Insights & News</h1>
+  <p>UK fuel market news, price trends, and analysis — updated regularly.</p>
+  {rows}
+</body>
+</html>"""
+
+
+def _render_intelligence_snapshot(data: dict) -> str:
+    title = "UK Fuel Market Intelligence — Live Price Trends & Analysis | Pumpr"
+    national = data.get('national', {})
+    e10 = national.get('E10', {})
+    b7 = national.get('B7', {})
+    narrative = data.get('narrative', '')
+    description = (
+        f"UK average petrol (E10) is {e10.get('avg', '—')}p/litre, diesel (B7) is {b7.get('avg', '—')}p/litre. "
+        f"Live market intelligence covering regional trends, brand comparisons and price analysis."
+    )[:300]
+    canonical = "https://pumpr.co.uk/intelligence"
+    updated = data.get('date', '')
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content="{description}">
+  <link rel="canonical" href="{canonical}">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{description}">
+  <meta property="og:url" content="{canonical}">
+  <style>
+    body {{ font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #0f0f0f; color: #e8e8e8; line-height: 1.6; }}
+    h1 {{ color: #f5a623; font-size: 1.5rem; }}
+    .stat {{ display: inline-block; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 12px 20px; margin: 8px 8px 8px 0; }}
+    .stat-val {{ font-size: 1.5rem; font-weight: 700; color: #f5a623; }}
+    .stat-label {{ font-size: 0.75rem; color: #a0a0a8; margin-top: 2px; }}
+    p {{ margin: 1rem 0; }}
+    .updated {{ font-size: 0.75rem; color: #5a5a68; margin-top: 2rem; }}
+  </style>
+</head>
+<body>
+  <p><a href="https://pumpr.co.uk">⛽ Pumpr</a></p>
+  <h1>UK Fuel Market Intelligence</h1>
+  <div>
+    <div class="stat"><div class="stat-val">{e10.get('avg', '—')}p</div><div class="stat-label">UK avg Petrol (E10)</div></div>
+    <div class="stat"><div class="stat-val">{b7.get('avg', '—')}p</div><div class="stat-label">UK avg Diesel (B7)</div></div>
+    <div class="stat"><div class="stat-val">{e10.get('min', '—')}p</div><div class="stat-label">Cheapest E10 nationally</div></div>
+    <div class="stat"><div class="stat-val">{b7.get('min', '—')}p</div><div class="stat-label">Cheapest B7 nationally</div></div>
+  </div>
+  <p>{narrative}</p>
+  <p>See full regional breakdowns, brand comparisons and price trend charts at <a href="{canonical}">pumpr.co.uk/intelligence</a></p>
+  <p class="updated">Data as of: {updated}</p>
+</body>
+</html>"""
+
+
+async def generate_blog_snapshots() -> int:
+    """Generate static HTML snapshots for the blog list and all individual posts."""
+    os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+    blog_dir = os.path.join(SNAPSHOT_DIR, "blog")
+    os.makedirs(blog_dir, exist_ok=True)
+    generated = 0
+    async with httpx.AsyncClient(timeout=30, base_url="http://localhost:8000") as client:
+        try:
+            r = await client.get("/api/v1/blog?limit=200")
+            if r.status_code == 200:
+                posts = r.json().get("posts", [])
+                # List page
+                list_html = _render_blog_list_snapshot(posts[:30])
+                with open(os.path.join(SNAPSHOT_DIR, "blog.html"), "w", encoding="utf-8") as f:
+                    f.write(list_html)
+                generated += 1
+                # Individual posts
+                for post in posts:
+                    try:
+                        post_html = _render_blog_post_snapshot(post)
+                        path = os.path.join(blog_dir, f"{post['slug']}.html")
+                        with open(path, "w", encoding="utf-8") as f:
+                            f.write(post_html)
+                        generated += 1
+                    except Exception as e:
+                        logger.warning(f"Blog post snapshot failed for {post.get('slug')}: {e}")
+            else:
+                logger.warning(f"Blog snapshot: list fetch returned {r.status_code}")
+        except Exception as e:
+            logger.warning(f"Blog snapshot generation failed: {e}")
+    logger.info(f"Generated {generated} blog snapshots")
+    return generated
+
+
+async def generate_intelligence_snapshot() -> int:
+    """Generate static HTML snapshot for the intelligence page."""
+    os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+    async with httpx.AsyncClient(timeout=30, base_url="http://localhost:8000") as client:
+        try:
+            r = await client.get("/api/v1/intelligence/latest")
+            if r.status_code == 200:
+                data = r.json()
+                html = _render_intelligence_snapshot(data)
+                path = os.path.join(SNAPSHOT_DIR, "intelligence.html")
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(html)
+                logger.info("Generated intelligence snapshot")
+                return 1
+            else:
+                logger.warning(f"Intelligence snapshot: returned {r.status_code}")
+                return 0
+        except Exception as e:
+            logger.warning(f"Intelligence snapshot generation failed: {e}")
+            return 0
