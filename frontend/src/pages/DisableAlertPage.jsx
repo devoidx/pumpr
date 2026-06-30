@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useSEO } from '../hooks/useSEO'
 
 export default function DisableAlertPage() {
+  useSEO({ noindex: true, path: '/disable-alert' })
   const location = useLocation()
   const token = new URLSearchParams(location.search).get('token')
   const [status, setStatus] = useState('loading')

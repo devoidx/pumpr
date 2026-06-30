@@ -1,8 +1,10 @@
 import './Privacy.css'
+import { useSEO } from '../hooks/useSEO'
 
 const LAST_UPDATED = '28 May 2026'
 
 export default function Privacy() {
+  useSEO({ title: 'Privacy Policy', description: 'Pumpr privacy policy — how we collect, use, and protect your data.', path: '/privacy' })
   return (
     <div className="privacy-page">
       <div className="privacy-inner">

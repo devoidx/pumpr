@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './ProfilePage.css'
+import { useSEO } from '../hooks/useSEO'
 
 export default function ProfilePage() {
+  useSEO({ noindex: true, path: '/profile' })
   const { user, isAuthenticated, loading, updateProfile, accessToken } = useAuth()
   const [subLoading, setSubLoading] = useState(false)
   const [subMsg, setSubMsg] = useState(null)

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useSEO } from '../hooks/useSEO'
 
 export default function AdminFeedback() {
+  useSEO({ noindex: true, path: '/admin/feedback' })
   const { user, accessToken } = useAuth()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)

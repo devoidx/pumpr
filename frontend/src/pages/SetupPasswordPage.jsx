@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './SetupPasswordPage.css'
+import { useSEO } from '../hooks/useSEO'
 
 export default function SetupPasswordPage() {
+  useSEO({ noindex: true, path: '/setup-password' })
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
   const navigate = useNavigate()

@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './MyPlacesPage.css'
+import { useSEO } from '../hooks/useSEO'
 
 const TYPE_ICON  = { home: '🏠', work: '🏢', custom: '📍' }
 const TYPE_LABEL = { home: 'Home',  work: 'Work',  custom: 'Custom' }
 
 export default function MyPlacesPage() {
+  useSEO({ noindex: true, path: '/my-places' })
   const { user, isAuthenticated, loading: authLoading, authFetch } = useAuth()
   const navigate = useNavigate()
   const isPro = user?.role === 'pro' || user?.role === 'admin'

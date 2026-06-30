@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useSEO } from '../hooks/useSEO'
 
 export default function MyAlertsPage() {
+  useSEO({ noindex: true, path: '/my-alerts' })
   const { user, accessToken, isAuthenticated, loading } = useAuth()
   const navigate = useNavigate()
   const isPro = user?.role === 'pro' || user?.role === 'admin'

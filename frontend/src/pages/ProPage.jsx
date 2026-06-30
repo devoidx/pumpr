@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import './ProPage.css'
+import { useSEO } from '../hooks/useSEO'
 
 const MONTHLY_PRICE_ID = 'price_1TU6vtFThYVN7wEdDTNWtnKe'
 const ANNUAL_PRICE_ID  = 'price_1TU6vpFThYVN7wEd4pJd4NNW'
@@ -16,6 +17,7 @@ const BENEFITS = [
 ]
 
 export default function ProPage() {
+  useSEO({ title: 'Pumpr Pro', description: 'Upgrade to Pumpr Pro for advanced fuel tracking, price alerts, and route planning.', path: '/pro' })
   const navigate              = useNavigate()
   const { isAuthenticated, accessToken } = useAuth()
   const [billing, setBilling] = useState('annual')

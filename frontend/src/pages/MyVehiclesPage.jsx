@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import './MyVehiclesPage.css'
+import { useSEO } from '../hooks/useSEO'
 
 const FUEL_LABELS = {
   PETROL: '⛽ Petrol',
@@ -225,6 +226,7 @@ function VehicleForm({ initial, onSave, onCancel, accessToken }) {
 }
 
 export default function MyVehiclesPage() {
+  useSEO({ noindex: true, path: '/my-vehicles' })
   const { accessToken } = useAuth()
   const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)

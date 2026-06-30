@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+import { useSEO } from '../hooks/useSEO'
 
 export default function ProSuccessPage() {
+  useSEO({ noindex: true, path: '/pro/success' })
   const navigate = useNavigate()
 
   return (

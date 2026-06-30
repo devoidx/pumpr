@@ -16,12 +16,14 @@ import { isOpenNow } from '../utils/openingHours'
 import FuelTrackerModal from '../components/FuelTrackerModal'
 import { useBrandLogos, BRAND_ALIASES } from '../contexts/BrandsContext'
 import ShareButton from '../components/ShareButton'
+import { useSEO } from '../hooks/useSEO'
 import './Home.css'
 
 export default function Home() {
   const { user, accessToken } = useAuth()
   const brandLogos = useBrandLogos()
   const useDriving = user?.use_driving_distance && (user?.role === 'pro' || user?.role === 'admin')
+  useSEO({ path: '/' })
 
   function vehicleFuelGroup(fuelType) {
     if (!fuelType) return null

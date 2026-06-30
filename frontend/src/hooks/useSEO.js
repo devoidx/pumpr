@@ -1,5 +1,5 @@
 /**
- * Simple SEO hook — sets document title, meta description and canonical URL.
+ * Simple SEO hook — sets document title, meta description, canonical URL, and robots meta.
  * Call at the top of any page component.
  */
 import { useEffect } from 'react'
@@ -7,7 +7,7 @@ import { useEffect } from 'react'
 const BASE_URL = 'https://pumpr.co.uk'
 const DEFAULT_DESC = 'Find the cheapest petrol and diesel near you. Live UK fuel prices updated every 30 minutes from 8,000+ stations.'
 
-export function useSEO({ title, description, path }) {
+export function useSEO({ title, description, path, noindex = false }) {
   useEffect(() => {
     // Title
     document.title = title ? `${title} | Pumpr` : 'Pumpr — UK Fuel Price Tracker'
@@ -30,8 +30,17 @@ export function useSEO({ title, description, path }) {
     }
     canonical.setAttribute('href', path ? `${BASE_URL}${path}` : BASE_URL)
 
+    // Robots
+    let robotsTag = document.querySelector('meta[name="robots"]')
+    if (!robotsTag) {
+      robotsTag = document.createElement('meta')
+      robotsTag.setAttribute('name', 'robots')
+      document.head.appendChild(robotsTag)
+    }
+    robotsTag.setAttribute('content', noindex ? 'noindex, nofollow' : 'index, follow')
+
     return () => {
       document.title = 'Pumpr — UK Fuel Price Tracker'
     }
-  }, [title, description, path])
+  }, [title, description, path, noindex])
 }

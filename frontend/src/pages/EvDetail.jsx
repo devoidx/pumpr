@@ -4,8 +4,10 @@ import { getCharger } from '../api/client'
 import { CONNECTOR_COLORS, SPEED_COLOR, SPEED_LABEL } from '../constants/ev'
 import { parseKwhPrice, costPer100Miles } from '../utils/evCost'
 import './EvDetail.css'
+import { useSEO } from '../hooks/useSEO'
 
 export default function EvDetail() {
+  useSEO({ title: 'EV Charging Station', description: 'EV charging point details and live availability.', path: '/ev' })
   const { id } = useParams()
   const navigate = useNavigate()
   const [charger, setCharger] = useState(null)

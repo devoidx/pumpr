@@ -3,11 +3,13 @@ import './About.css'
 import { VERSION, BUILD_HASH } from '../version'
 import PumpIcon from '../components/icons/PumpIcon'
 import BoltIcon from '../components/icons/BoltIcon'
+import { useSEO } from '../hooks/useSEO'
 
 
 const GOV_URL = 'https://www.gov.uk/guidance/access-the-latest-fuel-prices-and-forecourt-data-via-api-or-email'
 
 export default function About() {
+  useSEO({ title: 'About', description: 'About Pumpr — a free, independent UK fuel price tracker built by a solo developer.', path: '/about' })
   useEffect(() => { if (typeof umami !== 'undefined') umami.track('about-viewed') }, [])
   return (
     <div className="about-page">

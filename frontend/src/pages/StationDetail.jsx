@@ -11,6 +11,7 @@ import { useBrandLogos } from '../contexts/BrandsContext'
 import { FUEL_COLORS, FUEL_LABELS } from '../constants/fuels'
 import { getWeekHours, isOpenNow } from '../utils/openingHours'
 import { timeAgo } from '../utils/timeAgo'
+import { useSEO } from '../hooks/useSEO'
 import './StationDetail.css'
 
 const DAY_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -48,6 +49,11 @@ export default function StationDetail() {
   const [alertMsg, setAlertMsg] = useState(null)
   const [alertLoading, setAlertLoading] = useState(false)
   const [showTracker, setShowTracker] = useState(false)
+  useSEO({
+    title: station ? `${station.name} — Fuel Prices` : 'Station',
+    description: station ? `Live fuel prices at ${station.name}${station.brand ? ' (' + station.brand + ')' : ''}, ${station.postcode || station.address || ''}. Updated every 30 minutes.` : undefined,
+    path: `/stations/${id}`,
+  })
   useEffect(() => { if (typeof umami !== 'undefined') umami.track('station-detail-viewed') }, [])
 
   useEffect(() => {
