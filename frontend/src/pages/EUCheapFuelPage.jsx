@@ -154,6 +154,7 @@ export default function EUCheapFuelPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '12px 16px', background: 'var(--surface)', border: '1px solid var(--border)',
                 borderRadius: '10px', gap: '12px', transition: 'border-color 0.15s',
+                overflow: 'hidden', maxWidth: '100%',
               }}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--amber)'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
@@ -168,7 +169,7 @@ export default function EUCheapFuelPage() {
                   <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.name || s.address}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.city} {s.postcode} · {(s.distance_km * 0.621371).toFixed(1)} mi from centre
                   </div>
                 </div>
