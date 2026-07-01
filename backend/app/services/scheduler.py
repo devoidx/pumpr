@@ -5,6 +5,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
 from app.core.config import settings
+from app.services.eu.ingest import ingest_france
 from app.services.ingestion import ingest_prices, sync_stations
 from app.services.retention import apply_retention_policy
 
@@ -191,6 +192,7 @@ def start_scheduler() -> None:
         scheduler.add_job(market_intelligence_job, trigger=CronTrigger(hour=4, minute=30, timezone="Europe/London"), id="market_intelligence", replace_existing=True)
         scheduler.add_job(check_price_alerts_job, trigger=IntervalTrigger(minutes=settings.poll_interval_minutes, start_date='2026-01-01 00:10:00'), id="check_price_alerts", replace_existing=True)
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
+        scheduler.add_job(ingest_eu_job, trigger=CronTrigger(hour=5, minute=0, timezone="Europe/London"), id="ingest_eu", replace_existing=True)
 
     scheduler.start()
     logger.info(f"Scheduler started — social={enable_social} polling={enable_polling}")
@@ -365,3 +367,11 @@ async def check_price_alerts_job() -> None:
         logger.info(f"Price alert check complete — {triggered} alerts triggered")
     except Exception as e:
         logger.error(f"Scheduler: price alert check failed: {e}")
+
+
+async def ingest_eu_job() -> None:
+    logger.info("Scheduler: starting EU price ingestion")
+    try:
+        await ingest_france()
+    except Exception as e:
+        logger.exception(f"Scheduler: EU ingestion failed: {e}")
