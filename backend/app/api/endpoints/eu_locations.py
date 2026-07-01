@@ -56,6 +56,19 @@ EU_CITIES: dict[str, dict[str, float | str]] = {
     "lyon":              {"lat": 45.7640, "lon": 4.8357,  "country": "FR", "name": "Lyon"},
     "nice":              {"lat": 43.7102, "lon": 7.2620,  "country": "FR", "name": "Nice"},
     "marseille":         {"lat": 43.2965, "lon": 5.3698,  "country": "FR", "name": "Marseille"},
+    # Italy
+    "rome":              {"lat": 41.8851, "lon": 12.4969, "country": "IT", "name": "Rome"},
+    "milan":             {"lat": 45.4729, "lon": 9.1754,  "country": "IT", "name": "Milan"},
+    "turin":             {"lat": 45.0724, "lon": 7.6662,  "country": "IT", "name": "Turin"},
+    "naples":            {"lat": 40.8542, "lon": 14.2491, "country": "IT", "name": "Naples"},
+    "palermo":           {"lat": 38.1275, "lon": 13.3444, "country": "IT", "name": "Palermo"},
+    "genoa":             {"lat": 44.4236, "lon": 8.9260,  "country": "IT", "name": "Genoa"},
+    "florence":          {"lat": 43.7788, "lon": 11.2396, "country": "IT", "name": "Florence"},
+    "bologna":           {"lat": 44.5017, "lon": 11.3461, "country": "IT", "name": "Bologna"},
+    "catania":           {"lat": 37.5128, "lon": 15.0779, "country": "IT", "name": "Catania"},
+    "verona":            {"lat": 45.4328, "lon": 10.9818, "country": "IT", "name": "Verona"},
+    "venice":            {"lat": 45.4818, "lon": 12.2541, "country": "IT", "name": "Venice"},
+    "bari":              {"lat": 41.1085, "lon": 16.8629, "country": "IT", "name": "Bari"},
 }
 
 RADIUS_KM = 25  # broader than UK 16km — city centres in France are more spread out
@@ -265,3 +278,4 @@ async def eu_nearby(
         "center": {"lat": lat, "lng": lng},
         "radius_km": radius_km,
     }
+# Italy cities added to EU_CITIES dict — paste after existing FR entries

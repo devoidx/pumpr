@@ -21,6 +21,21 @@ const FRANCE_CITIES = [
   { slug: 'marseille',        name: 'Marseille' },
 ]
 
+const ITALY_CITIES = [
+  { slug: 'rome',      name: 'Rome' },
+  { slug: 'milan',     name: 'Milan' },
+  { slug: 'turin',     name: 'Turin' },
+  { slug: 'naples',    name: 'Naples' },
+  { slug: 'palermo',   name: 'Palermo' },
+  { slug: 'genoa',     name: 'Genoa' },
+  { slug: 'florence',  name: 'Florence' },
+  { slug: 'bologna',   name: 'Bologna' },
+  { slug: 'catania',   name: 'Catania' },
+  { slug: 'verona',    name: 'Verona' },
+  { slug: 'venice',    name: 'Venice' },
+  { slug: 'bari',      name: 'Bari' },
+]
+
 export default function EuropePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -130,6 +145,26 @@ export default function EuropePage() {
           </div>
         )}
       </div>
+      {/* Italy section */}
+      <div style={{ marginBottom: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <span style={{ fontSize: '22px' }}>🇮🇹</span>
+          <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 700, margin: 0 }}>Italy</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px', marginBottom: '24px' }}>
+          {ITALY_CITIES.map(city => (
+            <button
+              key={city.slug}
+              onClick={() => navigate(`/cheap-fuel/europe/it/${city.slug}`)}
+              style={{ padding: '12px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', fontSize: '14px', fontWeight: 500, cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--amber)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            >
+              {city.name}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Coming soon */}
       <div style={{ marginBottom: '32px' }}>
@@ -140,7 +175,6 @@ export default function EuropePage() {
           {[
             { flag: '🇩🇪', name: 'Germany' },
             { flag: '🇪🇸', name: 'Spain' },
-            { flag: '🇮🇹', name: 'Italy' },
           ].map(c => (
             <div key={c.name} style={{
               padding: '10px 16px',
