@@ -5,5 +5,5 @@ current versionName : 1.10.0
 last uploaded       : 2026-07-01
 play console status : production
 # versionCode must increment by at least 1 for every Play Console upload
-# versionName should match the web version (e.g. 1.9.0)
+# versionName should match the web version (e.g. 1.10.0)
 # File to edit: frontend/android/app/build.gradle -> defaultConfig block
