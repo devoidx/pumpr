@@ -24,6 +24,7 @@ export default function Navbar() {
         <Link to="/stats" className={`navbar-link ${loc.pathname === '/stats' ? 'active' : ''}`}>Stats</Link>
         <Link to="/intelligence" className={`navbar-link ${loc.pathname === '/intelligence' ? 'active' : ''}`}>Intelligence</Link>
         <Link to="/blog" className={`navbar-link ${loc.pathname.startsWith('/blog') ? 'active' : ''}`}>Insights</Link>
+        <Link to="/europe" className={`navbar-link ${loc.pathname.startsWith('/europe') || loc.pathname.startsWith('/cheap-fuel/europe') ? 'active' : ''}`}>Europe</Link>
         <Link to="/about" className={`navbar-link ${loc.pathname === '/about' ? 'active' : ''}`}>About</Link>
       </div>
 
@@ -60,6 +61,7 @@ export default function Navbar() {
           <Link to="/stats" className={`navbar-mobile-link ${loc.pathname === '/stats' ? 'active' : ''}`}>Stats</Link>
           <Link to="/intelligence" className={`navbar-mobile-link ${loc.pathname === '/intelligence' ? 'active' : ''}`}>Intelligence</Link>
           <Link to="/blog" className={`navbar-mobile-link ${loc.pathname.startsWith('/blog') ? 'active' : ''}`}>Insights</Link>
+          <Link to="/europe" className={`navbar-mobile-link ${loc.pathname.startsWith('/europe') || loc.pathname.startsWith('/cheap-fuel/europe') ? 'active' : ''}`}>Europe</Link>
           <Link to="/about" className={`navbar-mobile-link ${loc.pathname === '/about' ? 'active' : ''}`}>About</Link>
           <button
             onClick={toggleTheme}

@@ -22,3 +22,7 @@ export const getCharger = (id) =>
 
 export const getPriceChanges = (id) =>
   client.get(`/api/v1/stations/${id}/price-changes`)
+export const getEUNearby = (params) =>
+  client.get('/api/v1/eu/nearby', { params })
+export const getEUCheapFuel = (country, city) =>
+  client.get(`/api/v1/eu/cheap-fuel/${country}/${city}`)

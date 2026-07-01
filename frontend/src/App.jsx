@@ -25,6 +25,8 @@ import MyAlertsPage from './pages/MyAlertsPage'
 import DisableAlertPage from './pages/DisableAlertPage'
 import CheapFuelPage from './pages/CheapFuelPage'
 import EUCheapFuelPage from './pages/EUCheapFuelPage'
+import EuropePage from './pages/EuropePage'
+import EuropeMapPage from './pages/EuropeMapPage'
 import IntelligencePage from './pages/IntelligencePage'
 import ProSuccessPage from './pages/ProSuccessPage'
 
@@ -65,6 +67,8 @@ export default function App() {
           <Route path="/alerts/disable" element={<DisableAlertPage />} />
           <Route path="/cheap-fuel/:location" element={<CheapFuelPage />} />
           <Route path="/cheap-fuel/europe/:country/:city" element={<EUCheapFuelPage />} />
+          <Route path="/europe" element={<EuropePage />} />
+          <Route path="/europe/map/:country" element={<EuropeMapPage />} />
           <Route path="/intelligence" element={<IntelligencePage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />

@@ -1,0 +1,161 @@
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { useEffect, useRef } from 'react'
+
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+})
+
+function priceColor(priceEur, minPrice, maxPrice) {
+  if (!priceEur || minPrice === maxPrice) return '#f5a623'
+  const ratio = (priceEur - minPrice) / (maxPrice - minPrice)
+  if (ratio < 0.5) {
+    const r = Math.round(46 + (245 - 46) * (ratio * 2))
+    const g = Math.round(204 - (204 - 166) * (ratio * 2))
+    return `rgb(${r},${g},50)`
+  } else {
+    const r = Math.round(245 - (245 - 231) * ((ratio - 0.5) * 2))
+    const g = Math.round(166 - (166 - 76) * ((ratio - 0.5) * 2))
+    return `rgb(${r},${g},50)`
+  }
+}
+
+function createEUMarker(color, price, selected = false) {
+  const w = selected ? 64 : 56
+  const h = selected ? 30 : 26
+  const fontSize = selected ? 13 : 11
+  return L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:${w}px;">
+      <div style="width:${w}px;background:${color};border-radius:6px;border:2px solid rgba(255,255,255,0.4);box-shadow:0 2px 8px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:4px 4px 3px;cursor:pointer;">
+        <span style="color:#fff;font-size:${fontSize}px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;">€${price}</span>
+      </div>
+      <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${color};"></div>
+    </div>`,
+    iconSize: [w, h + 6],
+    iconAnchor: [w / 2, h + 6],
+    popupAnchor: [0, -(h + 6)],
+  })
+}
+
+export default function EUMap({ stations = [], center, selectedId, hoveredId, selectedFuel, eurToGbp, onSelect, onHover, onMapClick }) {
+  const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
+  const markersRef = useRef({})
+  const selectedIdRef = useRef(null)
+
+  useEffect(() => {
+    if (mapInstanceRef.current) return
+    mapRef.current.style.background = '#f2f0eb'
+    const map = L.map(mapRef.current, {
+      center: [center.lat, center.lng],
+      zoom: center.zoom || 8,
+      zoomControl: true,
+    })
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      keepBuffer: 4,
+      updateWhenIdle: false,
+      updateWhenZooming: false,
+      crossOrigin: true,
+    }).addTo(map)
+
+    map.on('click', e => {
+      onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng, zoom: map.getZoom() })
+    })
+
+    mapInstanceRef.current = map
+    return () => { map.remove(); mapInstanceRef.current = null }
+  }, [])
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    map.setView([center.lat, center.lng], center.zoom || map.getZoom())
+  }, [center])
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    Object.values(markersRef.current).forEach(m => m.remove())
+    markersRef.current = {}
+
+    const filtered = stations.filter(s => s.fuel_type === selectedFuel)
+    const prices = filtered.map(s => s.price_eur)
+    const minPrice = prices.length ? Math.min(...prices) : 0
+    const maxPrice = prices.length ? Math.max(...prices) : 0
+
+    filtered.forEach(s => {
+      if (!s.latitude || !s.longitude) return
+      const color = priceColor(s.price_eur, minPrice, maxPrice)
+      const isSelected = s.id === selectedId
+      const isHovered = s.id === hoveredId
+      const priceLabel = s.price_eur.toFixed(3)
+
+      const marker = L.marker([s.latitude, s.longitude], {
+        icon: createEUMarker(color, priceLabel, isSelected || isHovered),
+        zIndexOffset: isSelected ? 1000 : isHovered ? 500 : 0,
+      })
+
+      const gbpLine = s.price_gbp
+        ? `<div style="font-size:13px;color:#aaa;font-family:'DM Mono',monospace;">≈ ${(s.price_gbp * 100).toFixed(1)}p/litre</div>`
+        : ''
+
+      const popup = L.popup({ closeButton: false, offset: [0, -20] }).setContent(`
+        <div style="padding:6px 4px;min-width:180px;">
+          <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:4px;line-height:1.3;">${s.name || s.address}</div>
+          <div style="font-size:11px;color:#aaa;margin-bottom:6px;">${s.city} ${s.postcode} · ${(s.distance_km * 0.621371).toFixed(1)} mi</div>
+          <div style="font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:${color};line-height:1;">€${priceLabel}</div>
+          ${gbpLine}
+        </div>
+      `)
+
+      marker.bindPopup(popup)
+      marker.on('click', () => {
+        if (selectedIdRef.current === s.id) { onSelect(null) } else { onSelect(s) }
+      })
+      marker.on('mouseover', () => { onHover(s.id); if (!selectedIdRef.current) marker.openPopup() })
+      marker.on('mouseout', () => { onHover(null); if (!selectedIdRef.current) marker.closePopup() })
+      marker.addTo(map)
+      markersRef.current[s.id] = marker
+    })
+
+    if (filtered.length > 0) {
+      const lats = filtered.map(s => s.latitude)
+      const lngs = filtered.map(s => s.longitude)
+      map.fitBounds(
+        [[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]],
+        { padding: [40, 40], maxZoom: 14 }
+      )
+    }
+  }, [stations, selectedFuel, selectedId, hoveredId])
+
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    const filtered = stations.filter(s => s.fuel_type === selectedFuel)
+    const prices = filtered.map(s => s.price_eur)
+    const minPrice = prices.length ? Math.min(...prices) : 0
+    const maxPrice = prices.length ? Math.max(...prices) : 0
+
+    filtered.forEach(s => {
+      const marker = markersRef.current[s.id]
+      if (!marker) return
+      const isSelected = s.id === selectedId
+      const isHovered = s.id === hoveredId
+      const color = priceColor(s.price_eur, minPrice, maxPrice)
+      marker.setIcon(createEUMarker(color, s.price_eur.toFixed(3), isSelected || isHovered))
+      marker.setZIndexOffset(isSelected ? 1000 : isHovered ? 500 : 0)
+      if (!isSelected && !isHovered) marker.closePopup()
+      if (isSelected) marker.openPopup()
+    })
+  }, [selectedId, hoveredId])
+
+  useEffect(() => { selectedIdRef.current = selectedId }, [selectedId])
+
+  return <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+}
