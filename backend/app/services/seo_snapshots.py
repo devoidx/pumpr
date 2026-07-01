@@ -324,3 +324,128 @@ async def generate_intelligence_snapshot() -> int:
         except Exception as e:
             logger.warning(f"Intelligence snapshot generation failed: {e}")
             return 0
+
+
+EU_SNAPSHOT_CITIES = {
+    "FR": [
+        "calais", "boulogne-sur-mer", "dunkirk", "lille", "rouen",
+        "paris", "reims", "le-havre", "caen", "rennes",
+        "saint-malo", "bordeaux", "toulouse", "lyon", "nice", "marseille",
+    ],
+}
+
+
+def _render_eu_snapshot(country: str, city: str, data: dict) -> str:
+    city_name = data.get("city", city.title())
+    country_name = {"FR": "France", "DE": "Germany", "ES": "Spain", "IT": "Italy"}.get(country, country)
+    eur_to_gbp = data.get("eur_to_gbp")
+    stats = data.get("stats", {})
+    cheapest = data.get("cheapest", {})
+
+    diesel_stats = stats.get("Diesel", {})
+    e5_stats = stats.get("E5", {})
+    diesel_min = diesel_stats.get("min", "—")
+    e5_min = e5_stats.get("min", "—")
+
+    rate_line = f"£1 = €{(1 / eur_to_gbp):.4f}" if eur_to_gbp else ""
+
+    title = f"Cheap Fuel in {city_name}, {country_name} — Prices for UK Travellers | Pumpr"
+    description = (
+        f"Petrol and diesel prices near {city_name}, {country_name} for UK drivers. "
+        f"Diesel from €{diesel_min}/litre, Petrol (E5) from €{e5_min}/litre. "
+        f"Prices updated daily from official government data."
+    )
+    canonical = f"https://pumpr.co.uk/cheap-fuel/europe/{country.lower()}/{city}"
+    updated = datetime.utcnow().strftime("%d %B %Y %H:%M UTC")
+
+    def station_rows(fuel: str) -> str:
+        rows = ""
+        for s in cheapest.get(fuel, [])[:5]:
+            gbp_col = f"≈ {s['price_gbp'] * 100:.1f}p" if s.get("price_gbp") else ""
+            rows += f"""
+        <tr>
+          <td>{s.get('name') or s.get('address', '')}</td>
+          <td>{s.get('city', '')} {s.get('postcode', '')}</td>
+          <td><strong>€{s['price_eur']:.3f}</strong></td>
+          <td>{gbp_col}</td>
+          <td>{s['distance_km']}km</td>
+        </tr>"""
+        return rows
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content="{description}">
+  <link rel="canonical" href="{canonical}">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{description}">
+  <meta property="og:url" content="{canonical}">
+  <style>
+    body {{ font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #0f0f0f; color: #e8e8e8; }}
+    h1 {{ color: #f5a623; }} h2 {{ color: #e8e8e8; font-size: 1.1rem; margin-top: 2rem; }}
+    table {{ width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }}
+    th {{ text-align: left; color: #a0a0a8; padding: 6px 8px; border-bottom: 1px solid #2a2a2a; }}
+    td {{ padding: 6px 8px; border-bottom: 1px solid #1a1a1a; }}
+    .stat {{ display: inline-block; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 12px 20px; margin: 8px 8px 8px 0; }}
+    .stat-val {{ font-size: 1.5rem; font-weight: 700; color: #f5a623; }}
+    .stat-label {{ font-size: 0.75rem; color: #a0a0a8; margin-top: 2px; }}
+    .rate {{ font-size: 0.85rem; color: #a0a0a8; margin-bottom: 1rem; }}
+    a {{ color: #f5a623; }}
+    .updated {{ font-size: 0.75rem; color: #5a5a68; margin-top: 2rem; }}
+  </style>
+</head>
+<body>
+  <p><a href="https://pumpr.co.uk">⛽ Pumpr</a></p>
+  <h1>Cheap Fuel in {city_name}, {country_name}</h1>
+  <p>Petrol and diesel prices for UK travellers near {city_name}. Updated daily from official government data.</p>
+  {f'<p class="rate">Exchange rate: {rate_line} (ECB daily reference rate)</p>' if rate_line else ''}
+
+  <div>
+    <div class="stat"><div class="stat-val">€{diesel_min}</div><div class="stat-label">Cheapest Diesel</div></div>
+    <div class="stat"><div class="stat-val">€{e5_min}</div><div class="stat-label">Cheapest Petrol (E5)</div></div>
+  </div>
+
+  <h2>Cheapest Diesel near {city_name}</h2>
+  <table>
+    <thead><tr><th>Station</th><th>Location</th><th>Price (EUR)</th><th>Price (GBP)</th><th>Distance</th></tr></thead>
+    <tbody>{station_rows("Diesel")}</tbody>
+  </table>
+
+  <h2>Cheapest Petrol (E5) near {city_name}</h2>
+  <table>
+    <thead><tr><th>Station</th><th>Location</th><th>Price (EUR)</th><th>Price (GBP)</th><th>Distance</th></tr></thead>
+    <tbody>{station_rows("E5")}</tbody>
+  </table>
+
+  <p>See full results and map view at <a href="{canonical}">pumpr.co.uk/cheap-fuel/europe/{country.lower()}/{city}</a></p>
+  <p class="updated">Last updated: {updated}</p>
+</body>
+</html>"""
+
+
+async def generate_eu_city_snapshots() -> int:
+    """Generate static HTML snapshots for EU city landing pages."""
+    generated = 0
+    async with httpx.AsyncClient(timeout=30, base_url="http://localhost:8000") as client:
+        for country, cities in EU_SNAPSHOT_CITIES.items():
+            country_dir = os.path.join(SNAPSHOT_DIR, "europe", country.lower())
+            os.makedirs(country_dir, exist_ok=True)
+            for city in cities:
+                try:
+                    r = await client.get(f"/api/v1/eu/cheap-fuel/{country}/{city}")
+                    if r.status_code == 200:
+                        data = r.json()
+                        html = _render_eu_snapshot(country, city, data)
+                        path = os.path.join(country_dir, f"{city}.html")
+                        with open(path, "w", encoding="utf-8") as f:
+                            f.write(html)
+                        generated += 1
+                    else:
+                        logger.warning("EU snapshot: %s/%s returned %s", country, city, r.status_code)
+                except Exception as e:
+                    logger.warning("EU snapshot: %s/%s failed: %s", country, city, e)
+    logger.info("Generated %d EU city snapshots", generated)
+    return generated

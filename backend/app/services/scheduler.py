@@ -387,3 +387,9 @@ async def ingest_eu_job() -> None:
         await ingest_france()
     except Exception as e:
         logger.exception(f"Scheduler: EU ingestion failed: {e}")
+    # Generate EU snapshots after ingestion completes
+    try:
+        from app.services.seo_snapshots import generate_eu_city_snapshots
+        await generate_eu_city_snapshots()
+    except Exception as e:
+        logger.exception(f"Scheduler: EU snapshot generation failed: {e}")
