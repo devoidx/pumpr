@@ -40,7 +40,6 @@ export default function EuropePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const isPro = user?.role === 'pro' || user?.role === 'admin'
-  const isMobile = window.innerWidth < 480
 
   useSEO({
     title: 'European Fuel Prices for UK Travellers — Pumpr',
@@ -73,7 +72,7 @@ export default function EuropePage() {
         {/* City grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(140px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
           gap: '8px',
           marginBottom: '24px',
         }}>
@@ -152,7 +151,7 @@ export default function EuropePage() {
           <span style={{ fontSize: '22px' }}>🇮🇹</span>
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 700, margin: 0 }}>Italy</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px', marginBottom: '24px' }}>
           {ITALY_CITIES.map(city => (
             <button
               key={city.slug}
