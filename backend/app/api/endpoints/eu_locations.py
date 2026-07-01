@@ -180,3 +180,84 @@ async def eu_cheap_fuel(country: str, city: str) -> dict:
     }
     _cache_set(cache_key, result_data)
     return result_data
+
+
+@router.get("/nearby")
+async def eu_nearby(
+    lat: float,
+    lng: float,
+    radius_km: float = 25,
+    country: str = "FR",
+    fuel_type: str | None = None,
+) -> dict:
+    country = country.upper()
+    lat_margin = radius_km / 111.0
+    lng_margin = radius_km / (111.0 * math.cos(math.radians(lat)))
+
+    eur_to_gbp = await get_eur_to_gbp()
+
+    fuel_filter = "AND p.fuel_type = :fuel_type" if fuel_type else ""
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            text(f"""
+                SELECT
+                    s.id,
+                    s.external_id,
+                    s.name,
+                    s.address,
+                    s.city,
+                    s.postcode,
+                    s.latitude,
+                    s.longitude,
+                    p.fuel_type,
+                    p.price_eur,
+                    p.recorded_at
+                FROM eu_stations s
+                JOIN eu_latest_prices p ON p.eu_station_id = s.id
+                WHERE s.country = :country
+                  AND s.latitude  BETWEEN :lat_min AND :lat_max
+                  AND s.longitude BETWEEN :lng_min AND :lng_max
+                  {fuel_filter}
+            """),
+            {
+                "country": country,
+                "lat_min": lat - lat_margin,
+                "lat_max": lat + lat_margin,
+                "lng_min": lng - lng_margin,
+                "lng_max": lng + lng_margin,
+                **({"fuel_type": fuel_type} if fuel_type else {}),
+            },
+        )
+        rows = result.fetchall()
+
+    stations = []
+    for row in rows:
+        dist = haversine_km(lat, lng, row.latitude, row.longitude)
+        if dist > radius_km:
+            continue
+        stations.append({
+            "id": row.id,
+            "external_id": row.external_id,
+            "name": row.name,
+            "address": row.address,
+            "city": row.city,
+            "postcode": row.postcode,
+            "latitude": row.latitude,
+            "longitude": row.longitude,
+            "fuel_type": row.fuel_type,
+            "price_eur": float(row.price_eur),
+            "price_gbp": round(float(row.price_eur) * eur_to_gbp, 4) if eur_to_gbp else None,
+            "distance_km": round(dist, 2),
+            "recorded_at": row.recorded_at.isoformat() if row.recorded_at else None,
+        })
+
+    stations.sort(key=lambda x: (x["fuel_type"], x["price_eur"]))
+
+    return {
+        "stations": stations,
+        "eur_to_gbp": eur_to_gbp,
+        "country": country,
+        "center": {"lat": lat, "lng": lng},
+        "radius_km": radius_km,
+    }
