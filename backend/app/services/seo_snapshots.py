@@ -449,3 +449,59 @@ async def generate_eu_city_snapshots() -> int:
                     logger.warning("EU snapshot: %s/%s failed: %s", country, city, e)
     logger.info("Generated %d EU city snapshots", generated)
     return generated
+
+
+async def generate_europe_landing_snapshot() -> int:
+    """Generate static HTML snapshot for the /europe landing page."""
+    os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+    title = "European Fuel Prices for UK Travellers — Pumpr"
+    description = "Find cheap petrol and diesel prices in France for UK drivers. Compare station prices in EUR and GBP, updated daily from official government data."
+    canonical = "https://pumpr.co.uk/europe"
+    updated = datetime.utcnow().strftime("%d %B %Y %H:%M UTC")
+
+    cities = [
+        ("calais", "Calais"), ("boulogne-sur-mer", "Boulogne-sur-Mer"),
+        ("dunkirk", "Dunkirk"), ("lille", "Lille"), ("rouen", "Rouen"),
+        ("paris", "Paris"), ("reims", "Reims"), ("le-havre", "Le Havre"),
+        ("caen", "Caen"), ("rennes", "Rennes"), ("saint-malo", "Saint-Malo"),
+        ("bordeaux", "Bordeaux"), ("toulouse", "Toulouse"), ("lyon", "Lyon"),
+        ("nice", "Nice"), ("marseille", "Marseille"),
+    ]
+    city_links = "".join(
+        f'<a href="https://pumpr.co.uk/cheap-fuel/europe/fr/{slug}" style="display:inline-block;padding:10px 16px;margin:4px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;color:#e8e8e8;text-decoration:none;">{name}</a>'
+        for slug, name in cities
+    )
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content="{description}">
+  <link rel="canonical" href="{canonical}">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{description}">
+  <meta property="og:url" content="{canonical}">
+  <style>
+    body {{ font-family: sans-serif; max-width: 860px; margin: 0 auto; padding: 20px; background: #0f0f0f; color: #e8e8e8; }}
+    h1 {{ color: #f5a623; }} h2 {{ color: #e8e8e8; font-size: 1.1rem; margin-top: 2rem; }}
+    a {{ color: #f5a623; }}
+    .updated {{ font-size: 0.75rem; color: #5a5a68; margin-top: 2rem; }}
+  </style>
+</head>
+<body>
+  <p><a href="https://pumpr.co.uk">⛽ Pumpr</a></p>
+  <h1>European Fuel Prices for UK Travellers</h1>
+  <p>Planning a driving holiday? Compare petrol and diesel prices at stations across France, shown in both EUR and GBP. Updated daily from official government data.</p>
+  <h2>🇫🇷 France</h2>
+  <div>{city_links}</div>
+  <p class="updated">Last updated: {updated}</p>
+</body>
+</html>"""
+
+    path = os.path.join(SNAPSHOT_DIR, "europe.html")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
+    logger.info("Generated Europe landing snapshot")
+    return 1
