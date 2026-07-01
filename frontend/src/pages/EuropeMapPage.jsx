@@ -8,6 +8,7 @@ import EUMap from '../components/EUMap'
 const COUNTRY_NAMES = { fr: 'France', de: 'Germany', es: 'Spain', it: 'Italy' }
 const COUNTRY_CENTERS = {
   fr: { lat: 50.9513, lng: 1.8587, zoom: 9 },
+  it: { lat: 45.4729, lng: 9.1754, zoom: 7 },
   de: { lat: 51.1657, lng: 10.4515, zoom: 6 },
   es: { lat: 40.4637, lng: -3.7492, zoom: 6 },
   it: { lat: 41.8719, lng: 12.5674, zoom: 6 },

@@ -72,7 +72,7 @@ export default function EuropePage() {
         {/* City grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
           gap: '8px',
           marginBottom: '24px',
         }}>
@@ -151,7 +151,7 @@ export default function EuropePage() {
           <span style={{ fontSize: '22px' }}>🇮🇹</span>
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 700, margin: 0 }}>Italy</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', marginBottom: '24px' }}>
           {ITALY_CITIES.map(city => (
             <button
               key={city.slug}
@@ -164,6 +164,53 @@ export default function EuropePage() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Italy Pro map teaser */}
+      <div style={{ marginBottom: '40px' }}>
+        {isPro ? (
+          <button
+            onClick={() => navigate('/europe/map/it')}
+            style={{
+              width: '100%', padding: '16px',
+              background: 'rgba(245,166,35,0.1)',
+              border: '1px solid var(--amber)',
+              borderRadius: '12px', cursor: 'pointer',
+              color: 'var(--amber)', fontWeight: 700, fontSize: '14px',
+            }}
+          >
+            🗺 Open Italy fuel map →
+          </button>
+        ) : (
+          <div style={{
+            padding: '20px 24px',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '12px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: '16px', flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ color: 'var(--text)', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>
+                🗺 Interactive fuel map — Pumpr Pro
+              </div>
+              <div style={{ color: 'var(--text2)', fontSize: '13px' }}>
+                See all Italian stations on a live map. Search anywhere in Italy.
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/pro')}
+              style={{
+                padding: '10px 20px', background: 'var(--amber)',
+                color: '#000', fontWeight: 700, fontSize: '13px',
+                borderRadius: '8px', border: 'none', cursor: 'pointer',
+                whiteSpace: 'nowrap', flexShrink: 0,
+              }}
+            >
+              Upgrade to Pro →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Coming soon */}
