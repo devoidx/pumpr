@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSEO } from '../hooks/useSEO'
 import { useAuth } from '../hooks/useAuth'
@@ -7,7 +7,7 @@ import EUMap from '../components/EUMap'
 
 const COUNTRY_NAMES = { fr: 'France', de: 'Germany', es: 'Spain', it: 'Italy' }
 const COUNTRY_CENTERS = {
-  fr: { lat: 46.6034, lng: 1.8883, zoom: 6 },
+  fr: { lat: 50.9513, lng: 1.8587, zoom: 9 },
   de: { lat: 51.1657, lng: 10.4515, zoom: 6 },
   es: { lat: 40.4637, lng: -3.7492, zoom: 6 },
   it: { lat: 41.8719, lng: 12.5674, zoom: 6 },
@@ -32,6 +32,7 @@ export default function EuropeMapPage() {
   })
 
   const [location, setLocation] = useState(center)
+  const memoCenter = useMemo(() => location, [location.lat, location.lng, location.recenter])
   const [stations, setStations] = useState([])
   const [loading, setLoading] = useState(false)
   const [selectedFuel, setSelectedFuel] = useState('Diesel')
@@ -40,6 +41,7 @@ export default function EuropeMapPage() {
   const [hoveredId, setHoveredId] = useState(null)
   const [searchInput, setSearchInput] = useState('')
   const [searching, setSearching] = useState(false)
+  const euMapRef = useRef(null)
   const [eurToGbp, setEurToGbp] = useState(null)
 
   // Redirect non-Pro users
@@ -81,7 +83,8 @@ export default function EuropeMapPage() {
       )
       const results = await resp.json()
       if (results.length > 0) {
-        setLocation({ lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) })
+        const newLoc = { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon), recenter: true }
+    setLocation(newLoc)
       }
     } catch {
       // silently fail — user stays at current location
@@ -184,7 +187,7 @@ export default function EuropeMapPage() {
       <div style={{ flex: 1, position: 'relative' }}>
         <EUMap
           stations={stations}
-          center={location}
+          center={memoCenter}
           selectedId={selected?.id}
           hoveredId={hoveredId}
           selectedFuel={selectedFuel}

@@ -71,10 +71,14 @@ export default function EUMap({ stations = [], center, selectedId, hoveredId, se
     return () => { map.remove(); mapInstanceRef.current = null }
   }, [])
 
+  const lastCenterRef = useRef({ lat: null, lng: null })
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
-    map.setView([center.lat, center.lng], center.zoom || map.getZoom())
+    if (!center.recenter) return
+    if (center.lat === lastCenterRef.current.lat && center.lng === lastCenterRef.current.lng) return
+    lastCenterRef.current = { lat: center.lat, lng: center.lng }
+    map.setView([center.lat, center.lng], map.getZoom())
   }, [center])
 
   useEffect(() => {
@@ -124,6 +128,13 @@ export default function EUMap({ stations = [], center, selectedId, hoveredId, se
       markersRef.current[s.id] = marker
     })
 
+  }, [stations, selectedFuel, selectedId, hoveredId])
+
+  // Fit bounds only when stations data changes — not on hover/select
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    const filtered = stations.filter(s => s.fuel_type === selectedFuel)
     if (filtered.length > 0) {
       const lats = filtered.map(s => s.latitude)
       const lngs = filtered.map(s => s.longitude)
@@ -132,7 +143,7 @@ export default function EUMap({ stations = [], center, selectedId, hoveredId, se
         { padding: [40, 40], maxZoom: 14 }
       )
     }
-  }, [stations, selectedFuel, selectedId, hoveredId])
+  }, [stations, selectedFuel])
 
   useEffect(() => {
     const map = mapInstanceRef.current
