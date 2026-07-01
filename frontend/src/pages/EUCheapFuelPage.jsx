@@ -169,7 +169,7 @@ export default function EUCheapFuelPage() {
                     {s.name || s.address}
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text3)', fontFamily: 'var(--font-mono)' }}>
-                    {s.city} {s.postcode} · {(s.distance_km * 0.621371).toFixed(1)} mi
+                    {s.city} {s.postcode} · {(s.distance_km * 0.621371).toFixed(1)} mi from centre
                   </div>
                 </div>
               </div>
