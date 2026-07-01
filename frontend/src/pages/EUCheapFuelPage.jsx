@@ -166,7 +166,7 @@ export default function EUCheapFuelPage() {
                   fontFamily: 'var(--font-mono)', flexShrink: 0, width: '20px'
                 }}>#{i + 1}</span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.name || s.address}
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text3)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
