@@ -1,5 +1,8 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import { useEffect, useRef } from 'react'
 
 delete L.Icon.Default.prototype._getIconUrl
@@ -46,6 +49,7 @@ export default function EUMap({ stations = [], center, selectedId, hoveredId, se
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
   const selectedIdRef = useRef(null)
+  const clusterGroupRef = useRef(null)
 
   useEffect(() => {
     if (mapInstanceRef.current) return
@@ -87,6 +91,27 @@ export default function EUMap({ stations = [], center, selectedId, hoveredId, se
 
     Object.values(markersRef.current).forEach(m => m.remove())
     markersRef.current = {}
+    if (clusterGroupRef.current) {
+      clusterGroupRef.current.remove()
+      clusterGroupRef.current = null
+    }
+    const clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 40,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount()
+        const markers = cluster.getAllChildMarkers()
+        const avgPrice = markers.reduce((sum, m) => sum + (m._euPrice || 0), 0) / markers.length
+        return L.divIcon({
+          className: '',
+          html: `<div style="background:#f5a623;border-radius:50%;width:44px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.45);border:2px solid rgba(255,255,255,0.4);"><span style="color:#000;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;">€${avgPrice.toFixed(2)}</span><span style="color:#000;font-size:9px;opacity:0.7;">${count} stn</span></div>`,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+        })
+      },
+    })
+    clusterGroupRef.current = clusterGroup
 
     const filtered = stations.filter(s => s.fuel_type === selectedFuel)
     const prices = filtered.map(s => s.price_eur)
@@ -124,9 +149,11 @@ export default function EUMap({ stations = [], center, selectedId, hoveredId, se
       })
       marker.on('mouseover', () => { onHover(s.id); if (!selectedIdRef.current) marker.openPopup() })
       marker.on('mouseout', () => { onHover(null); if (!selectedIdRef.current) marker.closePopup() })
-      marker.addTo(map)
+      marker._euPrice = s.price_eur
+      clusterGroup.addLayer(marker)
       markersRef.current[s.id] = marker
     })
+    clusterGroup.addTo(map)
 
   }, [stations, selectedFuel, selectedId, hoveredId])
 
