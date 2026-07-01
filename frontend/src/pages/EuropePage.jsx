@@ -48,7 +48,7 @@ export default function EuropePage() {
   })
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '32px 16px' }}>
+    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '32px 16px', overflowX: 'hidden' }}>
 
       {/* Header */}
       <p style={{ color: 'var(--text3)', fontSize: '12px', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
@@ -137,7 +137,7 @@ export default function EuropePage() {
                 padding: '10px 20px', background: 'var(--amber)',
                 color: '#000', fontWeight: 700, fontSize: '13px',
                 borderRadius: '8px', border: 'none', cursor: 'pointer',
-                whiteSpace: 'nowrap', flexShrink: 0,
+                flexShrink: 0,
               }}
             >
               Upgrade to Pro →
@@ -204,7 +204,7 @@ export default function EuropePage() {
                 padding: '10px 20px', background: 'var(--amber)',
                 color: '#000', fontWeight: 700, fontSize: '13px',
                 borderRadius: '8px', border: 'none', cursor: 'pointer',
-                whiteSpace: 'nowrap', flexShrink: 0,
+                flexShrink: 0,
               }}
             >
               Upgrade to Pro →
