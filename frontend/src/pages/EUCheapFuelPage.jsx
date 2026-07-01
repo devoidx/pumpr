@@ -168,7 +168,7 @@ export default function EUCheapFuelPage() {
                   <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.name || s.address}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {s.city} {s.postcode} · {(s.distance_km * 0.621371).toFixed(1)} mi from centre
                   </div>
                 </div>
