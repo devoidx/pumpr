@@ -116,6 +116,7 @@ async def eu_cheap_fuel(country: str, city: str) -> dict:
                     s.postcode,
                     s.latitude,
                     s.longitude,
+                    s.is_motorway,
                     p.fuel_type,
                     p.price_eur,
                     p.recorded_at
@@ -154,6 +155,7 @@ async def eu_cheap_fuel(country: str, city: str) -> dict:
             "price_gbp": round(float(row.price_eur) * eur_to_gbp, 3) if eur_to_gbp else None,
             "distance_km": round(dist, 2),
             "recorded_at": row.recorded_at.isoformat() if row.recorded_at else None,
+            "is_motorway": row.is_motorway or False,
         }
         by_fuel.setdefault(row.fuel_type, []).append(station)
 
@@ -210,6 +212,7 @@ async def eu_nearby(
                     s.postcode,
                     s.latitude,
                     s.longitude,
+                    s.is_motorway,
                     p.fuel_type,
                     p.price_eur,
                     p.recorded_at
@@ -250,6 +253,7 @@ async def eu_nearby(
             "price_gbp": round(float(row.price_eur) * eur_to_gbp, 4) if eur_to_gbp else None,
             "distance_km": round(dist, 2),
             "recorded_at": row.recorded_at.isoformat() if row.recorded_at else None,
+            "is_motorway": row.is_motorway or False,
         })
 
     stations.sort(key=lambda x: (x["fuel_type"], x["price_eur"]))

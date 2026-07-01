@@ -32,3 +32,6 @@ CREATE TABLE exchange_rates (
 CREATE INDEX idx_eu_stations_country_city ON eu_stations(country, city);
 CREATE INDEX idx_eu_stations_coords ON eu_stations(latitude, longitude);
 CREATE INDEX idx_eu_latest_prices_station ON eu_latest_prices(eu_station_id);
+
+-- Added post-initial-creation: motorway flag for Italy (and future countries)
+ALTER TABLE eu_stations ADD COLUMN IF NOT EXISTS is_motorway BOOLEAN DEFAULT FALSE;

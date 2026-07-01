@@ -1,5 +1,6 @@
 
 from sqlalchemy import (
+    Boolean,
     Column,
     Date,
     Double,
@@ -30,6 +31,7 @@ class EUStation(Base):
     city = Column(String)
     latitude = Column(Double, nullable=False)
     longitude = Column(Double, nullable=False)
+    is_motorway = Column(Boolean, nullable=False, server_default='false')
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 

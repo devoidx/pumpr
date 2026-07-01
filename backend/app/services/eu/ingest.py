@@ -46,6 +46,7 @@ async def upsert_eu_rows(rows: list[dict], db: AsyncSession) -> tuple[int, int]:
                     "city": r["city"],
                     "latitude": r["latitude"],
                     "longitude": r["longitude"],
+                    "is_motorway": r.get("is_motorway", False),
                 }
                 for r in deduped
                 if r["external_id"] == ext_id and r["country"] == country
@@ -57,9 +58,9 @@ async def upsert_eu_rows(rows: list[dict], db: AsyncSession) -> tuple[int, int]:
     await db.execute(
         text("""
             INSERT INTO eu_stations
-                (external_id, country, name, address, postcode, city, latitude, longitude)
+                (external_id, country, name, address, postcode, city, latitude, longitude, is_motorway)
             VALUES
-                (:external_id, :country, :name, :address, :postcode, :city, :latitude, :longitude)
+                (:external_id, :country, :name, :address, :postcode, :city, :latitude, :longitude, :is_motorway)
             ON CONFLICT (country, external_id) DO UPDATE SET
                 name     = EXCLUDED.name,
                 address  = EXCLUDED.address,
@@ -67,6 +68,7 @@ async def upsert_eu_rows(rows: list[dict], db: AsyncSession) -> tuple[int, int]:
                 city     = EXCLUDED.city,
                 latitude = EXCLUDED.latitude,
                 longitude = EXCLUDED.longitude,
+                is_motorway = EXCLUDED.is_motorway,
                 updated_at = now()
         """),
         station_rows,
@@ -139,3 +141,26 @@ async def ingest_france() -> None:
         )
     except Exception:
         logger.exception("eu_ingest: failed to upsert France rows")
+
+
+async def ingest_italy() -> None:
+    """Fetch and upsert Italy station prices. Called by the scheduler."""
+    logger.info("eu_ingest: starting Italy ingestion")
+    try:
+        from app.services.eu.italy_client import fetch_and_parse_italy
+        rows = await fetch_and_parse_italy()
+        logger.info("eu_ingest: parsed %d Italy rows", len(rows))
+    except Exception:
+        logger.exception("eu_ingest: failed to fetch/parse Italy feed — aborting")
+        return
+
+    try:
+        async with AsyncSessionLocal() as db:
+            stations, prices = await upsert_eu_rows(rows, db)
+        logger.info(
+            "eu_ingest: Italy done — %d stations, %d prices upserted",
+            stations,
+            prices,
+        )
+    except Exception:
+        logger.exception("eu_ingest: failed to upsert Italy rows")

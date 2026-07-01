@@ -5,6 +5,15 @@ None = explicitly dropped (not in our enum).
 """
 
 FUEL_TYPE_MAP: dict[str, dict[str, str | None]] = {
+    "IT": {
+        "Benzina": "E5",
+        "Gasolio": "Diesel",
+        "GPL": None,
+        "Metano": None,
+        "Blue Super": None,   # premium branded fuel, not in enum
+        "Benzina speciale": None,
+        "Gasolio speciale": None,
+    },
     "FR": {
         "Gazole": "Diesel",
         "SP95": "E5",
