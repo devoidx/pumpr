@@ -79,7 +79,7 @@ export default function EUCheapFuelPage() {
   const localStats = stats[selectedFuel]
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px', overflowY: 'auto' }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px', overflowY: 'auto', overflowX: 'hidden' }}>
 
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
