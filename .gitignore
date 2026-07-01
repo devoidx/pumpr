@@ -6,3 +6,8 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
+snapshots/
+backend/dist/
+backend/find_rss*.py
+backend/store_*.py
+backend/test_*.py
