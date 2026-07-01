@@ -494,3 +494,26 @@ async def post_cheapest_by_county(fuel: str = "E10", dry_run: bool = False) -> l
             posted.append(region)
 
     return posted
+
+
+async def post_france_promo(dry_run: bool = False) -> str:
+    """Seasonal promotional post for Pumpr's France fuel prices feature."""
+    text = (
+        "🇫🇷 Heading to France this summer?\n\n"
+        "Pumpr now shows petrol & diesel prices at French stations "
+        "— in both EUR and GBP, updated daily from official data.\n\n"
+        "Perfect for Channel crossings, road trips & driving holidays 🚗⛽\n\n"
+        "pumpr.co.uk/europe\n\n"
+        "#France #DrivingHoliday #UKTravel #FuelPrices #Pumpr"
+    )
+    logger.info(f"France promo post:\n{text}")
+    if not dry_run:
+        try:
+            client = _bsky_client()
+            client.send_post(text=text)
+            logger.info("Posted France promo to Bluesky")
+        except Exception as e:
+            logger.error(f"Bluesky post failed: {e}")
+        _mastodon_post(text)
+        _threads_post(text)
+    return text

@@ -9,6 +9,7 @@ from app.services.eu.ecb_client import upsert_ecb_rate
 from app.services.eu.ingest import ingest_france
 from app.services.ingestion import ingest_prices, sync_stations
 from app.services.retention import apply_retention_policy
+from app.services.social import post_france_promo
 
 logger = logging.getLogger(__name__)
 
@@ -194,6 +195,7 @@ def start_scheduler() -> None:
         scheduler.add_job(check_price_alerts_job, trigger=IntervalTrigger(minutes=settings.poll_interval_minutes, start_date='2026-01-01 00:10:00'), id="check_price_alerts", replace_existing=True)
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
         scheduler.add_job(fetch_ecb_rate_job, trigger=CronTrigger(hour=4, minute=0, timezone="Europe/London"), id="fetch_ecb_rate", replace_existing=True)
+        scheduler.add_job(post_france_promo_job, trigger=CronTrigger(hour=9, minute=0, timezone="Europe/London"), id="post_france_promo", replace_existing=True, end_date="2026-09-05")
         scheduler.add_job(ingest_eu_job, trigger=CronTrigger(hour=5, minute=0, timezone="Europe/London"), id="ingest_eu", replace_existing=True)
 
     scheduler.start()
@@ -369,6 +371,13 @@ async def check_price_alerts_job() -> None:
         logger.info(f"Price alert check complete — {triggered} alerts triggered")
     except Exception as e:
         logger.error(f"Scheduler: price alert check failed: {e}")
+
+
+async def post_france_promo_job() -> None:
+    try:
+        await post_france_promo(dry_run=False)
+    except Exception as e:
+        logger.error(f"Scheduler: France promo post failed: {e}")
 
 
 async def fetch_ecb_rate_job() -> None:
