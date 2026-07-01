@@ -4,6 +4,7 @@ from app.api.endpoints import (
     alerts,
     auth,
     blog,
+    eu_locations,
     ev,
     feedback,
     fillups,
@@ -19,6 +20,7 @@ from app.api.endpoints import (
 )
 
 api_router = APIRouter()
+api_router.include_router(eu_locations.router)
 api_router.include_router(auth.router)
 api_router.include_router(stripe_routes.router)
 api_router.include_router(locations.router)

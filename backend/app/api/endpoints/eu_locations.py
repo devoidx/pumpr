@@ -1,0 +1,182 @@
+"""
+EU fuel price endpoints — /api/v1/eu/cheap-fuel/{country}/{city}
+Serves station-level prices from eu_stations + eu_latest_prices.
+Currency: EUR stored natively; GBP conversion via exchange_rates table
+(falls back to None if no rate available yet).
+"""
+from __future__ import annotations
+
+import logging
+import math
+import time as _time
+
+from fastapi import APIRouter, HTTPException
+from sqlalchemy import text
+
+from app.db.session import AsyncSessionLocal
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/eu", tags=["eu-locations"])
+
+# Simple in-memory cache — same pattern as locations_seo.py
+_cache: dict = {}
+_CACHE_TTL = 3600  # 1 hour — EU data updates daily, no need for 10-min TTL
+
+
+def _cache_get(key: str):
+    if key in _cache:
+        val, ts = _cache[key]
+        if _time.time() - ts < _CACHE_TTL:
+            return val
+        del _cache[key]
+    return None
+
+
+def _cache_set(key: str, val) -> None:
+    _cache[key] = (val, _time.time())
+
+
+# Curated city list — France first. Used for SEO snapshot generation.
+# Coordinates are city centres used for radius search.
+EU_CITIES: dict[str, dict[str, float | str]] = {
+    "calais":            {"lat": 50.9513, "lon": 1.8587,  "country": "FR", "name": "Calais"},
+    "boulogne-sur-mer":  {"lat": 50.7264, "lon": 1.6141,  "country": "FR", "name": "Boulogne-sur-Mer"},
+    "dunkirk":           {"lat": 51.0343, "lon": 2.3769,  "country": "FR", "name": "Dunkirk"},
+    "lille":             {"lat": 50.6292, "lon": 3.0573,  "country": "FR", "name": "Lille"},
+    "rouen":             {"lat": 49.4431, "lon": 1.0993,  "country": "FR", "name": "Rouen"},
+    "paris":             {"lat": 48.8566, "lon": 2.3522,  "country": "FR", "name": "Paris"},
+    "reims":             {"lat": 49.2583, "lon": 4.0317,  "country": "FR", "name": "Reims"},
+    "le-havre":          {"lat": 49.4944, "lon": 0.1079,  "country": "FR", "name": "Le Havre"},
+    "caen":              {"lat": 49.1829, "lon": -0.3707, "country": "FR", "name": "Caen"},
+    "rennes":            {"lat": 48.1173, "lon": -1.6778, "country": "FR", "name": "Rennes"},
+    "saint-malo":        {"lat": 48.6493, "lon": -2.0258, "country": "FR", "name": "Saint-Malo"},
+    "bordeaux":          {"lat": 44.8378, "lon": -0.5792, "country": "FR", "name": "Bordeaux"},
+    "toulouse":          {"lat": 43.6047, "lon": 1.4442,  "country": "FR", "name": "Toulouse"},
+    "lyon":              {"lat": 45.7640, "lon": 4.8357,  "country": "FR", "name": "Lyon"},
+    "nice":              {"lat": 43.7102, "lon": 7.2620,  "country": "FR", "name": "Nice"},
+    "marseille":         {"lat": 43.2965, "lon": 5.3698,  "country": "FR", "name": "Marseille"},
+}
+
+RADIUS_KM = 25  # broader than UK 16km — city centres in France are more spread out
+
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(math.radians(lat1))
+        * math.cos(math.radians(lat2))
+        * math.sin(dlon / 2) ** 2
+    )
+    return R * 2 * math.asin(math.sqrt(a))
+
+
+async def get_eur_to_gbp() -> float | None:
+    """Fetch the most recent EUR→GBP rate from exchange_rates table."""
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            text("SELECT eur_to_gbp FROM exchange_rates ORDER BY rate_date DESC LIMIT 1")
+        )
+        row = result.fetchone()
+        return float(row.eur_to_gbp) if row else None
+
+
+@router.get("/cheap-fuel/{country}/{city}")
+async def eu_cheap_fuel(country: str, city: str) -> dict:
+    country = country.upper()
+    city_key = city.lower()
+
+    city_meta = EU_CITIES.get(city_key)
+    if city_meta is None or city_meta["country"] != country:
+        raise HTTPException(status_code=404, detail="City not found")
+
+    cache_key = f"eu_cheap_fuel_{country}_{city_key}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+
+    lat = float(city_meta["lat"])
+    lon = float(city_meta["lon"])
+    lat_margin = RADIUS_KM / 111.0
+    lon_margin = RADIUS_KM / (111.0 * math.cos(math.radians(lat)))
+
+    eur_to_gbp = await get_eur_to_gbp()
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            text("""
+                SELECT
+                    s.external_id,
+                    s.name,
+                    s.address,
+                    s.city,
+                    s.postcode,
+                    s.latitude,
+                    s.longitude,
+                    p.fuel_type,
+                    p.price_eur,
+                    p.recorded_at
+                FROM eu_stations s
+                JOIN eu_latest_prices p ON p.eu_station_id = s.id
+                WHERE s.country = :country
+                  AND s.latitude  BETWEEN :lat_min AND :lat_max
+                  AND s.longitude BETWEEN :lon_min AND :lon_max
+            """),
+            {
+                "country": country,
+                "lat_min": lat - lat_margin,
+                "lat_max": lat + lat_margin,
+                "lon_min": lon - lon_margin,
+                "lon_max": lon + lon_margin,
+            },
+        )
+        rows = result.fetchall()
+
+    # Group by fuel type, filter to radius, sort by price
+    by_fuel: dict[str, list[dict]] = {}
+    for row in rows:
+        dist = haversine_km(lat, lon, row.latitude, row.longitude)
+        if dist > RADIUS_KM:
+            continue
+        station: dict = {
+            "external_id": row.external_id,
+            "name": row.name,
+            "address": row.address,
+            "city": row.city,
+            "postcode": row.postcode,
+            "latitude": row.latitude,
+            "longitude": row.longitude,
+            "fuel_type": row.fuel_type,
+            "price_eur": float(row.price_eur),
+            "price_gbp": round(float(row.price_eur) * eur_to_gbp, 3) if eur_to_gbp else None,
+            "distance_km": round(dist, 2),
+            "recorded_at": row.recorded_at.isoformat() if row.recorded_at else None,
+        }
+        by_fuel.setdefault(row.fuel_type, []).append(station)
+
+    for fuel in by_fuel:
+        by_fuel[fuel].sort(key=lambda x: x["price_eur"])
+
+    # Per-fuel stats
+    stats: dict[str, dict] = {}
+    for fuel, stations in by_fuel.items():
+        prices = [s["price_eur"] for s in stations]
+        stats[fuel] = {
+            "min": round(min(prices), 3),
+            "max": round(max(prices), 3),
+            "avg": round(sum(prices) / len(prices), 3),
+            "count": len(prices),
+        }
+
+    result_data = {
+        "city": city_meta["name"],
+        "country": country,
+        "eur_to_gbp": eur_to_gbp,
+        "cheapest": {fuel: stations[:10] for fuel, stations in by_fuel.items()},
+        "stats": stats,
+    }
+    _cache_set(cache_key, result_data)
+    return result_data
