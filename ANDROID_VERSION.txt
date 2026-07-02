@@ -1,8 +1,8 @@
 # Pumpr Android Release Tracker
 # Update this file every time you upload a new AAB to Play Console
-current versionCode : 8
-current versionName : 1.10.0
-last uploaded       : 2026-07-01
+current versionCode : 9
+current versionName : 1.11.0
+last uploaded       : 2026-07-02
 play console status : production
 # versionCode must increment by at least 1 for every Play Console upload
 # versionName should match the web version (e.g. 1.10.0)
