@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import 'flag-icons/css/flag-icons.min.css'
 import { useSEO } from '../hooks/useSEO'
 import { useAuth } from '../hooks/useAuth'
 
@@ -80,7 +81,7 @@ export default function EuropePage() {
       {/* France section */}
       <div style={{ marginBottom: '40px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '22px' }}>🇫🇷</span>
+          <span className="fi fi-fr" style={{ width: '24px', height: '18px', borderRadius: '3px', display: 'inline-block' }} />
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 700, margin: 0 }}>France</h2>
         </div>
 
@@ -163,7 +164,7 @@ export default function EuropePage() {
       {/* Spain section */}
       <div style={{ marginBottom: '40px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '22px' }}>🇪🇸</span>
+          <span className="fi fi-es" style={{ width: '24px', height: '18px', borderRadius: '3px', display: 'inline-block' }} />
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 700, margin: 0 }}>Spain</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px', marginBottom: '24px' }}>
@@ -181,10 +182,32 @@ export default function EuropePage() {
         </div>
       </div>
 
+      {/* Spain Pro map teaser */}
+      <div style={{ marginBottom: '40px' }}>
+        {isPro ? (
+          <button
+            onClick={() => navigate('/europe/map/es')}
+            style={{ width: '100%', padding: '16px', background: 'rgba(245,166,35,0.1)', border: '1px solid var(--amber)', borderRadius: '12px', cursor: 'pointer', color: 'var(--amber)', fontWeight: 700, fontSize: '14px' }}
+          >
+            🗺 Open Spain fuel map →
+          </button>
+        ) : (
+          <div style={{ padding: '20px 24px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ color: 'var(--text)', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>🗺 Interactive fuel map — Pumpr Pro</div>
+              <div style={{ color: 'var(--text2)', fontSize: '13px' }}>See all Spanish stations on a live map. Search anywhere in Spain.</div>
+            </div>
+            <button onClick={() => navigate('/pro')} style={{ padding: '10px 20px', background: 'var(--amber)', color: '#000', fontWeight: 700, fontSize: '13px', borderRadius: '8px', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
+              Upgrade to Pro →
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Italy section */}
       <div style={{ marginBottom: '40px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '22px' }}>🇮🇹</span>
+          <span className="fi fi-it" style={{ width: '24px', height: '18px', borderRadius: '3px', display: 'inline-block' }} />
           <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 700, margin: 0 }}>Italy</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px', marginBottom: '24px' }}>
@@ -256,7 +279,7 @@ export default function EuropePage() {
         </h2>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {[
-            { flag: '🇩🇪', name: 'Germany' },
+            { code: 'de', name: 'Germany' },
           ].map(c => (
             <div key={c.name} style={{
               padding: '10px 16px',
@@ -267,7 +290,7 @@ export default function EuropePage() {
               fontSize: '14px',
               display: 'flex', alignItems: 'center', gap: '8px',
             }}>
-              <span>{c.flag}</span>
+              <span className={`fi fi-${c.code}`} style={{ width: '22px', height: '16px', borderRadius: '3px', display: 'inline-block' }} />
               <span>{c.name}</span>
             </div>
           ))}
