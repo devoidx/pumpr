@@ -42,6 +42,20 @@ export default function EuropeMapPage() {
   const [selected, setSelected] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
   const [searchInput, setSearchInput] = useState('')
+  const [locating, setLocating] = useState(false)
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, recenter: true })
+        setLocating(false)
+      },
+      () => setLocating(false),
+      { timeout: 10000 }
+    )
+  }
   const [searching, setSearching] = useState(false)
   const euMapRef = useRef(null)
   const [eurToGbp, setEurToGbp] = useState(null)
@@ -139,6 +153,14 @@ export default function EuropeMapPage() {
           >
             {searching ? '…' : 'Go'}
           </button>
+        <button
+          onClick={handleUseMyLocation}
+          disabled={locating}
+          title="Use my location"
+          style={{ padding: '6px 12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text2)', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}
+        >
+          {locating ? '…' : '📍 My location'}
+        </button>
         </div>
 
         {/* Fuel selector */}
