@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     mastodon_access_token: str = ""
     bsky_app_password: str = ""
     threads_access_token: str = ""
+    tankerkoenig_api_key: str = ""
     threads_user_id: str = ""
     resend_api_key: str = ""
     anthropic_api_key: str = ""

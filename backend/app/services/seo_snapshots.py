@@ -327,6 +327,10 @@ async def generate_intelligence_snapshot() -> int:
 
 
 EU_SNAPSHOT_CITIES = {
+    "ES": [
+        "madrid", "barcelona", "malaga", "alicante", "valencia",
+        "seville", "palma", "las-palmas", "bilbao", "murcia", "girona", "marbella",
+    ],
     "IT": [
         "rome", "milan", "turin", "naples", "palermo", "genoa",
         "florence", "bologna", "catania", "verona", "venice", "bari",
