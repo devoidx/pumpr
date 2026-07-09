@@ -136,12 +136,12 @@ async def get_cheapest(
         brand_filter = "AND UPPER(s.brand) = UPPER(:brand)"
 
     sql = text(f"""
-        SELECT DISTINCT ON (ph.station_id)
-            ph.station_id,
-            ph.price_pence,
-            ph.recorded_at,
-            ph.source_updated_at,
-            ph.price_flagged,
+        SELECT
+            lp.station_id,
+            lp.price_pence,
+            lp.recorded_at,
+            lp.source_updated_at,
+            lp.price_flagged,
             s.name,
             s.brand,
             s.address,
@@ -155,23 +155,23 @@ async def get_cheapest(
             s.opening_times,
             s.county,
             prev.price_pence as prev_price_pence
-        FROM price_history ph
-        JOIN stations s ON ph.station_id = s.id
+        FROM stations s
+        JOIN latest_prices lp ON lp.station_id = s.id
         LEFT JOIN LATERAL (
             SELECT price_pence FROM price_history
-            WHERE station_id = ph.station_id
+            WHERE station_id = s.id
               AND fuel_type = :fuel
               AND recorded_at BETWEEN NOW() - INTERVAL '26 hours' AND NOW() - INTERVAL '22 hours'
             ORDER BY recorded_at DESC
             LIMIT 1
         ) prev ON true
-        WHERE ph.fuel_type = :fuel
-          AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
-          AND s.latitude IS NOT NULL
+        WHERE s.latitude IS NOT NULL
           AND s.longitude IS NOT NULL
+          AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
           {geo_filter}
           {brand_filter}
-        ORDER BY ph.station_id, ph.recorded_at DESC
+          AND lp.fuel_type = :fuel
+          AND lp.price_flagged = false
     """)
 
     result = await db.execute(sql, params)
