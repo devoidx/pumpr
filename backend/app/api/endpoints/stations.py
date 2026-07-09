@@ -1,3 +1,4 @@
+import time as _time
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -15,6 +16,22 @@ from app.schemas.schemas import (
 from app.services.opening_hours import get_week_hours, is_open_now
 
 router = APIRouter(prefix="/stations", tags=["stations"])
+
+# Cache county cheapest prices for 5 minutes to avoid repeated expensive queries
+
+_county_cache: dict = {}
+_COUNTY_CACHE_TTL = 300  # 5 minutes
+
+def _get_county_cache(county: str) -> dict | None:
+    if county in _county_cache:
+        val, ts = _county_cache[county]
+        if _time.time() - ts < _COUNTY_CACHE_TTL:
+            return val
+        del _county_cache[county]
+    return None
+
+def _set_county_cache(county: str, val: dict) -> None:
+    _county_cache[county] = (val, _time.time())
 
 
 @router.get("/", response_model=list[StationOut])
@@ -178,23 +195,29 @@ async def _get_latest_prices(
         text("SELECT county FROM stations WHERE id = :id"), {"id": station_id}
     )
     county_row = county_res.fetchone()
-    county = county_row.county if county_row else None
+    county = county_row.county.upper() if county_row and county_row.county else None
 
     # Get cheapest non-flagged price per fuel type in this county
     county_cheapest: dict[str, float] = {}
     if county:
-        cp_res = await db.execute(
-            text("""
-            SELECT lp.fuel_type, MIN(lp.price_pence) as min_price
-            FROM latest_prices lp
-            JOIN stations s ON lp.station_id = s.id
-            WHERE s.county = :county
-              AND lp.price_flagged = FALSE
-            GROUP BY lp.fuel_type
-        """),
-            {"county": county},
-        )
-        county_cheapest = {r.fuel_type: float(r.min_price) for r in cp_res.fetchall()}
+        cached = _get_county_cache(county)
+        if cached is not None:
+            county_cheapest = cached
+        else:
+            cp_res = await db.execute(
+                text("""
+                SELECT lp.fuel_type, MIN(lp.price_pence) as min_price
+                FROM latest_prices lp
+                WHERE lp.station_id IN (
+                    SELECT id FROM stations WHERE county = :county
+                )
+                AND lp.price_flagged = FALSE
+                GROUP BY lp.fuel_type
+            """),
+                {"county": county},
+            )
+            county_cheapest = {r.fuel_type: float(r.min_price) for r in cp_res.fetchall()}
+            _set_county_cache(county, county_cheapest)
 
     return [
         StationLatestPrices(
