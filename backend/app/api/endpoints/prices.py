@@ -63,7 +63,11 @@ async def feed_health(db: AsyncSession = Depends(get_db)) -> dict:
         status = "red"
         message = f"Data not updated for {int(minutes_ago // 60)}h {int(minutes_ago % 60)}m — feed may be down"
 
-    return {"status": status, "message": message, "minutes_ago": round(minutes_ago, 1)}
+    station_count_result = await db.execute(
+        text("SELECT count(DISTINCT station_id) FROM latest_prices WHERE price_flagged = false")
+    )
+    station_count = station_count_result.scalar() or 0
+    return {"status": status, "message": message, "minutes_ago": round(minutes_ago, 1), "station_count": station_count}
 
 
 @router.get("/cheapest")

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import './About.css'
 import { VERSION, BUILD_HASH } from '../version'
 import PumpIcon from '../components/icons/PumpIcon'
@@ -9,6 +9,13 @@ import { useSEO } from '../hooks/useSEO'
 const GOV_URL = 'https://www.gov.uk/guidance/access-the-latest-fuel-prices-and-forecourt-data-via-api-or-email'
 
 export default function About() {
+  const [stationCount, setStationCount] = useState(null)
+  useEffect(() => {
+    fetch('/api/v1/prices/feed-health')
+      .then(r => r.json())
+      .then(d => setStationCount(d.station_count || null))
+      .catch(() => {})
+  }, [])
   useSEO({ title: 'About', description: 'About Pumpr — a free, independent UK fuel price tracker built by a solo developer.', path: '/about' })
   useEffect(() => { if (typeof umami !== 'undefined') umami.track('about-viewed') }, [])
   return (
@@ -27,7 +34,7 @@ export default function About() {
           <p className="about-body">
             Pumpr helps UK drivers find the cheapest fuel and nearest EV charging points.
             Prices are updated every 30 minutes from the official GOV.UK Fuel Finder scheme,
-            covering 7,600+ petrol stations across England, Scotland, Wales and Northern Ireland.
+            covering {stationCount ? `${stationCount.toLocaleString()}+` : '7,900+'} petrol stations across England, Scotland, Wales and Northern Ireland.
             EV charging data is powered by Open Charge Map.
           </p>
         </div>

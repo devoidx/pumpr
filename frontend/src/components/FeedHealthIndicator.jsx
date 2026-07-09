@@ -21,7 +21,7 @@ export default function FeedHealthIndicator() {
 
   return (
     <div
-      title={health.message}
+      title={health.station_count ? `${health.message} · ${health.station_count.toLocaleString()} stations live` : health.message}
       style={{
         display: 'flex',
         alignItems: 'center',
