@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.services.eu.ecb_client import upsert_ecb_rate
 from app.services.eu.ingest import ingest_france, ingest_italy, ingest_spain
 from app.services.ingestion import ingest_prices, sync_stations
+from app.services.price_patterns import compute_price_day_patterns
 from app.services.retention import apply_retention_policy
 from app.services.social import post_france_promo
 
@@ -195,6 +196,7 @@ def start_scheduler() -> None:
         scheduler.add_job(check_price_alerts_job, trigger=IntervalTrigger(minutes=settings.poll_interval_minutes, start_date='2026-01-01 00:10:00'), id="check_price_alerts", replace_existing=True)
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
         scheduler.add_job(fetch_ecb_rate_job, trigger=CronTrigger(hour=4, minute=0, timezone="Europe/London"), id="fetch_ecb_rate", replace_existing=True)
+        scheduler.add_job(compute_price_patterns_job, trigger=CronTrigger(day_of_week="mon", hour=6, minute=0, timezone="Europe/London"), id="compute_price_patterns", replace_existing=True)
         scheduler.add_job(post_france_promo_job, trigger=CronTrigger(hour=9, minute=0, timezone="Europe/London"), id="post_france_promo", replace_existing=True, end_date="2026-09-05")
         scheduler.add_job(ingest_eu_job, trigger=CronTrigger(hour=5, minute=0, timezone="Europe/London"), id="ingest_eu", replace_existing=True)
 
@@ -378,6 +380,15 @@ async def post_france_promo_job() -> None:
         await post_france_promo(dry_run=False)
     except Exception as e:
         logger.error(f"Scheduler: France promo post failed: {e}")
+
+
+async def compute_price_patterns_job() -> None:
+    logger.info("Scheduler: computing price day patterns")
+    try:
+        rows = await compute_price_day_patterns()
+        logger.info(f"Scheduler: price patterns computed — {rows} rows")
+    except Exception as e:
+        logger.exception(f"Scheduler: price patterns failed: {e}")
 
 
 async def fetch_ecb_rate_job() -> None:
