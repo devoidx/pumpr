@@ -247,3 +247,30 @@ async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
         )
         for fuel, prices in sorted(by_fuel.items())
     ]
+
+
+@router.get("/day-patterns")
+async def get_day_patterns(db: AsyncSession = Depends(get_db)) -> dict:
+    """Returns day-of-week price patterns for use in station card indicators."""
+    result = await db.execute(text("""
+        SELECT fuel_type, is_supermarket, day_of_week, avg_price_pence
+        FROM price_day_patterns
+        ORDER BY fuel_type, is_supermarket, day_of_week
+    """))
+    rows = result.fetchall()
+    if not rows:
+        return {"patterns": {}}
+
+    # Structure: patterns[fuel_type][is_supermarket][day_of_week] = avg_price
+    patterns: dict = {}
+    for row in rows:
+        ft = row.fuel_type
+        sm = str(row.is_supermarket).lower()
+        dow = row.day_of_week
+        if ft not in patterns:
+            patterns[ft] = {}
+        if sm not in patterns[ft]:
+            patterns[ft][sm] = {}
+        patterns[ft][sm][dow] = float(row.avg_price_pence)
+
+    return {"patterns": patterns}
