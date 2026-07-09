@@ -185,13 +185,12 @@ async def _get_latest_prices(
     if county:
         cp_res = await db.execute(
             text("""
-            SELECT ph.fuel_type, MIN(ph.price_pence) as min_price
-            FROM price_history ph
-            JOIN stations s ON ph.station_id = s.id
+            SELECT lp.fuel_type, MIN(lp.price_pence) as min_price
+            FROM latest_prices lp
+            JOIN stations s ON lp.station_id = s.id
             WHERE s.county = :county
-              AND ph.price_flagged = FALSE
-              AND ph.recorded_at > NOW() - INTERVAL '2 hours'
-            GROUP BY ph.fuel_type
+              AND lp.price_flagged = FALSE
+            GROUP BY lp.fuel_type
         """),
             {"county": county},
         )
