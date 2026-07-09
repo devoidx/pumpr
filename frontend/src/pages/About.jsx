@@ -34,7 +34,7 @@ export default function About() {
           <p className="about-body">
             Pumpr helps UK drivers find the cheapest fuel and nearest EV charging points.
             Prices are updated every 30 minutes from the official GOV.UK Fuel Finder scheme,
-            covering {stationCount ? `${stationCount.toLocaleString()}+` : '7,900+'} petrol stations across England, Scotland, Wales and Northern Ireland.
+            covering {stationCount ? stationCount.toLocaleString() : '7,900'} petrol stations across England, Scotland, Wales and Northern Ireland.
             EV charging data is powered by Open Charge Map.
           </p>
         </div>

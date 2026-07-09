@@ -66,7 +66,7 @@ export default function LocationPrompt({ onLocation }) {
           <BoltIcon size={32} color="#2ecc71" />
         </div>
         <h1 className="lp-title">Pumpr</h1>
-        <p className="lp-sub">Real-time UK fuel prices at 7,600+ stations</p>
+        <p className="lp-sub">Real-time UK fuel prices at 8,000+ stations</p>
         <div className="lp-divider" />
 
         <button
