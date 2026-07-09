@@ -1,4 +1,4 @@
-CREATE TABLE price_day_patterns (
+CREATE TABLE IF NOT EXISTS price_day_patterns (
     fuel_type VARCHAR NOT NULL,
     is_supermarket BOOLEAN NOT NULL,
     day_of_week INTEGER NOT NULL,  -- 0=Sunday, 1=Monday ... 6=Saturday
