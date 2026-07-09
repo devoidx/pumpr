@@ -14,6 +14,7 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
   const todayHours = getTodayHours(s.opening_times)
   const updatedAgo = timeAgo(s.source_updated_at)
 
+
   return (
     <div
       id={`card-${s.station_id}`}
