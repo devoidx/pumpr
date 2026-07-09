@@ -44,3 +44,41 @@ async def compute_price_day_patterns() -> int:
         rows = count_result.scalar() or 0
         logger.info("price_patterns: %d day-of-week pattern rows in table", rows)
         return rows
+
+
+async def compute_station_price_patterns() -> int:
+    """
+    Computes per-station day-of-week price patterns from last 84 days.
+    Only computes for stations with at least 5 readings per day-of-week.
+    Returns number of rows upserted.
+    """
+    async with AsyncSessionLocal() as db:
+        await db.execute(text("""
+            INSERT INTO station_price_patterns
+                (station_id, fuel_type, day_of_week, avg_price_pence, reading_count, computed_at)
+            SELECT
+                station_id,
+                fuel_type,
+                EXTRACT(DOW FROM recorded_at)::integer as day_of_week,
+                ROUND(AVG(price_pence)::numeric, 2) as avg_price_pence,
+                COUNT(*) as reading_count,
+                now() as computed_at
+            FROM price_history
+            WHERE fuel_type IN ('E10', 'B7', 'E5')
+            AND price_flagged = false
+            AND recorded_at > NOW() - INTERVAL '84 days'
+            GROUP BY station_id, fuel_type, day_of_week
+            HAVING COUNT(*) >= 5
+            ON CONFLICT (station_id, fuel_type, day_of_week) DO UPDATE SET
+                avg_price_pence = EXCLUDED.avg_price_pence,
+                reading_count = EXCLUDED.reading_count,
+                computed_at = EXCLUDED.computed_at
+        """))
+        await db.commit()
+
+        count_result = await db.execute(
+            text("SELECT COUNT(*) FROM station_price_patterns")
+        )
+        rows = count_result.scalar() or 0
+        logger.info("price_patterns: %d station-level pattern rows in table", rows)
+        return rows

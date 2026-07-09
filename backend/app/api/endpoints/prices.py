@@ -70,6 +70,35 @@ async def feed_health(db: AsyncSession = Depends(get_db)) -> dict:
     return {"status": status, "message": message, "minutes_ago": round(minutes_ago, 1), "station_count": station_count}
 
 
+@router.get("/station-pattern/{station_id}")
+async def get_station_pattern(station_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+    """Returns day-of-week price patterns for a specific station."""
+    result = await db.execute(text("""
+        SELECT fuel_type, day_of_week, avg_price_pence, reading_count
+        FROM station_price_patterns
+        WHERE station_id = :station_id
+        ORDER BY fuel_type, day_of_week
+    """), {"station_id": station_id})
+    rows = result.fetchall()
+    if not rows:
+        return {"patterns": {}}
+
+    DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    patterns: dict = {}
+    for row in rows:
+        ft = row.fuel_type
+        if ft not in patterns:
+            patterns[ft] = []
+        patterns[ft].append({
+            "day": DAYS[row.day_of_week],
+            "dow": row.day_of_week,
+            "avg_price_pence": float(row.avg_price_pence),
+            "reading_count": row.reading_count,
+        })
+
+    return {"station_id": station_id, "patterns": patterns}
+
+
 @router.get("/cheapest")
 @limiter.limit("60/minute")
 async def get_cheapest(

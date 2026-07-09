@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.services.eu.ecb_client import upsert_ecb_rate
 from app.services.eu.ingest import ingest_france, ingest_italy, ingest_spain
 from app.services.ingestion import ingest_prices, sync_stations
-from app.services.price_patterns import compute_price_day_patterns
+from app.services.price_patterns import compute_price_day_patterns, compute_station_price_patterns
 from app.services.retention import apply_retention_policy
 from app.services.social import post_france_promo
 
@@ -387,6 +387,8 @@ async def compute_price_patterns_job() -> None:
     try:
         rows = await compute_price_day_patterns()
         logger.info(f"Scheduler: price patterns computed — {rows} rows")
+        rows2 = await compute_station_price_patterns()
+        logger.info(f"Scheduler: station price patterns computed — {rows2} rows")
     except Exception as e:
         logger.exception(f"Scheduler: price patterns failed: {e}")
 

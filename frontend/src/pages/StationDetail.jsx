@@ -49,12 +49,20 @@ export default function StationDetail() {
   const [alertMsg, setAlertMsg] = useState(null)
   const [alertLoading, setAlertLoading] = useState(false)
   const [showTracker, setShowTracker] = useState(false)
+  const [stationPattern, setStationPattern] = useState(null)
   useSEO({
     title: station ? `${station.name} — Fuel Prices` : 'Station',
     description: station ? `Live fuel prices at ${station.name}${station.brand ? ' (' + station.brand + ')' : ''}, ${station.postcode || station.address || ''}. Updated every 30 minutes.` : undefined,
     path: `/stations/${id}`,
   })
   useEffect(() => { if (typeof umami !== 'undefined') umami.track('station-detail-viewed') }, [])
+
+  useEffect(() => {
+    fetch(`/api/v1/prices/station-pattern/${id}`)
+      .then(r => r.json())
+      .then(d => setStationPattern(d.patterns || null))
+      .catch(() => {})
+  }, [id])
 
   useEffect(() => {
     Promise.all([getStation(id), getPriceChanges(id)])
@@ -387,6 +395,56 @@ export default function StationDetail() {
             </ResponsiveContainer>
           )}
         </div>
+
+        {/* Price patterns */}
+        {stationPattern && stationPattern[selectedFuel] && (() => {
+          const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+          const data = stationPattern[selectedFuel]
+          const prices = data.map(d => d.avg_price_pence)
+          const minPrice = Math.min(...prices)
+          const maxPrice = Math.max(...prices)
+          const cheapest = data.reduce((a, b) => b.avg_price_pence < a.avg_price_pence ? b : a)
+          const priciest = data.reduce((a, b) => b.avg_price_pence > a.avg_price_pence ? b : a)
+          const today = new Date().getDay()
+          const color = FUEL_COLORS[selectedFuel] || 'var(--amber)'
+          return (
+            <div className="detail-hours-card">
+              <h2 className="detail-section-title">📊 Price Patterns</h2>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '12px', fontFamily: 'var(--font-mono)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <span>Cheapest: <strong style={{ color: '#2ecc71' }}>{cheapest.day}</strong> ({cheapest.avg_price_pence.toFixed(1)}p)</span>
+                <span>Most expensive: <strong style={{ color: '#e74c3c' }}>{priciest.day}</strong> ({priciest.avg_price_pence.toFixed(1)}p)</span>
+              </div>
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '100px', marginTop: '16px' }}>
+                {data.map(d => {
+                  const ratio = maxPrice === minPrice ? 0.5 : (d.avg_price_pence - minPrice) / (maxPrice - minPrice)
+                  const barHeight = 24 + ratio * 48
+                  const isToday = d.dow === today
+                  const isCheapest = d.dow === cheapest.dow
+                  const barColor = isToday ? color : isCheapest ? '#2ecc71' : 'var(--border2)'
+                  return (
+                    <div key={d.dow} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '9px', color: 'var(--text3)', fontFamily: 'var(--font-mono)' }}>
+                        {d.avg_price_pence.toFixed(1)}
+                      </span>
+                      <div style={{
+                        width: '100%', height: `${barHeight}px`,
+                        background: barColor, borderRadius: '3px 3px 0 0',
+                        border: isToday ? `1px solid ${color}` : 'none',
+                        opacity: isToday ? 1 : 0.7,
+                      }} title={`${d.day}: ${d.avg_price_pence.toFixed(1)}p avg`} />
+                      <span style={{ fontSize: '9px', color: isToday ? color : 'var(--text3)', fontWeight: isToday ? 700 : 400, fontFamily: 'var(--font-mono)' }}>
+                        {DAYS[d.dow]}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              <p style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px', fontFamily: 'var(--font-mono)' }}>
+                Based on {data[0]?.reading_count ? `${Math.min(...data.map(d => d.reading_count))}–${Math.max(...data.map(d => d.reading_count))}` : ''} readings per day over 84 days
+              </p>
+            </div>
+          )
+        })()}
 
         {/* Opening hours */}
         {weekHours.length > 0 && (
