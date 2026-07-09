@@ -58,15 +58,9 @@ export default function StationDetail() {
   useEffect(() => { if (typeof umami !== 'undefined') umami.track('station-detail-viewed') }, [])
 
   useEffect(() => {
-    fetch(`/api/v1/prices/station-pattern/${id}`)
-      .then(r => r.json())
-      .then(d => setStationPattern(d.patterns || null))
-      .catch(() => {})
-  }, [id])
-
-  useEffect(() => {
-    Promise.all([getStation(id), getPriceChanges(id)])
-      .then(([stationRes, changesRes]) => {
+    Promise.all([getStation(id), getPriceChanges(id), fetch(`/api/v1/prices/station-pattern/${id}`).then(r => r.json())])
+      .then(([stationRes, changesRes, patternRes]) => {
+        setStationPattern(patternRes.patterns || null)
         setStation(stationRes.data)
         const fuels = stationRes.data.latest_prices.map(p => p.fuel_type)
         if (fuels.length > 0 && !fuelParam) setSelectedFuel(fuels[0])
