@@ -21,7 +21,7 @@ async def apply_retention_policy() -> None:
     """
     now = datetime.utcnow()
     cutoff_thin = now - timedelta(days=7)
-    cutoff_delete = now - timedelta(days=90)
+    cutoff_delete = now - timedelta(days=365)
 
     # Step 1: Delete records older than 90 days (fast range delete)
     async with AsyncSessionLocal() as session:
