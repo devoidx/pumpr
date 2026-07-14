@@ -9,11 +9,11 @@ logger = logging.getLogger(__name__)
 OCM_BASE = "https://api.openchargemap.io/v3"
 
 
-async def get_chargers_near(lat: float, lng: float, radius_km: float = 10.0, max_results: int = 50) -> list[dict]:
+async def get_chargers_near(lat: float, lng: float, radius_km: float = 10.0, max_results: int = 50, country_code: str = "GB") -> list[dict]:
     """Fetch EV chargers near a location from Open Charge Map."""
     params = {
         "output": "json",
-        "countrycode": "GB",
+        "countrycode": country_code,
         "latitude": lat,
         "longitude": lng,
         "distance": radius_km,

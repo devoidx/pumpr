@@ -13,9 +13,10 @@ async def list_chargers(
     limit: int = Query(50, le=100),
     min_power_kw: float | None = Query(None),
     connector_type: str | None = Query(None),
+    country_code: str = Query("GB"),
 ) -> list[dict]:
     """Return EV chargers near a location from Open Charge Map."""
-    raw = await get_chargers_near(lat, lng, radius_km, limit)
+    raw = await get_chargers_near(lat, lng, radius_km, limit, country_code)
     chargers = [parse_charger(r) for r in raw]
 
     if min_power_kw:

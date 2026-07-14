@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSEO } from '../hooks/useSEO'
 import { useAuth } from '../hooks/useAuth'
-import { getEUNearby } from '../api/client'
+import { getEUNearby, getChargers } from '../api/client'
 import EUMap from '../components/EUMap'
 
 const COUNTRY_NAMES = { fr: 'France', de: 'Germany', es: 'Spain', it: 'Italy' }
@@ -59,6 +59,8 @@ export default function EuropeMapPage() {
   const [searching, setSearching] = useState(false)
   const euMapRef = useRef(null)
   const [eurToGbp, setEurToGbp] = useState(null)
+  const [chargers, setChargers] = useState([])
+  const [showEV, setShowEV] = useState(false)
 
   // Redirect non-Pro users
   useEffect(() => {
@@ -66,6 +68,18 @@ export default function EuropeMapPage() {
       navigate('/pro')
     }
   }, [user, isPro, navigate])
+
+  const fetchChargers = useCallback(async () => {
+    if (!location?.lat || !showEV) { setChargers([]); return }
+    try {
+      const resp = await getChargers({ lat: location.lat, lng: location.lng, radius_km: radius, limit: 100, country_code: country.toUpperCase() })
+      setChargers(resp.data || [])
+    } catch {
+      setChargers([])
+    }
+  }, [location, radius, showEV])
+
+  useEffect(() => { fetchChargers() }, [fetchChargers])
 
   const fetchStations = useCallback(async () => {
     if (!location?.lat) return
@@ -194,6 +208,20 @@ export default function EuropeMapPage() {
           ))}
         </select>
 
+        {/* EV toggle */}
+        <button
+          onClick={() => setShowEV(v => !v)}
+          style={{
+            padding: '6px 12px', borderRadius: '8px', border: '1px solid',
+            borderColor: showEV ? '#2ecc71' : 'var(--border)',
+            background: showEV ? 'rgba(46,204,113,0.15)' : 'var(--surface)',
+            color: showEV ? '#2ecc71' : 'var(--text2)',
+            cursor: 'pointer', fontSize: '12px', fontWeight: showEV ? 700 : 400,
+          }}
+        >
+          ⚡ EV
+        </button>
+
         {/* Station count */}
         <span style={{ color: 'var(--text3)', fontSize: '12px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
           {loading ? 'Loading…' : `${stations.length} stations`}
@@ -211,6 +239,8 @@ export default function EuropeMapPage() {
       <div style={{ flex: 1, position: 'relative' }}>
         <EUMap
           stations={stations}
+          chargers={chargers}
+          showChargers={showEV}
           center={memoCenter}
           selectedId={selected?.id}
           hoveredId={hoveredId}

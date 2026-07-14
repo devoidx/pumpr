@@ -1,4 +1,5 @@
 import L from 'leaflet'
+import { SPEED_COLOR } from '../constants/ev'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
@@ -44,12 +45,13 @@ function createEUMarker(color, price, selected = false) {
   })
 }
 
-export default function EUMap({ stations = [], center, selectedId, hoveredId, selectedFuel, eurToGbp, onSelect, onHover, onMapClick }) {
+export default function EUMap({ stations = [], chargers = [], showChargers = false, center, selectedId, hoveredId, selectedFuel, eurToGbp, onSelect, onHover, onMapClick }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
   const selectedIdRef = useRef(null)
   const clusterGroupRef = useRef(null)
+  const chargerLayerRef = useRef(null)
 
   useEffect(() => {
     if (mapInstanceRef.current) return
@@ -171,6 +173,65 @@ export default function EUMap({ stations = [], center, selectedId, hoveredId, se
       )
     }
   }, [stations, selectedFuel])
+
+  // Render EV chargers
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    if (chargerLayerRef.current) {
+      chargerLayerRef.current.remove()
+      chargerLayerRef.current = null
+    }
+    if (!showChargers || chargers.length === 0) return
+
+    const chargerGroup = L.markerClusterGroup({
+      maxClusterRadius: 30,
+      showCoverageOnHover: false,
+      iconCreateFunction: (cluster) => L.divIcon({
+        className: '',
+        html: `<div style="background:#2ecc71;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.4);font-size:11px;font-weight:700;color:#000;">⚡${cluster.getChildCount()}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      })
+    })
+
+    chargers.forEach(c => {
+      if (!c.latitude || !c.longitude) return
+      const marker = L.marker([c.latitude, c.longitude], {
+        icon: (() => {
+          const color = SPEED_COLOR(c.max_power_kw)
+          const kw = c.max_power_kw
+          const kwLabel = kw ? (kw >= 1000 ? `${(kw/1000).toFixed(0)}MW` : `${kw}kW`) : ''
+          const w = 50, h = 28
+          return L.divIcon({
+            className: '',
+            html: `<div style="position:relative;width:${w}px;background:${color};border-radius:6px;border:2px solid rgba(255,255,255,0.4);box-shadow:0 2px 8px rgba(0,0,0,0.45);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 4px;cursor:pointer;gap:1px;">
+              <span style="color:#fff;font-size:10px;line-height:1;">⚡${c.total_points ? ` (${c.total_points})` : ''}</span>
+              <span style="color:#fff;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;">${kwLabel}</span>
+              <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${color};"></div>
+            </div>`,
+            iconSize: [w, h + 6],
+            iconAnchor: [w / 2, h + 6],
+          })
+        })()
+      })
+      marker.bindPopup(L.popup({ closeButton: false }).setContent(`
+        <div style="padding:6px 4px;min-width:160px;">
+          <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:4px;">${c.name}</div>
+          <div style="font-size:11px;color:#aaa;margin-bottom:4px;">${c.address || ''}</div>
+          ${c.max_power_kw ? `<div style="font-size:12px;color:#2ecc71;">⚡ ${c.max_power_kw}kW max</div>` : ''}
+          <div style="font-size:11px;color:#aaa;">${c.total_points || 0} connector${c.total_points !== 1 ? 's' : ''}</div>
+          <div style="font-size:11px;color:#aaa;">${c.network || ''}</div>
+        </div>
+      `))
+      marker.on('mouseover', () => marker.openPopup())
+      marker.on('mouseout', () => marker.closePopup())
+      chargerGroup.addLayer(marker)
+    })
+
+    chargerGroup.addTo(map)
+    chargerLayerRef.current = chargerGroup
+  }, [chargers, showChargers])
 
   useEffect(() => {
     const map = mapInstanceRef.current
