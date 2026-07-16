@@ -187,3 +187,29 @@ async def ingest_spain() -> None:
         )
     except Exception:
         logger.exception("eu_ingest: failed to upsert Spain rows")
+
+
+async def ingest_germany() -> None:
+    """Fetch and upsert Germany station prices. Called by the scheduler."""
+    logger.info("eu_ingest: starting Germany ingestion")
+    try:
+        from app.services.eu.germany_client import fetch_and_parse_germany
+        rows = await fetch_and_parse_germany()
+        logger.info("eu_ingest: parsed %d Germany rows", len(rows))
+    except Exception:
+        logger.exception("eu_ingest: failed to fetch/parse Germany feed — aborting")
+        return
+
+    if not rows:
+        return
+
+    try:
+        async with AsyncSessionLocal() as db:
+            stations, prices = await upsert_eu_rows(rows, db)
+        logger.info(
+            "eu_ingest: Germany done — %d stations, %d prices upserted",
+            stations,
+            prices,
+        )
+    except Exception:
+        logger.exception("eu_ingest: failed to upsert Germany rows")

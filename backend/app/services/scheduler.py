@@ -6,7 +6,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from app.core.config import settings
 from app.services.eu.ecb_client import upsert_ecb_rate
-from app.services.eu.ingest import ingest_france, ingest_italy, ingest_spain
+from app.services.eu.ingest import ingest_france, ingest_germany, ingest_italy, ingest_spain
 from app.services.ingestion import ingest_prices, sync_stations
 from app.services.price_patterns import compute_price_day_patterns, compute_station_price_patterns
 from app.services.retention import apply_retention_policy
@@ -405,7 +405,7 @@ async def fetch_ecb_rate_job() -> None:
 
 async def ingest_eu_job() -> None:
     logger.info("Scheduler: starting EU price ingestion")
-    for name, coro in [("France", ingest_france()), ("Italy", ingest_italy()), ("Spain", ingest_spain())]:
+    for name, coro in [("France", ingest_france()), ("Italy", ingest_italy()), ("Spain", ingest_spain()), ("Germany", ingest_germany())]:
         try:
             await coro
         except Exception as e:
