@@ -86,6 +86,10 @@ async def cheap_fuel_location(
     location: str,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    location_key = location.lower().replace("-", " ")
+    if location_key not in [c.replace("-", " ") for c in PRECOMPUTE_CITIES]:
+        raise HTTPException(status_code=404, detail="Location not found")
+
     # Check cache
     cache_key = f"cheap_fuel_{location}"
     cached = _cache_get(cache_key)
