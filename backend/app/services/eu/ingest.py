@@ -32,7 +32,12 @@ async def upsert_eu_rows(rows: list[dict], db: AsyncSession) -> tuple[int, int]:
     deduped = list(seen.values())
 
     # Upsert stations first, get back id per (country, external_id).
-    station_keys = {(r["country"], r["external_id"]) for r in deduped}
+    # Price-only refresh rows (e.g. Germany's daily bulk price endpoint,
+    # which returns no station metadata) are excluded here — they still
+    # resolve to a station_id below via the station_id_map lookup, which
+    # queries eu_stations directly rather than depending on station_rows.
+    metadata_rows = [r for r in deduped if "name" in r]
+    station_keys = {(r["country"], r["external_id"]) for r in metadata_rows}
     station_rows = [
         {
             "external_id": ext_id,
@@ -48,31 +53,32 @@ async def upsert_eu_rows(rows: list[dict], db: AsyncSession) -> tuple[int, int]:
                     "longitude": r["longitude"],
                     "is_motorway": r.get("is_motorway", False),
                 }
-                for r in deduped
+                for r in metadata_rows
                 if r["external_id"] == ext_id and r["country"] == country
             ),
         }
         for country, ext_id in station_keys
     ]
 
-    await db.execute(
-        text("""
-            INSERT INTO eu_stations
-                (external_id, country, name, address, postcode, city, latitude, longitude, is_motorway)
-            VALUES
-                (:external_id, :country, :name, :address, :postcode, :city, :latitude, :longitude, :is_motorway)
-            ON CONFLICT (country, external_id) DO UPDATE SET
-                name     = EXCLUDED.name,
-                address  = EXCLUDED.address,
-                postcode = EXCLUDED.postcode,
-                city     = EXCLUDED.city,
-                latitude = EXCLUDED.latitude,
-                longitude = EXCLUDED.longitude,
-                is_motorway = EXCLUDED.is_motorway,
-                updated_at = now()
-        """),
-        station_rows,
-    )
+    if station_rows:
+        await db.execute(
+            text("""
+                INSERT INTO eu_stations
+                    (external_id, country, name, address, postcode, city, latitude, longitude, is_motorway)
+                VALUES
+                    (:external_id, :country, :name, :address, :postcode, :city, :latitude, :longitude, :is_motorway)
+                ON CONFLICT (country, external_id) DO UPDATE SET
+                    name     = EXCLUDED.name,
+                    address  = EXCLUDED.address,
+                    postcode = EXCLUDED.postcode,
+                    city     = EXCLUDED.city,
+                    latitude = EXCLUDED.latitude,
+                    longitude = EXCLUDED.longitude,
+                    is_motorway = EXCLUDED.is_motorway,
+                    updated_at = now()
+            """),
+            station_rows,
+        )
 
     stations_upserted = len(station_rows)
 

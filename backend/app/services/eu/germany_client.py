@@ -8,9 +8,13 @@ Two-phase approach:
 2. Daily price refresh: use bulk /prices.php endpoint (10 IDs per request)
    to refresh prices for stored stations.
 
-Rate limit: no meaningful limit found in testing (5 req/sec all succeeded).
+Rate limit: TK will 503 under sustained sequential load and can escalate to
+outright connection refusal (observed 16 July 2026 from the VPS IP after an
+unpaced ~140-batch run). Requests are now paced and the run aborts early on
+repeated consecutive failures rather than running to completion regardless.
 API key stored in settings.tankerkoenig_api_key.
 """
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -22,6 +26,10 @@ from app.services.eu.fuel_type_map import FUEL_TYPE_MAP
 logger = logging.getLogger(__name__)
 
 TK_BASE = "https://creativecommons.tankerkoenig.de/json"
+
+# Pacing / backoff for the bulk prices endpoint
+REQUEST_DELAY_SECONDS = 0.5
+MAX_CONSECUTIVE_FAILURES = 5
 
 # Corridor waypoints along main UK-traveller routes through Germany
 # Spaced ~40km apart — 25km radius queries overlap to avoid gaps
@@ -63,6 +71,7 @@ async def fetch_corridor_stations() -> list[dict]:
     """
     seen: set[str] = set()
     rows = []
+    consecutive_failures = 0
 
     async with httpx.AsyncClient(timeout=30) as client:
         for lat, lng in GERMANY_CORRIDORS:
@@ -77,6 +86,7 @@ async def fetch_corridor_stations() -> list[dict]:
                 })
                 resp.raise_for_status()
                 data = resp.json()
+                consecutive_failures = 0
 
                 if not data.get("ok"):
                     logger.warning("TK corridor query failed at %.3f,%.3f: %s", lat, lng, data.get("message"))
@@ -95,7 +105,6 @@ async def fetch_corridor_stations() -> list[dict]:
                     if not (LAT_MIN <= s_lat <= LAT_MAX and LON_MIN <= s_lng <= LON_MAX):
                         continue
 
-                    # Extract prices from list response
                     now = datetime.now(timezone.utc)
                     for fuel_raw, mapped in FUEL_TYPE_MAP["DE"].items():
                         if mapped is None:
@@ -124,6 +133,15 @@ async def fetch_corridor_stations() -> list[dict]:
 
             except Exception:
                 logger.exception("TK corridor query failed at %.3f,%.3f", lat, lng)
+                consecutive_failures += 1
+                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                    logger.error(
+                        "TK corridor seeding: %d consecutive failures — aborting early to avoid escalating a rate limit block",
+                        consecutive_failures,
+                    )
+                    break
+
+            await asyncio.sleep(REQUEST_DELAY_SECONDS)
 
     logger.info("TK corridor seeding complete: %d unique stations, %d price rows", len(seen), len(rows))
     return rows
@@ -133,10 +151,16 @@ async def fetch_corridor_prices(station_ids: list[str]) -> list[dict]:
     """
     Daily price refresh: fetch current prices for stored station UUIDs
     using the bulk /prices.php endpoint (10 IDs per request).
+
+    Paced with REQUEST_DELAY_SECONDS between batches, and aborts early if
+    MAX_CONSECUTIVE_FAILURES batches fail in a row rather than running through
+    the full ID list regardless — TK escalates from 503s to outright
+    connection refusal under sustained unpaced load (observed 16 July 2026).
     """
     rows = []
     now = datetime.now(timezone.utc)
     batch_size = 10
+    consecutive_failures = 0
 
     async with httpx.AsyncClient(timeout=30) as client:
         for i in range(0, len(station_ids), batch_size):
@@ -148,6 +172,7 @@ async def fetch_corridor_prices(station_ids: list[str]) -> list[dict]:
                 })
                 resp.raise_for_status()
                 data = resp.json()
+                consecutive_failures = 0
 
                 if not data.get("ok"):
                     logger.warning("TK prices batch failed: %s", data.get("message"))
@@ -172,6 +197,15 @@ async def fetch_corridor_prices(station_ids: list[str]) -> list[dict]:
 
             except Exception:
                 logger.exception("TK prices batch failed for batch starting %s", batch[0])
+                consecutive_failures += 1
+                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                    logger.error(
+                        "TK price refresh: %d consecutive batch failures — aborting early to avoid escalating a rate limit block. Processed %d/%d stations.",
+                        consecutive_failures, i, len(station_ids),
+                    )
+                    break
+
+            await asyncio.sleep(REQUEST_DELAY_SECONDS)
 
     logger.info("TK price refresh: %d price rows from %d stations", len(rows), len(station_ids))
     return rows
