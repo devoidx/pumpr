@@ -27,8 +27,16 @@ logger = logging.getLogger(__name__)
 
 TK_BASE = "https://creativecommons.tankerkoenig.de/json"
 
-# Pacing / backoff for the bulk prices endpoint
-REQUEST_DELAY_SECONDS = 1.5
+# Pacing / backoff for the bulk prices endpoint.
+# Confirmed via TK support (17 July 2026): free-tier key limit is a 40
+# request burst, then 1 request/minute steady state, per key. A full
+# refresh of ~1,064 stations (107 batches) therefore takes ~68 minutes:
+# ~40 batches at BURST_DELAY_SECONDS, then the remainder at
+# STEADY_STATE_DELAY_SECONDS. Do not reduce STEADY_STATE_DELAY_SECONDS
+# below 60 — this is TK's stated limit, not an empirically-tuned guess.
+BURST_LIMIT = 40
+BURST_DELAY_SECONDS = 1.5
+STEADY_STATE_DELAY_SECONDS = 60
 MAX_CONSECUTIVE_FAILURES = 5
 
 # Corridor waypoints along main UK-traveller routes through Germany
@@ -141,7 +149,7 @@ async def fetch_corridor_stations() -> list[dict]:
                     )
                     break
 
-            await asyncio.sleep(REQUEST_DELAY_SECONDS)
+            await asyncio.sleep(BURST_DELAY_SECONDS)
 
     logger.info("TK corridor seeding complete: %d unique stations, %d price rows", len(seen), len(rows))
     return rows
@@ -152,19 +160,24 @@ async def fetch_corridor_prices(station_ids: list[str]) -> list[dict]:
     Daily price refresh: fetch current prices for stored station UUIDs
     using the bulk /prices.php endpoint (10 IDs per request).
 
-    Paced with REQUEST_DELAY_SECONDS between batches, and aborts early if
-    MAX_CONSECUTIVE_FAILURES batches fail in a row rather than running through
-    the full ID list regardless — TK escalates from 503s to outright
-    connection refusal under sustained unpaced load (observed 16 July 2026).
+    Respects TK's confirmed free-tier limit: BURST_LIMIT requests at
+    BURST_DELAY_SECONDS spacing, then STEADY_STATE_DELAY_SECONDS between
+    each subsequent batch. Aborts early if MAX_CONSECUTIVE_FAILURES batches
+    fail in a row rather than running through the full ID list regardless.
+    A full run over ~107 batches takes roughly an hour — this is expected,
+    not a bug; do not shorten STEADY_STATE_DELAY_SECONDS to speed it up.
     """
     rows = []
     now = datetime.now(timezone.utc)
     batch_size = 10
     consecutive_failures = 0
+    total_batches = (len(station_ids) + batch_size - 1) // batch_size
 
     async with httpx.AsyncClient(timeout=30) as client:
-        for i in range(0, len(station_ids), batch_size):
+        for batch_num, i in enumerate(range(0, len(station_ids), batch_size), start=1):
             batch = station_ids[i:i + batch_size]
+            if batch_num % 10 == 0 or batch_num == total_batches:
+                logger.info("TK price refresh: batch %d/%d in progress", batch_num, total_batches)
             try:
                 resp = await client.get(f"{TK_BASE}/prices.php", params={
                     "ids": ",".join(batch),
@@ -205,7 +218,8 @@ async def fetch_corridor_prices(station_ids: list[str]) -> list[dict]:
                     )
                     break
 
-            await asyncio.sleep(REQUEST_DELAY_SECONDS)
+            delay = BURST_DELAY_SECONDS if batch_num <= BURST_LIMIT else STEADY_STATE_DELAY_SECONDS
+            await asyncio.sleep(delay)
 
     logger.info("TK price refresh: %d price rows from %d stations", len(rows), len(station_ids))
     return rows
