@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 TK_BASE = "https://creativecommons.tankerkoenig.de/json"
 
 # Pacing / backoff for the bulk prices endpoint
-REQUEST_DELAY_SECONDS = 0.5
+REQUEST_DELAY_SECONDS = 1.5
 MAX_CONSECUTIVE_FAILURES = 5
 
 # Corridor waypoints along main UK-traveller routes through Germany
