@@ -36,7 +36,7 @@ TK_BASE = "https://creativecommons.tankerkoenig.de/json"
 # below 60 — this is TK's stated limit, not an empirically-tuned guess.
 BURST_LIMIT = 40
 BURST_DELAY_SECONDS = 1.5
-STEADY_STATE_DELAY_SECONDS = 60
+STEADY_STATE_DELAY_SECONDS = 65
 MAX_CONSECUTIVE_FAILURES = 5
 
 # Corridor waypoints along main UK-traveller routes through Germany
