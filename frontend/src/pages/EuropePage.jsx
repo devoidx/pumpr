@@ -52,6 +52,21 @@ const SPAIN_CITIES = [
   { slug: 'marbella',   name: 'Marbella' },
 ]
 
+const GERMANY_CITIES = [
+  { slug: 'aachen',     name: 'Aachen' },
+  { slug: 'cologne',    name: 'Cologne' },
+  { slug: 'mainz',      name: 'Mainz' },
+  { slug: 'frankfurt',  name: 'Frankfurt' },
+  { slug: 'heidelberg', name: 'Heidelberg' },
+  { slug: 'karlsruhe',  name: 'Karlsruhe' },
+  { slug: 'freiburg',   name: 'Freiburg' },
+  { slug: 'stuttgart',  name: 'Stuttgart' },
+  { slug: 'munich',     name: 'Munich' },
+  { slug: 'hamburg',    name: 'Hamburg' },
+  { slug: 'hanover',    name: 'Hanover' },
+  { slug: 'kassel',     name: 'Kassel' },
+]
+
 export default function EuropePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -272,29 +287,72 @@ export default function EuropePage() {
         )}
       </div>
 
-      {/* Coming soon */}
-      <div style={{ marginBottom: '32px' }}>
-        <h2 style={{ color: 'var(--text2)', fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
-          Coming soon
-        </h2>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {[
-            { code: 'de', name: 'Germany' },
-          ].map(c => (
-            <div key={c.name} style={{
-              padding: '10px 16px',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '10px',
-              color: 'var(--text3)',
-              fontSize: '14px',
-              display: 'flex', alignItems: 'center', gap: '8px',
-            }}>
-              <span className={`fi fi-${c.code}`} style={{ width: '22px', height: '16px', borderRadius: '3px', display: 'inline-block' }} />
-              <span>{c.name}</span>
-            </div>
+      {/* Germany section */}
+      <div style={{ marginBottom: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <span className="fi fi-de" style={{ width: '24px', height: '18px', borderRadius: '3px', display: 'inline-block' }} />
+          <h2 style={{ color: 'var(--text)', fontSize: '18px', fontWeight: 700, margin: 0 }}>Germany</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px', marginBottom: '24px' }}>
+          {GERMANY_CITIES.map(city => (
+            <button
+              key={city.slug}
+              onClick={() => navigate(`/cheap-fuel/europe/de/${city.slug}`)}
+              style={{ padding: '12px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', fontSize: '14px', fontWeight: 500, cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--amber)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            >
+              {city.name}
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* Germany Pro map teaser */}
+      <div style={{ marginBottom: '40px' }}>
+        {isPro ? (
+          <button
+            onClick={() => navigate('/europe/map/de')}
+            style={{
+              width: '100%', padding: '16px',
+              background: 'rgba(245,166,35,0.1)',
+              border: '1px solid var(--amber)',
+              borderRadius: '12px', cursor: 'pointer',
+              color: 'var(--amber)', fontWeight: 700, fontSize: '14px',
+            }}
+          >
+            🗺 Open Germany fuel map →
+          </button>
+        ) : (
+          <div style={{
+            padding: '20px 24px',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '12px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: '16px', flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ color: 'var(--text)', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>
+                🗺 Interactive fuel map — Pumpr Pro
+              </div>
+              <div style={{ color: 'var(--text2)', fontSize: '13px' }}>
+                See all German stations on a live map. Search anywhere in Germany.
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/pro')}
+              style={{
+                padding: '10px 20px', background: 'var(--amber)',
+                color: '#000', fontWeight: 700, fontSize: '13px',
+                borderRadius: '8px', border: 'none', cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              Upgrade to Pro →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Data note */}

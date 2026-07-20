@@ -82,6 +82,21 @@ EU_CITIES: dict[str, dict[str, float | str]] = {
     "verona":            {"lat": 45.4328, "lon": 10.9818, "country": "IT", "name": "Verona"},
     "venice":            {"lat": 45.4818, "lon": 12.2541, "country": "IT", "name": "Venice"},
     "bari":              {"lat": 41.1085, "lon": 16.8629, "country": "IT", "name": "Bari"},
+    # Germany — coordinates match germany_client.py corridor waypoints exactly,
+    # so these are guaranteed to sit inside actual seeded station coverage
+    # (unlike the map's old default centroid, which sat in a coverage gap).
+    "aachen":     {"lat": 50.776, "lon": 6.084,  "country": "DE", "name": "Aachen"},
+    "cologne":    {"lat": 50.938, "lon": 6.960,  "country": "DE", "name": "Cologne"},
+    "mainz":      {"lat": 49.998, "lon": 8.274,  "country": "DE", "name": "Mainz"},
+    "frankfurt":  {"lat": 50.110, "lon": 8.682,  "country": "DE", "name": "Frankfurt"},
+    "heidelberg": {"lat": 49.494, "lon": 8.470,  "country": "DE", "name": "Heidelberg"},
+    "karlsruhe":  {"lat": 48.992, "lon": 8.403,  "country": "DE", "name": "Karlsruhe"},
+    "freiburg":   {"lat": 47.998, "lon": 7.842,  "country": "DE", "name": "Freiburg"},
+    "stuttgart":  {"lat": 48.775, "lon": 9.182,  "country": "DE", "name": "Stuttgart"},
+    "munich":     {"lat": 48.137, "lon": 11.575, "country": "DE", "name": "Munich"},
+    "hamburg":    {"lat": 53.550, "lon": 10.000, "country": "DE", "name": "Hamburg"},
+    "hanover":    {"lat": 52.375, "lon": 9.732,  "country": "DE", "name": "Hanover"},
+    "kassel":     {"lat": 51.512, "lon": 9.408,  "country": "DE", "name": "Kassel"},
 }
 
 RADIUS_KM = 25  # broader than UK 16km — city centres in France are more spread out
@@ -291,4 +306,3 @@ async def eu_nearby(
         "center": {"lat": lat, "lng": lng},
         "radius_km": radius_km,
     }
-# Italy cities added to EU_CITIES dict — paste after existing FR entries

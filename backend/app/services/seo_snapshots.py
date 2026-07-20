@@ -340,6 +340,10 @@ EU_SNAPSHOT_CITIES = {
         "paris", "reims", "le-havre", "caen", "rennes",
         "saint-malo", "bordeaux", "toulouse", "lyon", "nice", "marseille",
     ],
+    "DE": [
+        "aachen", "cologne", "mainz", "frankfurt", "heidelberg", "karlsruhe",
+        "freiburg", "stuttgart", "munich", "hamburg", "hanover", "kassel",
+    ],
 }
 
 

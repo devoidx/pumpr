@@ -8,6 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.services.seo_snapshots import EU_SNAPSHOT_CITIES
 
 router = APIRouter(tags=["sitemap"])
 
@@ -66,6 +67,24 @@ async def sitemap(db: AsyncSession = Depends(get_db)) -> Response:
     <lastmod>{now}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+  </url>""")
+
+    # Europe landing page
+    urls.append(f"""  <url>
+    <loc>{base}/europe</loc>
+    <lastmod>{now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>""")
+
+    # EU city pages (France, Italy, Spain, Germany)
+    for country, cities in EU_SNAPSHOT_CITIES.items():
+        for city in cities:
+            urls.append(f"""  <url>
+    <loc>{base}/cheap-fuel/europe/{country.lower()}/{city}</loc>
+    <lastmod>{now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
   </url>""")
 
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
