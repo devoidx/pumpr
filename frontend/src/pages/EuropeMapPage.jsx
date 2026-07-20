@@ -20,7 +20,7 @@ const FUEL_COLORS = { Diesel: '#3498db', E5: '#9b59b6', E10: '#2ecc71' }
 export default function EuropeMapPage() {
   const { country = 'fr' } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const isPro = user?.role === 'pro' || user?.role === 'admin'
 
   const countryName = COUNTRY_NAMES[country] || country.toUpperCase()
@@ -62,12 +62,15 @@ export default function EuropeMapPage() {
   const [chargers, setChargers] = useState([])
   const [showEV, setShowEV] = useState(false)
 
-  // Redirect non-Pro users
+  // Redirect non-Pro users — wait for auth resolution before judging isPro,
+  // since `user` is `null` (not `undefined`) both while loading and when
+  // genuinely logged out. Checking `user !== undefined` fired this redirect
+  // on every direct/fresh page load regardless of actual Pro status.
   useEffect(() => {
-    if (user !== undefined && !isPro) {
+    if (!loading && !isPro) {
       navigate('/pro')
     }
-  }, [user, isPro, navigate])
+  }, [loading, isPro, navigate])
 
   const fetchChargers = useCallback(async () => {
     if (!location?.lat || !showEV) { setChargers([]); return }
@@ -123,7 +126,8 @@ export default function EuropeMapPage() {
     }
   }
 
-  if (!isPro && user !== undefined) return null // redirecting
+  if (loading) return null // auth still resolving
+  if (!isPro) return null // redirecting
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
