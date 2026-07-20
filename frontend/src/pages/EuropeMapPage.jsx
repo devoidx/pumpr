@@ -20,7 +20,7 @@ const FUEL_COLORS = { Diesel: '#3498db', E5: '#9b59b6', E10: '#2ecc71' }
 export default function EuropeMapPage() {
   const { country = 'fr' } = useParams()
   const navigate = useNavigate()
-  const { user, loading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const isPro = user?.role === 'pro' || user?.role === 'admin'
 
   const countryName = COUNTRY_NAMES[country] || country.toUpperCase()
@@ -67,10 +67,10 @@ export default function EuropeMapPage() {
   // genuinely logged out. Checking `user !== undefined` fired this redirect
   // on every direct/fresh page load regardless of actual Pro status.
   useEffect(() => {
-    if (!loading && !isPro) {
+    if (!authLoading && !isPro) {
       navigate('/pro')
     }
-  }, [loading, isPro, navigate])
+  }, [authLoading, isPro, navigate])
 
   const fetchChargers = useCallback(async () => {
     if (!location?.lat || !showEV) { setChargers([]); return }
@@ -126,7 +126,7 @@ export default function EuropeMapPage() {
     }
   }
 
-  if (loading) return null // auth still resolving
+  if (authLoading) return null // auth still resolving
   if (!isPro) return null // redirecting
 
   return (
