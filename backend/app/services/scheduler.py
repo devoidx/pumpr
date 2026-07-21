@@ -199,6 +199,7 @@ def start_scheduler() -> None:
         scheduler.add_job(compute_price_patterns_job, trigger=CronTrigger(day_of_week="mon", hour=6, minute=0, timezone="Europe/London"), id="compute_price_patterns", replace_existing=True)
         scheduler.add_job(post_france_promo_job, trigger=CronTrigger(hour=9, minute=0, timezone="Europe/London"), id="post_france_promo", replace_existing=True, end_date="2026-09-05")
         scheduler.add_job(ingest_eu_job, trigger=CronTrigger(hour=5, minute=0, timezone="Europe/London"), id="ingest_eu", replace_existing=True)
+        scheduler.add_job(ingest_germany_job, trigger=CronTrigger(hour=5, minute=0, timezone="Europe/London"), id="ingest_germany", replace_existing=True)
 
     scheduler.start()
     logger.info(f"Scheduler started — social={enable_social} polling={enable_polling}")
@@ -404,13 +405,21 @@ async def fetch_ecb_rate_job() -> None:
 
 
 async def ingest_eu_job() -> None:
-    logger.info("Scheduler: starting EU price ingestion")
-    for name, coro in [("France", ingest_france()), ("Italy", ingest_italy()), ("Spain", ingest_spain()), ("Germany", ingest_germany())]:
+    """France + Italy + Spain only as of 21 July 2026 — Germany was pulled
+    into its own standalone job (ingest_germany_job, below) once its
+    station count tripled (1,064 -> 3,039, corridor-seeding gap fix,
+    21 July 2026) and a full refresh no longer fit safely in this shared
+    window. See germany_client.py's module docstring for full context."""
+    logger.info("Scheduler: starting EU price ingestion (France/Italy/Spain)")
+    for name, coro in [("France", ingest_france()), ("Italy", ingest_italy()), ("Spain", ingest_spain())]:
         try:
             await coro
         except Exception as e:
             logger.exception(f"Scheduler: {name} EU ingestion failed: {e}")
-    # Generate EU snapshots after ingestion completes
+    # Generate EU snapshots after ingestion completes. Also picks up
+    # whatever DE prices are currently in the DB from the separate
+    # ingest_germany_job — this call doesn't touch TK, so it's harmless
+    # to run regardless of Germany's own refresh timing.
     try:
         from app.services.seo_snapshots import (
             generate_eu_city_snapshots,
@@ -420,3 +429,26 @@ async def ingest_eu_job() -> None:
         await generate_europe_landing_snapshot()
     except Exception as e:
         logger.exception(f"Scheduler: EU snapshot generation failed: {e}")
+
+
+async def ingest_germany_job() -> None:
+    """Standalone job as of 21 July 2026 — see ingest_eu_job's docstring
+    and germany_client.py's module docstring for why this was split out.
+    Refreshes one rotating third of DE stations per run (see
+    germany_client.fetch_and_parse_germany), then regenerates EU snapshots
+    so the German city pages reflect today's refreshed prices."""
+    logger.info("Scheduler: starting Germany price ingestion (rotating batch)")
+    try:
+        await ingest_germany()
+    except Exception as e:
+        logger.exception(f"Scheduler: Germany EU ingestion failed: {e}")
+        return
+    try:
+        from app.services.seo_snapshots import (
+            generate_eu_city_snapshots,
+            generate_europe_landing_snapshot,
+        )
+        await generate_eu_city_snapshots()
+        await generate_europe_landing_snapshot()
+    except Exception as e:
+        logger.exception(f"Scheduler: EU snapshot generation failed after Germany ingest: {e}")

@@ -3,15 +3,27 @@ Client for Germany fuel prices via Tankerkönig (TK) API.
 Unlike France/Italy/Spain which have bulk feeds, TK is radius-based.
 
 Two-phase approach:
-1. Corridor seeding (one-time): query radius API along UK-traveller routes,
-   store station UUIDs in eu_stations.
-2. Daily price refresh: use bulk /prices.php endpoint (10 IDs per request)
-   to refresh prices for stored stations.
+1. Corridor seeding (one-time, but re-runnable — see fetch_corridor_stations):
+   query radius API along UK-traveller routes, store station UUIDs in eu_stations.
+2. Price refresh: use bulk /prices.php endpoint (10 IDs per request) to
+   refresh prices for stored stations. As of 21 July 2026 this is a ROTATING
+   THIRD, not a full daily refresh — see fetch_and_parse_germany(). Station
+   count roughly tripled (1,064 -> 3,039) after a corridor-seeding gap was
+   found and fixed 21 July 2026 (the original 18 July seed silently aborted
+   after 7 of 19 waypoints, leaving 8 of 12 published cities with zero
+   stations for three days without anyone noticing). A full refresh at that
+   scale would take ~5 hours against TK's rate limit, no longer fitting
+   safely in one scheduled window — hence the 3-way rotation, run as its
+   own standalone scheduler job (see scheduler.py: ingest_germany_job).
 
 Rate limit: TK will 503 under sustained sequential load and can escalate to
 outright connection refusal (observed 16 July 2026 from the VPS IP after an
 unpaced ~140-batch run). Requests are now paced and the run aborts early on
 repeated consecutive failures rather than running to completion regardless.
+Confirmed directly by TK support (17 July 2026): free-tier key limit is an
+nginx token bucket, 40-request burst then 1 request/minute steady state,
+shared across all endpoints on the key (list.php and prices.php both draw
+from the same bucket).
 API key stored in settings.tankerkoenig_api_key.
 """
 import asyncio
@@ -28,16 +40,19 @@ logger = logging.getLogger(__name__)
 TK_BASE = "https://creativecommons.tankerkoenig.de/json"
 
 # Pacing / backoff for the bulk prices endpoint.
-# Confirmed via TK support (17 July 2026): free-tier key limit is a 40
-# request burst, then 1 request/minute steady state, per key. A full
-# refresh of ~1,064 stations (107 batches) therefore takes ~68 minutes:
-# ~40 batches at BURST_DELAY_SECONDS, then the remainder at
-# STEADY_STATE_DELAY_SECONDS. Do not reduce STEADY_STATE_DELAY_SECONDS
-# below 60 — this is TK's stated limit, not an empirically-tuned guess.
+# TK's rate limit is fixed at their end (40 burst + 1/min) — do not reduce
+# STEADY_STATE_DELAY_SECONDS below 60, this is not an empirically-tuned
+# guess. With ~3,039 total DE stations split into 3 rotating groups
+# (~1,013 each), one day's refresh is ~102 batches — close to the
+# originally-validated 107-batch/~74-minute run (21 July 2026, zero
+# failures at 65s steady-state), so this pacing should hold without
+# further tuning. Do not attempt to refresh all stations in one run —
+# see fetch_and_parse_germany()'s rotation logic.
 BURST_LIMIT = 40
 BURST_DELAY_SECONDS = 1.5
 STEADY_STATE_DELAY_SECONDS = 65
 MAX_CONSECUTIVE_FAILURES = 5
+ROTATION_GROUPS = 3
 
 # Corridor waypoints along main UK-traveller routes through Germany
 # Spaced ~40km apart — 25km radius queries overlap to avoid gaps
@@ -227,28 +242,51 @@ async def fetch_corridor_prices(station_ids: list[str]) -> list[dict]:
 
 async def fetch_and_parse_germany() -> list[dict]:
     """
-    Called by ingest_eu_job. If DE stations exist in DB, refresh prices.
-    If not, run corridor seeding first.
+    Called by ingest_germany_job (its own standalone scheduler job as of
+    21 July 2026 — previously part of the shared ingest_eu_job, split out
+    once station count tripled and a full refresh no longer fit one window).
+
+    If DE stations exist in DB, refresh prices for TODAY'S ROTATION GROUP
+    ONLY (roughly 1/ROTATION_GROUPS of all stations) rather than the full
+    set — each station refreshes roughly once every ROTATION_GROUPS days,
+    not daily. If no DE stations exist at all, run corridor seeding first
+    (this also re-seeds correctly if re-run after a partial/aborted seed —
+    see fetch_corridor_stations, which upserts via ON CONFLICT DO UPDATE
+    so re-running against existing stations is always safe).
     """
+    from datetime import datetime, timezone
+
     from sqlalchemy import text
 
     from app.db.session import AsyncSessionLocal
 
     async with AsyncSessionLocal() as db:
         result = await db.execute(text(
-            "SELECT external_id FROM eu_stations WHERE country = 'DE'"
+            "SELECT id, external_id FROM eu_stations WHERE country = 'DE'"
         ))
-        station_ids = [row.external_id for row in result]
+        all_stations = [(row.id, row.external_id) for row in result]
 
-    if not station_ids:
+    if not all_stations:
         logger.info("germany_client: no DE stations found — running corridor seeding")
         return await fetch_corridor_stations()
 
-    logger.info("germany_client: refreshing prices for %d DE stations", len(station_ids))
+    # Stable rotation by day-of-year — no stored counter needed, survives
+    # container restarts, and any newly-seeded station just falls into
+    # whichever group its DB id naturally lands in.
+    today_group = datetime.now(timezone.utc).timetuple().tm_yday % ROTATION_GROUPS
+    todays_station_ids = [
+        ext_id for db_id, ext_id in all_stations
+        if db_id % ROTATION_GROUPS == today_group
+    ]
+
+    logger.info(
+        "germany_client: refreshing %d/%d DE stations (rotation group %d/%d)",
+        len(todays_station_ids), len(all_stations), today_group, ROTATION_GROUPS,
+    )
 
     # For price-only refresh we need to merge with existing station data
     # The bulk prices endpoint doesn't return station metadata
     # So we return price rows with only external_id + fuel_type + price_eur
     # ingest.py upsert will only update eu_latest_prices, not eu_stations
-    price_rows = await fetch_corridor_prices(station_ids)
+    price_rows = await fetch_corridor_prices(todays_station_ids)
     return price_rows

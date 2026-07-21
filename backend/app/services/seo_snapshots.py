@@ -361,11 +361,21 @@ def _render_eu_snapshot(country: str, city: str, data: dict) -> str:
 
     rate_line = f"£1 = €{(1 / eur_to_gbp):.4f}" if eur_to_gbp else ""
 
+    # Germany refreshes on a rotating 3-day cycle, not daily, as of 21 July
+    # 2026 (see germany_client.py) — the generic "updated daily" claim used
+    # for FR/IT/ES would be factually wrong on German SEO pages.
+    freshness_short = "updated daily" if country != "DE" else "refreshed on a rotating basis (most stations within 3 days)"
+    freshness_full = (
+        "Prices updated daily from official government data."
+        if country != "DE"
+        else "Prices refresh on a rotating basis — most German stations update within 3 days, due to API rate limits on the free data tier."
+    )
+
     title = f"Cheap Fuel in {city_name}, {country_name} — Prices for UK Travellers | Pumpr"
     description = (
         f"Petrol and diesel prices near {city_name}, {country_name} for UK drivers. "
         f"Diesel from €{diesel_min}/litre, Petrol (E5) from €{e5_min}/litre. "
-        f"Prices updated daily from official government data."
+        f"{freshness_full}"
     )
     canonical = f"https://pumpr.co.uk/cheap-fuel/europe/{country.lower()}/{city}"
     updated = datetime.utcnow().strftime("%d %B %Y %H:%M UTC")
@@ -412,7 +422,7 @@ def _render_eu_snapshot(country: str, city: str, data: dict) -> str:
 <body>
   <p><a href="https://pumpr.co.uk">⛽ Pumpr</a></p>
   <h1>Cheap Fuel in {city_name}, {country_name}</h1>
-  <p>Petrol and diesel prices for UK travellers near {city_name}. Updated daily from official government data.</p>
+  <p>Petrol and diesel prices for UK travellers near {city_name}. Prices {freshness_short} from official government data.</p>
   {f'<p class="rate">Exchange rate: {rate_line} (ECB daily reference rate)</p>' if rate_line else ''}
 
   <div>
