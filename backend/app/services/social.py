@@ -501,10 +501,10 @@ async def post_cheapest_by_county(fuel: str = "E10", dry_run: bool = False) -> l
 # refresh on 21 July 2026 (see handoff doc §14b), so it can no longer
 # claim "daily" without being factually wrong on a public post.
 EU_PROMO_DATA = {
-    "FR": {"flag": "🇫🇷", "name": "France",  "hashtag": "#France",  "freshness": "updated daily from official data"},
-    "IT": {"flag": "🇮🇹", "name": "Italy",   "hashtag": "#Italy",   "freshness": "updated daily from official data"},
-    "ES": {"flag": "🇪🇸", "name": "Spain",   "hashtag": "#Spain",   "freshness": "updated daily from official data"},
-    "DE": {"flag": "🇩🇪", "name": "Germany", "hashtag": "#Germany", "freshness": "refreshed regularly from official data"},
+    "FR": {"flag": "🇫🇷", "name": "France",  "adjective": "French",  "hashtag": "#France",  "freshness": "updated daily from official data"},
+    "IT": {"flag": "🇮🇹", "name": "Italy",   "adjective": "Italian", "hashtag": "#Italy",   "freshness": "updated daily from official data"},
+    "ES": {"flag": "🇪🇸", "name": "Spain",   "adjective": "Spanish", "hashtag": "#Spain",   "freshness": "updated daily from official data"},
+    "DE": {"flag": "🇩🇪", "name": "Germany", "adjective": "German",  "hashtag": "#Germany", "freshness": "refreshed regularly from official data"},
 }
 EU_PROMO_ORDER = ["FR", "IT", "ES", "DE"]
 
@@ -522,7 +522,7 @@ async def post_eu_promo(country: str | None = None, dry_run: bool = False) -> st
 
     post_text = (
         f"{data['flag']} Heading to {data['name']} this summer?\n\n"
-        f"Pumpr now shows petrol & diesel prices at {data['name']} stations "
+        f"Pumpr now shows petrol & diesel prices at {data['adjective']} stations "
         f"— in both EUR and GBP, {data['freshness']}.\n\n"
         "Perfect for Channel crossings, road trips & driving holidays 🚗⛽\n\n"
         "pumpr.co.uk/europe\n\n"
