@@ -496,24 +496,46 @@ async def post_cheapest_by_county(fuel: str = "E10", dry_run: bool = False) -> l
     return posted
 
 
-async def post_france_promo(dry_run: bool = False) -> str:
-    """Seasonal promotional post for Pumpr's France fuel prices feature."""
-    text = (
-        "🇫🇷 Heading to France this summer?\n\n"
-        "Pumpr now shows petrol & diesel prices at French stations "
-        "— in both EUR and GBP, updated daily from official data.\n\n"
+# Country data for the rotating EU promo post. Freshness claim matches
+# seo_snapshots.py's per-country logic — Germany moved to a 3-day rotating
+# refresh on 21 July 2026 (see handoff doc §14b), so it can no longer
+# claim "daily" without being factually wrong on a public post.
+EU_PROMO_DATA = {
+    "FR": {"flag": "🇫🇷", "name": "France",  "hashtag": "#France",  "freshness": "updated daily from official data"},
+    "IT": {"flag": "🇮🇹", "name": "Italy",   "hashtag": "#Italy",   "freshness": "updated daily from official data"},
+    "ES": {"flag": "🇪🇸", "name": "Spain",   "hashtag": "#Spain",   "freshness": "updated daily from official data"},
+    "DE": {"flag": "🇩🇪", "name": "Germany", "hashtag": "#Germany", "freshness": "refreshed regularly from official data"},
+}
+EU_PROMO_ORDER = ["FR", "IT", "ES", "DE"]
+
+
+async def post_eu_promo(country: str | None = None, dry_run: bool = False) -> str:
+    """Seasonal promotional post for Pumpr's EU fuel prices feature.
+    Rotates through France/Italy/Spain/Germany by ISO week number if no
+    country is explicitly given — see scheduler.py's post_eu_promo_job.
+    Replaces the old France-only post_france_promo (renamed 21 July 2026
+    once Italy/Spain/Germany were also live and worth promoting)."""
+    if country is None:
+        week = datetime.utcnow().isocalendar()[1]
+        country = EU_PROMO_ORDER[week % len(EU_PROMO_ORDER)]
+    data = EU_PROMO_DATA[country]
+
+    post_text = (
+        f"{data['flag']} Heading to {data['name']} this summer?\n\n"
+        f"Pumpr now shows petrol & diesel prices at {data['name']} stations "
+        f"— in both EUR and GBP, {data['freshness']}.\n\n"
         "Perfect for Channel crossings, road trips & driving holidays 🚗⛽\n\n"
         "pumpr.co.uk/europe\n\n"
-        "#France #DrivingHoliday #UKTravel #FuelPrices #Pumpr"
+        f"{data['hashtag']} #DrivingHoliday #UKTravel #FuelPrices #Pumpr"
     )
-    logger.info(f"France promo post:\n{text}")
+    logger.info(f"{data['name']} promo post:\n{post_text}")
     if not dry_run:
         try:
             client = _bsky_client()
-            client.send_post(text=text)
-            logger.info("Posted France promo to Bluesky")
+            client.send_post(text=post_text)
+            logger.info(f"Posted {data['name']} promo to Bluesky")
         except Exception as e:
             logger.error(f"Bluesky post failed: {e}")
-        _mastodon_post(text)
-        _threads_post(text)
-    return text
+        _mastodon_post(post_text)
+        _threads_post(post_text)
+    return post_text

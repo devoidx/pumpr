@@ -10,7 +10,7 @@ from app.services.eu.ingest import ingest_france, ingest_germany, ingest_italy, 
 from app.services.ingestion import ingest_prices, sync_stations
 from app.services.price_patterns import compute_price_day_patterns, compute_station_price_patterns
 from app.services.retention import apply_retention_policy
-from app.services.social import post_france_promo
+from app.services.social import post_eu_promo
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +197,7 @@ def start_scheduler() -> None:
         scheduler.add_job(run_retention, trigger=CronTrigger(hour=3, minute=0, timezone="Europe/London"), id="retention",   replace_existing=True)
         scheduler.add_job(fetch_ecb_rate_job, trigger=CronTrigger(hour=4, minute=0, timezone="Europe/London"), id="fetch_ecb_rate", replace_existing=True)
         scheduler.add_job(compute_price_patterns_job, trigger=CronTrigger(day_of_week="mon", hour=6, minute=0, timezone="Europe/London"), id="compute_price_patterns", replace_existing=True)
-        scheduler.add_job(post_france_promo_job, trigger=CronTrigger(hour=9, minute=0, timezone="Europe/London"), id="post_france_promo", replace_existing=True, end_date="2026-09-05")
+        scheduler.add_job(post_eu_promo_job, trigger=CronTrigger(hour=9, minute=0, timezone="Europe/London"), id="post_eu_promo", replace_existing=True, end_date="2026-09-05")
         scheduler.add_job(ingest_eu_job, trigger=CronTrigger(hour=5, minute=0, timezone="Europe/London"), id="ingest_eu", replace_existing=True)
         scheduler.add_job(ingest_germany_job, trigger=CronTrigger(hour=5, minute=0, timezone="Europe/London"), id="ingest_germany", replace_existing=True)
 
@@ -376,11 +376,14 @@ async def check_price_alerts_job() -> None:
         logger.error(f"Scheduler: price alert check failed: {e}")
 
 
-async def post_france_promo_job() -> None:
+async def post_eu_promo_job() -> None:
+    """Renamed 21 July 2026 from post_france_promo_job — now rotates
+    through France/Italy/Spain/Germany by week number rather than posting
+    France only. See social.py's EU_PROMO_DATA/EU_PROMO_ORDER."""
     try:
-        await post_france_promo(dry_run=False)
+        await post_eu_promo(dry_run=False)
     except Exception as e:
-        logger.error(f"Scheduler: France promo post failed: {e}")
+        logger.error(f"Scheduler: EU promo post failed: {e}")
 
 
 async def compute_price_patterns_job() -> None:
