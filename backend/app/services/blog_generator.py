@@ -188,7 +188,20 @@ Requirements:
                 enable_social = os.getenv("ENABLE_SOCIAL_POSTS", "false").lower() == "true"
                 if enable_social:
                     post_url = f"https://pumpr.co.uk/blog/{post.slug}"
-                    social_text = f"📊 {post.title}\n\n{post.summary}\n\n{post_url}\n\n#UKFuel #FuelPrices #Pumpr"
+                    hashtags = "#UKFuel #FuelPrices #Pumpr"
+                    fixed_len = len(f"📊 \n\n\n\n{post_url}\n\n{hashtags}")
+                    budget = 300 - fixed_len
+                    title_part = post.title
+                    summary_part = post.summary
+                    if len(title_part) + len(summary_part) > budget:
+                        summary_budget = max(0, budget - len(title_part) - 1)
+                        summary_part = summary_part[:summary_budget].rstrip()
+                        if summary_part and len(summary_part) < len(post.summary):
+                            summary_part = summary_part.rstrip('.,;: ') + "…"
+                        if len(title_part) + len(summary_part) > budget:
+                            title_part = title_part[:max(0, budget - 1)].rstrip() + "…"
+                            summary_part = ""
+                    social_text = f"📊 {title_part}\n\n{summary_part}\n\n{post_url}\n\n{hashtags}".replace("\n\n\n\n", "\n\n")
                     try:
                         bsky = _bsky_client()
                         bsky.send_post(text=social_text)
