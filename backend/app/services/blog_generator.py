@@ -33,10 +33,11 @@ async def _fetch_gov_csv() -> list[dict]:
         # Fetch the stats page to find the current CSV URL
         page = await client.get(GOV_STATS_PAGE)
         page.raise_for_status()
-        match = _re.search(r'https://assets\.publishing\.service\.gov\.uk/[^"]+weekly_road_fuel_prices_\d+\.csv', page.text)
-        if not match:
-            raise ValueError("Could not find CSV URL on GOV.UK stats page")
-        csv_url = match.group(0)
+        candidates = _re.findall(r'https://assets\.publishing\.service\.gov\.uk/media/[^"]+\.csv', page.text)
+        candidates = [c for c in candidates if "2003_to_2017" not in c]
+        if not candidates:
+            raise ValueError("Could not find current CSV URL on GOV.UK stats page")
+        csv_url = candidates[0]
         logger.info(f"Found CSV URL: {csv_url}")
         resp = await client.get(csv_url)
         resp.raise_for_status()
