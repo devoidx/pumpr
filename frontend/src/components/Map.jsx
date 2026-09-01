@@ -271,7 +271,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
           return `
             <div style="padding:6px 4px;min-width:200px;max-width:240px;">
               <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
-                <div style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;text-transform:uppercase;">${s.brand||''}</div>
+                <div style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;text-transform:uppercase;display:flex;align-items:center;gap:5px;">${s.brand||''}${s.membership_required ? '<span style="font-size:9px;padding:1px 4px;border-radius:2px;background:#f0ad4e;color:#fff;">MEMBERS ONLY</span>' : ''}</div>
                 ${distDisplay ? `<div style="font-size:11px;color:#aaa;">${distDisplay}</div>` : ''}
               </div>
               <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:6px;line-height:1.3;">${s.station_name}</div>

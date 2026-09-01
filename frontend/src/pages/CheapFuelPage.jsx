@@ -140,7 +140,7 @@ export default function CheapFuelPage() {
                   }}>#{i+1}</span>
                   {logo && <img src={logo} style={{width:'20px', height:'20px', objectFit:'contain', borderRadius:'3px', background:'#fff', padding:'1px', flexShrink:0}} />}
                   <div style={{minWidth:0}}>
-                    <div style={{fontWeight:600, color:'var(--text)', fontSize:'14px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.name}</div>
+                    <div style={{fontWeight:600, color:'var(--text)', fontSize:'14px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', display:'flex', alignItems:'center', gap:'6px'}}>{s.name}{s.membership_required && <span style={{fontSize:'10px', padding:'1px 5px', borderRadius:'3px', background:'#f0ad4e', color:'#fff', flexShrink:0}}>Members only</span>}</div>
                     <div style={{fontSize:'12px', color:'var(--text3)', fontFamily:'var(--font-mono)'}}>
                       {s.postcode} · {(s.distance_km * 0.621371).toFixed(1)} mi
                       {s.is_motorway && ' · Motorway'}
