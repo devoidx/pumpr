@@ -61,7 +61,7 @@ export default function EUMap({ stations = [], chargers = [], showChargers = fal
       zoom: center.zoom || 8,
       zoomControl: true,
     })
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${import.meta.env.VITE_CARTO_API_KEY}', {
+    L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${import.meta.env.VITE_CARTO_API_KEY}`, {
       maxZoom: 19,
       keepBuffer: 4,
       updateWhenIdle: false,
