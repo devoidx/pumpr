@@ -34,6 +34,7 @@ class StationOut(BaseModel):
     is_motorway: bool = False
     is_supermarket: bool = False
     temporary_closure: bool = False
+    membership_required: bool = False
     amenities: list | None = None
     fuel_types: list | None = None
     latest_prices: list[StationLatestPrices] = []

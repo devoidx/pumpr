@@ -13,6 +13,7 @@ from app.schemas.schemas import (
     StationLatestPrices,
     StationOut,
 )
+from app.services.membership_brands import brand_requires_membership, get_membership_required_names
 from app.services.opening_hours import get_week_hours, is_open_now
 
 router = APIRouter(prefix="/stations", tags=["stations"])
@@ -53,6 +54,7 @@ async def list_stations(
     result = await db.execute(stmt)
     stations = result.scalars().all()
 
+    membership_names = await get_membership_required_names(db)
     out = []
     for station in stations:
         latest = await _get_latest_prices(db, station.id)
@@ -73,6 +75,7 @@ async def list_stations(
                 is_motorway=station.is_motorway or False,
                 is_supermarket=station.is_supermarket or False,
                 temporary_closure=station.temporary_closure or False,
+                membership_required=brand_requires_membership(station.brand, membership_names),
                 amenities=station.amenities,
                 fuel_types=station.fuel_types,
                 latest_prices=latest,
@@ -109,6 +112,7 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
         "id": station.id,
         "name": station.name,
         "brand": station.brand,
+        "membership_required": brand_requires_membership(station.brand, await get_membership_required_names(db)),
         "operator": station.operator,
         "address": station.address,
         "postcode": station.postcode,

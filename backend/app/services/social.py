@@ -155,6 +155,11 @@ async def _get_uk_averages() -> list[dict]:
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
               AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
             GROUP BY fuel_type
             ORDER BY fuel_type
@@ -177,6 +182,11 @@ async def _get_cheapest_uk(fuel: str) -> dict | None:
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
                   AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
             )
             SELECT s.name, s.postcode, s.county, s.country, l.price_pence
@@ -184,6 +194,11 @@ async def _get_cheapest_uk(fuel: str) -> dict | None:
             JOIN stations s ON l.station_id = s.id
             CROSS JOIN national_avg
             WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
               AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
               AND l.price_pence >= (national_avg.avg_price - 15)
             ORDER BY l.price_pence ASC
@@ -216,6 +231,11 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
                   AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
                 GROUP BY s.country
@@ -226,6 +246,11 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
                 JOIN stations s ON l.station_id = s.id
                 JOIN national_avg na ON s.country = na.country
                 WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
                   AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
                   AND l.price_pence >= (na.avg_price - 15)
@@ -237,6 +262,11 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.country = rm.region AND l.price_pence = rm.min_price
             WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
             AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
             ORDER BY s.country, l.price_pence
         """), {"fuel": fuel})
@@ -393,6 +423,11 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
                   AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
                 GROUP BY s.country
@@ -403,6 +438,11 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
                 JOIN stations s ON l.station_id = s.id
                 JOIN national_avg na ON s.country = na.country
                 WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
                 AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
                   AND s.county IS NOT NULL AND s.county != ''
                   AND s.country IN ('England', 'Scotland', 'Wales', 'Northern Ireland')
@@ -420,6 +460,11 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.county = rm.region AND l.price_pence = rm.min_price
             WHERE s.permanent_closure = FALSE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM brands b
+                      WHERE b.membership_required = TRUE
+                        AND s.brand ILIKE '%' || b.name || '%'
+                  )
             AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
               AND s.county IS NOT NULL AND s.county != ''
             ORDER BY s.county, RANDOM()
