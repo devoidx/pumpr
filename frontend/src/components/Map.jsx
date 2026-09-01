@@ -96,7 +96,7 @@ export default function Map({ stations = [], chargers = [], center, selectedId, 
       zoom: initialZoom,
       zoomControl: true,
     })
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${import.meta.env.VITE_CARTO_API_KEY}', {
       maxZoom: 19,
       keepBuffer: 4,
       updateWhenIdle: false,
