@@ -10,6 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import AsyncSessionLocal, get_db
+from app.services.membership_brands import brand_requires_membership, get_membership_required_names
 
 PRECOMPUTE_CITIES = [
     "london", "manchester", "birmingham", "leeds", "glasgow", "liverpool",
@@ -107,6 +108,8 @@ async def cheap_fuel_location(
     lat_margin = radius_km / 111.0
     lng_margin = radius_km / (111.0 * math.cos(math.radians(lat)))
 
+    membership_names = await get_membership_required_names(db)
+
     async def fetch_fuel(fuel: str) -> tuple:
         async with AsyncSessionLocal() as fuel_db:
             result = await fuel_db.execute(text("""
@@ -147,6 +150,7 @@ async def cheap_fuel_location(
                     "station_id": row.station_id,
                     "name": row.name,
                     "brand": row.brand,
+                    "membership_required": brand_requires_membership(row.brand, membership_names),
                     "address": row.address,
                     "postcode": row.postcode,
                     "latitude": row.latitude,

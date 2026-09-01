@@ -11,6 +11,7 @@ from app.core.limiter import limiter
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.schemas import StatsOut
+from app.services.membership_brands import brand_requires_membership, get_membership_required_names
 from app.services.osrm import get_driving_distances
 
 router = APIRouter(prefix="/prices", tags=["prices"])
@@ -176,6 +177,7 @@ async def get_cheapest(
 
     result = await db.execute(sql, params)
     rows = result.fetchall()
+    membership_names = await get_membership_required_names(db)
 
     output = []
     for row in rows:
@@ -190,6 +192,7 @@ async def get_cheapest(
             "station_id": row.station_id,
             "station_name": row.name,
             "brand": row.brand,
+            "membership_required": brand_requires_membership(row.brand, membership_names),
             "address": row.address,
             "postcode": row.postcode,
             "latitude": row.latitude,
