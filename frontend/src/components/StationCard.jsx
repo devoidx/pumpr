@@ -42,6 +42,7 @@ export default function StationCard({ station: s, rank, isSelected, isHovered, o
         </div>
         <div className="card-meta">
           {s.brand && <span className="card-brand">{s.brand}</span>}
+          {s.membership_required && <span className="card-membership-badge" title="Membership required" style={{fontSize:'10px', padding:'1px 5px', borderRadius:'3px', background:'#f0ad4e', color:'#fff', flexShrink:0}}>Members only</span>}
           {s.brand && s.postcode && <span className="card-dot">·</span>}
           {s.postcode && <span>{s.postcode}</span>}
           {s.driving_km != null && useDriving ? (

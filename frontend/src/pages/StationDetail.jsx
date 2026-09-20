@@ -137,6 +137,7 @@ export default function StationDetail() {
                 <span className="detail-brand" style={{display:'flex', alignItems:'center', gap:'6px'}}>
                   {brandLogo && <img src={brandLogo} alt={station.brand} style={{width:'24px', height:'24px', objectFit:'contain', borderRadius:'4px', background:'#fff', padding:'2px'}} />}
                   {station.brand}
+                  {station.membership_required && <span className="detail-membership-badge" title="Membership required" style={{fontSize:'11px', padding:'2px 8px', borderRadius:'4px', background:'#f0ad4e', color:'#fff', marginLeft:'6px'}}>Members only</span>}
                 </span>
               )}
               {station.is_motorway && <span className="detail-tag detail-tag-motorway">Motorway</span>}

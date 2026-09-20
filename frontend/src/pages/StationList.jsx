@@ -148,6 +148,9 @@ export default function StationList() {
                 {s.brand && (
                   <Badge mb={2} fontSize="xs">{s.brand}</Badge>
                 )}
+                {s.membership_required && (
+                  <Badge mb={2} ml={1} fontSize="xs" colorScheme="orange">Members only</Badge>
+                )}
                 <Text fontSize="xs" color="fg.muted" mb={3}>
                   {s.address} {s.postcode} {s.distance_km && `· ${s.distance_km}km`}
                 </Text>
