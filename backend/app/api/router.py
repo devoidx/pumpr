@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.endpoints import (
+    admin_brand_stats,
     alerts,
     auth,
     blog,
@@ -20,6 +21,7 @@ from app.api.endpoints import (
 )
 
 api_router = APIRouter()
+api_router.include_router(admin_brand_stats.router)
 api_router.include_router(eu_locations.router)
 api_router.include_router(auth.router)
 api_router.include_router(stripe_routes.router)
