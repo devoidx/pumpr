@@ -179,29 +179,46 @@ async def compute_market_intelligence() -> dict:
         regional.sort(key=lambda x: x.get("E10", 999))
 
         # ── Brand league table ─────────────────────────────────────────────
+        # NOTE: staleness/freshness must key off latest_prices.source_updated_at
+        # (when the upstream feed last actually changed the price), never
+        # recorded_at (when Pumpr's own poller last wrote the row — this
+        # updates every 30 min regardless of whether the price changed, so
+        # using it here silently reports 100% freshness on frozen stations).
+        # Canonicalize brand via LATERAL match against the curated brands table —
+        # stations.brand is free text with inconsistent suffixes/variants (see
+        # membership_brands.py for the same pattern), so raw GROUP BY s.brand
+        # silently splits one real brand into several tiny fragments (e.g.
+        # "CARNAGH HOUSE VALERO" / "TEXACO/VALERO" / "VALERO" as 3 rows).
+        # Falls back to the raw string for anything with no curated match.
         brand_result = await db.execute(text("""
             SELECT
-                s.brand,
-                ph.fuel_type,
-                ROUND(AVG(ph.price_pence)::numeric, 2) as avg_price,
-                COUNT(DISTINCT ph.station_id) as station_count,
+                COALESCE(b.display_name, s.brand) as brand,
+                lp.fuel_type,
+                ROUND(AVG(lp.price_pence)::numeric, 2) as avg_price,
+                COUNT(DISTINCT lp.station_id) as station_count,
                 ROUND(
-                    100.0 * COUNT(CASE WHEN ph.recorded_at >= NOW() - INTERVAL '7 days' THEN 1 END)::numeric
+                    100.0 * COUNT(CASE WHEN lp.source_updated_at >= NOW() - INTERVAL '7 days' THEN 1 END)::numeric
                     / COUNT(*)::numeric, 1
-                ) as update_rate_7d
-            FROM (
-                SELECT DISTINCT ON (station_id, fuel_type)
-                    station_id, fuel_type, price_pence, recorded_at
-                FROM price_history
-                WHERE fuel_type = ANY(:fuels)
-                  AND price_flagged = false
-                  AND price_pence BETWEEN 50 AND 350
-                ORDER BY station_id, fuel_type, recorded_at DESC
-            ) ph
-            JOIN stations s ON ph.station_id = s.id
-            WHERE s.brand IS NOT NULL
-            GROUP BY s.brand, ph.fuel_type
-            HAVING COUNT(DISTINCT ph.station_id) >= 5
+                ) as update_rate_7d,
+                ROUND(
+                    100.0 * COUNT(CASE WHEN lp.source_updated_at < NOW() - INTERVAL '21 days' THEN 1 END)::numeric
+                    / COUNT(*)::numeric, 1
+                ) as stale_rate_21d
+            FROM latest_prices lp
+            JOIN stations s ON lp.station_id = s.id
+            LEFT JOIN LATERAL (
+                SELECT display_name FROM brands
+                WHERE s.brand ILIKE '%' || name || '%'
+                ORDER BY LENGTH(name) DESC
+                LIMIT 1
+            ) b ON true
+            WHERE lp.fuel_type = ANY(:fuels)
+              AND lp.price_flagged = false
+              AND lp.price_pence BETWEEN 50 AND 350
+              AND s.brand IS NOT NULL
+              AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+            GROUP BY COALESCE(b.display_name, s.brand), lp.fuel_type
+            HAVING COUNT(DISTINCT lp.station_id) >= 5
         """), {"fuels": ["E10", "B7"]})
 
         brand_data: dict = {}
@@ -211,6 +228,7 @@ async def compute_market_intelligence() -> dict:
             brand_data[row.brand][row.fuel_type] = float(row.avg_price)
             brand_data[row.brand][f"{row.fuel_type}_stations"] = int(row.station_count)
             brand_data[row.brand]["update_rate_7d"] = float(row.update_rate_7d)
+            brand_data[row.brand]["stale_rate_21d"] = float(row.stale_rate_21d)
 
         # Add vs national average
         nat_e10 = national.get("E10", {}).get("avg", 0)
