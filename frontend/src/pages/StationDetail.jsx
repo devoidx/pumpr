@@ -138,6 +138,7 @@ export default function StationDetail() {
                   {brandLogo && <img src={brandLogo} alt={station.brand} style={{width:'24px', height:'24px', objectFit:'contain', borderRadius:'4px', background:'#fff', padding:'2px'}} />}
                   {station.brand}
                   {station.membership_required && <span className="detail-membership-badge" title="Membership required" style={{fontSize:'11px', padding:'2px 8px', borderRadius:'4px', background:'#f0ad4e', color:'#fff', marginLeft:'6px'}}>Members only</span>}
+                  {station.brand_contacted && <span className="detail-contacted-badge" title={`Flagged with ${station.brand} on ${new Date(station.brand_contacted_at).toLocaleDateString('en-GB')}`} style={{fontSize:'11px', padding:'2px 8px', borderRadius:'4px', background:'#3b82f6', color:'#fff', marginLeft:'6px'}}>Reported to {station.brand}</span>}
                 </span>
               )}
               {station.is_motorway && <span className="detail-tag detail-tag-motorway">Motorway</span>}

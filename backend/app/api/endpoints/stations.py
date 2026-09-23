@@ -105,6 +105,17 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
         raise HTTPException(status_code=404, detail="Station not found")
     latest = await _get_latest_prices(db, station_id)
 
+    contact_result = await db.execute(
+        text("""
+            SELECT contacted_at FROM station_reporting_contacts
+            WHERE station_id = :station_id AND resolved_at IS NULL
+            ORDER BY contacted_at DESC
+            LIMIT 1
+        """),
+        {"station_id": station_id},
+    )
+    contact_row = contact_result.fetchone()
+
     open_now = is_open_now(station.opening_times)
     week_hours = get_week_hours(station.opening_times)
 
@@ -113,6 +124,8 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
         "name": station.name,
         "brand": station.brand,
         "membership_required": brand_requires_membership(station.brand, await get_membership_required_names(db)),
+        "brand_contacted": contact_row is not None,
+        "brand_contacted_at": contact_row.contacted_at.isoformat() if contact_row else None,
         "operator": station.operator,
         "address": station.address,
         "postcode": station.postcode,
