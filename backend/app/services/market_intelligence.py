@@ -415,3 +415,58 @@ async def run_market_intelligence_job() -> None:
         logger.info(f"Market intelligence stored for {today}")
     except Exception as e:
         logger.error(f"Market intelligence job failed: {e}")
+
+
+
+async def compute_brand_stats() -> list[dict]:
+    """Lightweight brand league table — staleness metrics only, no national/
+    regional/postcode-sector computation. compute_market_intelligence() does
+    all of that in one function and was taking ~19s on production because its
+    national-average query hits price_history (tens of millions of rows) with
+    a DISTINCT ON requiring a full sort; the admin brand-stats page only ever
+    needed this section, so it's split out to skip that entirely.
+    """
+    async with AsyncSessionLocal() as db:
+        brand_result = await db.execute(text("""
+            SELECT
+                COALESCE(b.display_name, s.brand) as brand,
+                lp.fuel_type,
+                ROUND(AVG(lp.price_pence)::numeric, 2) as avg_price,
+                COUNT(DISTINCT lp.station_id) as station_count,
+                ROUND(
+                    100.0 * COUNT(CASE WHEN lp.source_updated_at >= NOW() - INTERVAL '7 days' THEN 1 END)::numeric
+                    / COUNT(*)::numeric, 1
+                ) as update_rate_7d,
+                ROUND(
+                    100.0 * COUNT(CASE WHEN lp.source_updated_at < NOW() - INTERVAL '21 days' THEN 1 END)::numeric
+                    / COUNT(*)::numeric, 1
+                ) as stale_rate_21d
+            FROM latest_prices lp
+            JOIN stations s ON lp.station_id = s.id
+            LEFT JOIN LATERAL (
+                SELECT display_name FROM brands
+                WHERE s.brand ILIKE '%' || name || '%'
+                ORDER BY LENGTH(name) DESC
+                LIMIT 1
+            ) b ON true
+            WHERE lp.fuel_type = ANY(:fuels)
+              AND lp.price_flagged = false
+              AND lp.price_pence BETWEEN 50 AND 350
+              AND s.brand IS NOT NULL
+              AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+            GROUP BY COALESCE(b.display_name, s.brand), lp.fuel_type
+            HAVING COUNT(DISTINCT lp.station_id) >= 5
+        """), {"fuels": ["E10", "B7"]})
+
+        brand_data: dict = {}
+        for row in brand_result.fetchall():
+            if row.brand not in brand_data:
+                brand_data[row.brand] = {"brand": row.brand}
+            brand_data[row.brand][row.fuel_type] = float(row.avg_price)
+            brand_data[row.brand][f"{row.fuel_type}_stations"] = int(row.station_count)
+            brand_data[row.brand]["update_rate_7d"] = float(row.update_rate_7d)
+            brand_data[row.brand]["stale_rate_21d"] = float(row.stale_rate_21d)
+
+        brands = list(brand_data.values())
+        brands.sort(key=lambda x: x.get("stale_rate_21d", 0), reverse=True)
+        return brands

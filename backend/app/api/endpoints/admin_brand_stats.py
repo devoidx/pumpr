@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import require_admin
 from app.db.session import get_db
 from app.models.user import User
-from app.services.market_intelligence import compute_market_intelligence
+from app.services.market_intelligence import compute_brand_stats
 
 
 class ContactIn(BaseModel):
@@ -31,16 +31,11 @@ async def get_brand_stats(
 ) -> dict:
     """Brand league table with staleness metrics (admin only).
 
-    Reuses compute_market_intelligence()'s brand computation rather than a
-    parallel query — same canonicalized brand grouping, same
-    source_updated_at-based freshness/staleness figures.
+    Uses the lightweight compute_brand_stats() (not the full
+    compute_market_intelligence(), which was taking ~19s on production due
+    to an expensive national-average query this endpoint never needed).
     """
-    data = await compute_market_intelligence()
-    brands = sorted(
-        data["brands"],
-        key=lambda b: b.get("stale_rate_21d", 0),
-        reverse=True,
-    )
+    brands = await compute_brand_stats()
     return {"brands": brands}
 
 
