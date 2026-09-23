@@ -15,6 +15,12 @@ class ContactIn(BaseModel):
     station_id: str
     note: str | None = Field(None, max_length=2000)
 
+
+class BrandContactEmailIn(BaseModel):
+    brand_name: str
+    contact_email: str | None = Field(None, max_length=255)
+    notes: str | None = Field(None, max_length=2000)
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin/brand-stats", tags=["admin"])
 
@@ -173,3 +179,41 @@ async def get_brand_contact_status(
         "note": row.note,
         "resolved_at": row.resolved_at.isoformat() if row.resolved_at else None,
     }
+
+
+@router.get("/contacts")
+async def list_brand_contacts(
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """All brand contact records (admin only)."""
+    result = await db.execute(
+        text("SELECT brand_name, contact_email, notes FROM brand_contacts ORDER BY brand_name")
+    )
+    contacts = [dict(row._mapping) for row in result.fetchall()]
+    return {"contacts": contacts}
+
+
+@router.put("/contacts")
+async def upsert_brand_contact(
+    payload: BrandContactEmailIn,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Create or update a brand's contact email (admin only)."""
+    result = await db.execute(
+        text("""
+            INSERT INTO brand_contacts (brand_name, contact_email, notes)
+            VALUES (:brand_name, :contact_email, :notes)
+            ON CONFLICT (brand_name) DO UPDATE
+            SET contact_email = EXCLUDED.contact_email,
+                notes = EXCLUDED.notes
+            RETURNING brand_name, contact_email, notes
+        """),
+        {"brand_name": payload.brand_name, "contact_email": payload.contact_email, "notes": payload.notes},
+    )
+    row = result.fetchone()
+    assert row is not None
+    await db.commit()
+    logger.info(f"Brand contact upserted: {payload.brand_name} by {admin.email}")
+    return dict(row._mapping)

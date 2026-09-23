@@ -6,6 +6,7 @@ import BlogPostPage from './pages/BlogPostPage'
 import Navbar from './components/Navbar'
 import Feedback from './pages/Feedback'
 import AdminFeedback from './pages/AdminFeedback'
+import AdminBrandStats from './pages/AdminBrandStats'
 import PlayStoreBanner from './components/PlayStoreBanner'
 import StationDetail from './pages/StationDetail'
 import EvDetail from './pages/EvDetail'
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/admin/feedback" element={<AdminFeedback />} />
+          <Route path="/admin/brand-stats" element={<AdminBrandStats />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/pro" element={<ProPage />} />
