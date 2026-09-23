@@ -167,8 +167,12 @@ export default function AdminBrandStats() {
                       <a href={`/stations/${s.station_id}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text)', fontWeight: 500 }}>{s.name}</a>
                       <span style={{ color: 'var(--text3)' }}> · {s.postcode}</span>
                     </div>
-                    <div style={{ color: '#e74c3c' }}>
-                      {Math.max(...s.stale_fuels.map(f => f.days_stale))} days stale
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {s.stale_fuels.map(f => (
+                        <span key={f.fuel_type} style={{ color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                          {f.fuel_type}: {f.days_stale}d
+                        </span>
+                      ))}
                     </div>
                   </div>
                 ))}
