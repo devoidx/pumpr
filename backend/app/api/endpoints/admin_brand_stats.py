@@ -1,6 +1,7 @@
 import logging
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +9,11 @@ from app.auth.dependencies import require_admin
 from app.db.session import get_db
 from app.models.user import User
 from app.services.market_intelligence import compute_market_intelligence
+
+
+class ContactIn(BaseModel):
+    station_id: str
+    note: str | None = Field(None, max_length=2000)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin/brand-stats", tags=["admin"])
@@ -105,3 +111,65 @@ async def get_brand_stale_stations(
     stations.sort(key=lambda s: max(f["days_stale"] for f in s["stale_fuels"]), reverse=True)
 
     return {"brand": brand, "days_threshold": days, "count": len(stations), "stations": stations}
+
+
+@router.post("/contact")
+async def log_brand_contact(
+    payload: ContactIn,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Record that this station's brand has been contacted about stale
+    reporting (admin only). Feeds the public "we've flagged this" badge
+    on the station detail page until resolved.
+    """
+    station_check = await db.execute(
+        text("SELECT id FROM stations WHERE id = :station_id"),
+        {"station_id": payload.station_id},
+    )
+    if station_check.fetchone() is None:
+        raise HTTPException(status_code=404, detail="Station not found")
+
+    result = await db.execute(
+        text("""
+            INSERT INTO station_reporting_contacts (station_id, contacted_by, note)
+            VALUES (:station_id, :contacted_by, :note)
+            RETURNING id, contacted_at
+        """),
+        {"station_id": payload.station_id, "contacted_by": admin.email, "note": payload.note},
+    )
+    row = result.fetchone()
+    assert row is not None  # RETURNING always yields a row on successful INSERT
+    await db.commit()
+    logger.info(f"Brand contact logged for station {payload.station_id} by {admin.email}")
+    return {"id": row.id, "station_id": payload.station_id, "contacted_at": row.contacted_at.isoformat()}
+
+
+@router.get("/contact/{station_id}")
+async def get_brand_contact_status(
+    station_id: str,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Current unresolved contact record for a station, if any (admin only)."""
+    result = await db.execute(
+        text("""
+            SELECT id, contacted_at, contacted_by, note, resolved_at
+            FROM station_reporting_contacts
+            WHERE station_id = :station_id
+            ORDER BY contacted_at DESC
+            LIMIT 1
+        """),
+        {"station_id": station_id},
+    )
+    row = result.fetchone()
+    if row is None:
+        return {"contacted": False}
+    return {
+        "contacted": True,
+        "id": row.id,
+        "contacted_at": row.contacted_at.isoformat(),
+        "contacted_by": row.contacted_by,
+        "note": row.note,
+        "resolved_at": row.resolved_at.isoformat() if row.resolved_at else None,
+    }
