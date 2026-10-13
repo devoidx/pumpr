@@ -162,7 +162,7 @@ export default function AdminBrandStats() {
                   <div style={{ color: 'var(--text3)', fontSize: '13px' }}>No stations without an update in 21+ days.</div>
                 )}
                 {stations[b.brand]?.map(s => (
-                  <div key={s.station_id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px', borderBottom: '1px solid var(--border)' }}>
+                  <div key={s.station_id} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '6px 0', fontSize: '13px', borderBottom: '1px solid var(--border)' }}>
                     <div>
                       <a href={`/stations/${s.station_id}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text)', fontWeight: 500 }}>{s.name}</a>
                       <span style={{ color: 'var(--text3)' }}> · {s.postcode}{s.phone ? ` · ${s.phone}` : ''}</span>
