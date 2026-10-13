@@ -18,6 +18,7 @@ STATIC_PAGES = [
     ("/stats", "daily", "0.7"),
     ("/about", "monthly", "0.5"),
     ("/pro", "monthly", "0.6"),
+    ("/intelligence", "daily", "0.7"),
 ]
 
 CITIES = [
