@@ -173,6 +173,7 @@ async def get_cheapest(
           {brand_filter}
           AND lp.fuel_type = :fuel
           AND lp.price_flagged = false
+          AND lp.source_updated_at > NOW() - INTERVAL '60 days'
     """)
 
     result = await db.execute(sql, params)
@@ -239,6 +240,7 @@ async def get_cheapest(
             WHERE s.county IN ({placeholders})
               AND lp.fuel_type = :fuel
               AND lp.price_flagged = FALSE
+              AND lp.source_updated_at > NOW() - INTERVAL '60 days'
             GROUP BY s.county
         """), county_params)
         county_cheapest = {r.county: float(r.min_price) for r in cp_result.fetchall()}

@@ -566,8 +566,8 @@ async def post_eu_promo(country: str | None = None, dry_run: bool = False) -> st
     data = EU_PROMO_DATA[country]
 
     post_text = (
-        f"{data['flag']} Heading to {data['name']} this summer?\n\n"
-        f"Pumpr now shows petrol & diesel prices at {data['adjective']} stations "
+        f"{data['flag']} Driving to {data['name']}?\n\n"
+        f"Pumpr shows petrol & diesel prices at {data['adjective']} stations "
         f"— in both EUR and GBP, {data['freshness']}.\n\n"
         "Perfect for Channel crossings, road trips & driving holidays 🚗⛽\n\n"
         "pumpr.co.uk/europe\n\n"

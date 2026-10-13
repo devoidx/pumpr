@@ -229,6 +229,7 @@ async def _get_latest_prices(
                     SELECT id FROM stations WHERE county = :county
                 )
                 AND lp.price_flagged = FALSE
+                AND lp.source_updated_at > NOW() - INTERVAL '60 days'
                 GROUP BY lp.fuel_type
             """),
                 {"county": county},

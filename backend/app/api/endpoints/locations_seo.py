@@ -129,6 +129,7 @@ async def cheap_fuel_location(
                 JOIN stations s ON ph.station_id = s.id
                 WHERE ph.fuel_type = :fuel
                   AND ph.price_flagged = false
+                  AND ph.source_updated_at > NOW() - INTERVAL '60 days'
                   AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
                   AND s.latitude BETWEEN :lat_min AND :lat_max
                   AND s.longitude BETWEEN :lng_min AND :lng_max
