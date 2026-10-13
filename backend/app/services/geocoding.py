@@ -74,6 +74,18 @@ DISTRICT_TO_COUNTY = {
     "SEFTON": "MERSEYSIDE",
     "ST HELENS": "MERSEYSIDE",
     "WIRRAL": "MERSEYSIDE",
+    # Districts postcodes.io returns with no admin_county (unitary authorities).
+    # Values match spellings already stored and recognised by COUNTY_TO_REGION.
+    "ST. HELENS": "MERSEYSIDE",  # postcodes.io uses a full stop; "ST HELENS" above never matched
+    "SOMERSET": "SOMERSET",
+    "NORTH YORKSHIRE": "NORTH YORKSHIRE",
+    "COUNTY DURHAM": "COUNTY DURHAM",
+    "WILTSHIRE": "WILTSHIRE",
+    "BUCKINGHAMSHIRE": "BUCKINGHAMSHIRE",
+    "DORSET": "DORSET",
+    "NORTHUMBERLAND": "NORTHUMBERLAND",
+    "BEDFORD": "BEDFORDSHIRE",
+    "ISLES OF SCILLY": "CORNWALL",
     # West Yorkshire
     "BRADFORD": "WEST YORKSHIRE",
     "CALDERDALE": "WEST YORKSHIRE",
@@ -169,6 +181,7 @@ DISTRICT_TO_COUNTY = {
     "MIDLOTHIAN": "LOTHIAN",
     "MORAY": "MORAY",
     "NA H-EILEANAN AN IAR": "INVERNESS-SHIRE",
+    "NA H-EILEANAN SIAR": "INVERNESS-SHIRE",  # current postcodes.io spelling
     "NORTH AYRSHIRE": "AYRSHIRE",
     "NORTH LANARKSHIRE": "LANARKSHIRE",
     "ORKNEY ISLANDS": "ORKNEY",
