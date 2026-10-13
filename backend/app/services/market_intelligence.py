@@ -467,6 +467,40 @@ async def compute_brand_stats() -> list[dict]:
             brand_data[row.brand]["update_rate_7d"] = float(row.update_rate_7d)
             brand_data[row.brand]["stale_rate_21d"] = float(row.stale_rate_21d)
 
-        brands = list(brand_data.values())
-        brands.sort(key=lambda x: x.get("stale_rate_21d", 0), reverse=True)
+        # Station-level figures. Fuels update independently, so a station only counts
+        # as not updating when its freshest fuel is over 21 days old; one frozen
+        # low-volume fuel (e.g. E5) on an otherwise live station does not count.
+        station_result = await db.execute(text("""
+            WITH st AS (
+                SELECT s.id,
+                       COALESCE(b.display_name, s.brand) AS brand,
+                       MAX(lp.source_updated_at) AS freshest
+                FROM latest_prices lp
+                JOIN stations s ON s.id = lp.station_id
+                LEFT JOIN LATERAL (
+                    SELECT display_name FROM brands
+                    WHERE s.brand ILIKE '%' || name || '%'
+                    ORDER BY LENGTH(name) DESC
+                    LIMIT 1
+                ) b ON true
+                WHERE s.brand IS NOT NULL
+                  AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+                  AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
+                GROUP BY s.id, COALESCE(b.display_name, s.brand)
+            )
+            SELECT brand,
+                   COUNT(*) AS stations_total,
+                   COUNT(*) FILTER (WHERE freshest < NOW() - INTERVAL '21 days') AS not_reporting
+            FROM st
+            GROUP BY brand
+            HAVING COUNT(*) >= 5
+        """))
+        for row in station_result.fetchall():
+            entry = brand_data.setdefault(row.brand, {"brand": row.brand})
+            entry["stations_total"] = int(row.stations_total)
+            entry["not_reporting"] = int(row.not_reporting)
+            entry["not_reporting_rate"] = round(100.0 * row.not_reporting / row.stations_total, 1)
+
+        brands = [b for b in brand_data.values() if "stations_total" in b]
+        brands.sort(key=lambda x: (x["not_reporting"], x["stations_total"]), reverse=True)
         return brands

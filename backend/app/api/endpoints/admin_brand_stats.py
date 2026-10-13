@@ -41,77 +41,94 @@ async def get_brand_stats(
 
 @router.get("/stations")
 async def get_brand_stale_stations(
-    brand: str = Query(..., description="Brand display_name or raw brand text to match"),
-    days: int = Query(21, ge=1, le=90),
+    brand: str = Query(..., description="Brand name exactly as shown in the league table"),
+    days: int = Query(21, ge=1, le=365),
     admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Individual stations for a brand, stalest first (admin only).
-
-    Matches the same canonicalized-brand logic as the league table: a station
-    is included if its raw stations.brand text contains the given brand name
-    (case-insensitive), OR if it resolves via the curated brands table to a
-    display_name matching the given brand — so "Valero" also picks up
-    "CARNAGH HOUSE VALERO" etc.
+    """Stations under a brand whose freshest fuel is older than `days`, oldest first
+    (admin only). Fuels update independently, so a station only qualifies when nothing
+    at all has changed. Brand is matched on the same canonical name the league table
+    groups by. Closed stations, and stations the feed no longer returns (the sync
+    flags those as temporarily closed), are excluded.
     """
     result = await db.execute(
         text("""
-            SELECT
-                s.id as station_id,
-                s.name,
-                s.brand,
-                s.postcode,
-                s.county,
-                lp.fuel_type,
-                lp.price_pence,
-                lp.source_updated_at,
-                EXTRACT(DAY FROM NOW() - lp.source_updated_at)::int as days_stale
-            FROM latest_prices lp
-            JOIN stations s ON lp.station_id = s.id
-            LEFT JOIN LATERAL (
-                SELECT display_name FROM brands
-                WHERE s.brand ILIKE '%' || name || '%'
-                ORDER BY LENGTH(name) DESC
-                LIMIT 1
-            ) b ON true
-            WHERE lp.price_flagged = false
-              AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
-              AND (
-                  s.brand ILIKE '%' || :brand || '%'
-                  OR b.display_name ILIKE :brand
-              )
-              AND lp.source_updated_at < NOW() - make_interval(days => :days)
-            ORDER BY lp.source_updated_at ASC
+            WITH st AS (
+                SELECT s.id, s.name, s.brand AS raw_brand, s.postcode, s.county, s.phone,
+                       COALESCE(b.display_name, s.brand) AS brand,
+                       MAX(lp.source_updated_at) AS freshest
+                FROM latest_prices lp
+                JOIN stations s ON s.id = lp.station_id
+                LEFT JOIN LATERAL (
+                    SELECT display_name FROM brands
+                    WHERE s.brand ILIKE '%' || name || '%'
+                    ORDER BY LENGTH(name) DESC
+                    LIMIT 1
+                ) b ON true
+                WHERE s.brand IS NOT NULL
+                  AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+                  AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
+                GROUP BY s.id, s.name, s.brand, s.postcode, s.county, s.phone,
+                         COALESCE(b.display_name, s.brand)
+            )
+            SELECT st.id AS station_id, st.name, st.raw_brand, st.postcode, st.county, st.phone,
+                   st.freshest,
+                   EXTRACT(DAY FROM NOW() - st.freshest)::int AS days_since,
+                   (SELECT l.price_pence FROM latest_prices l
+                     WHERE l.station_id = st.id AND l.fuel_type = 'E10') AS e10,
+                   (SELECT l.price_pence FROM latest_prices l
+                     WHERE l.station_id = st.id AND l.fuel_type = 'B7') AS b7
+            FROM st
+            WHERE st.brand = :brand
+              AND st.freshest < NOW() - make_interval(days => :days)
+            ORDER BY st.freshest ASC
         """),
         {"brand": brand, "days": days},
     )
     rows = result.fetchall()
 
-    # Collapse to one row per station — a station can have several stale
-    # fuel types (E10, B7, etc.), and counting each as a separate "station"
-    # overstates how many physical sites actually need chasing.
-    by_station: dict = {}
-    for r in rows:
-        entry = by_station.setdefault(r.station_id, {
+    med = await db.execute(
+        text("""
+            SELECT fuel_type, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY price_pence) AS med
+            FROM latest_prices
+            WHERE fuel_type IN ('E10', 'B7')
+              AND price_flagged = false
+              AND source_updated_at > NOW() - INTERVAL '3 days'
+            GROUP BY fuel_type
+        """)
+    )
+    market = {r.fuel_type: float(r.med) for r in med.fetchall()}
+
+    def gap(price: float | None, fuel: str) -> float | None:
+        if price is None or fuel not in market:
+            return None
+        return round(float(price) - market[fuel], 1)
+
+    stations = [
+        {
             "station_id": r.station_id,
             "name": r.name,
-            "brand": r.brand,
+            "brand": r.raw_brand,
             "postcode": r.postcode,
             "county": r.county,
-            "stale_fuels": [],
-        })
-        entry["stale_fuels"].append({
-            "fuel_type": r.fuel_type,
-            "price_pence": float(r.price_pence),
-            "source_updated_at": r.source_updated_at.isoformat() if r.source_updated_at else None,
-            "days_stale": r.days_stale,
-        })
-
-    stations = list(by_station.values())
-    # Sort stations by their stalest fuel type, worst first
-    stations.sort(key=lambda s: max(f["days_stale"] for f in s["stale_fuels"]), reverse=True)
-
-    return {"brand": brand, "days_threshold": days, "count": len(stations), "stations": stations}
+            "phone": r.phone,
+            "last_update": r.freshest.isoformat() if r.freshest else None,
+            "days_since_update": r.days_since,
+            "e10": r.e10,
+            "e10_vs_market": gap(r.e10, "E10"),
+            "b7": r.b7,
+            "b7_vs_market": gap(r.b7, "B7"),
+        }
+        for r in rows
+    ]
+    return {
+        "brand": brand,
+        "days_threshold": days,
+        "count": len(stations),
+        "market_median": market,
+        "stations": stations,
+    }
 
 
 @router.post("/contact")

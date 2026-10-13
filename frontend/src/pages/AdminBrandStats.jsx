@@ -51,7 +51,7 @@ export default function AdminBrandStats() {
     if (!stations[brandName]) {
       setStationsLoading(brandName)
       try {
-        const res = await fetch(`/api/v1/admin/brand-stats/stations?brand=${encodeURIComponent(brandName)}&days=14`, {
+        const res = await fetch(`/api/v1/admin/brand-stats/stations?brand=${encodeURIComponent(brandName)}&days=21`, {
           headers: { Authorization: 'Bearer ' + accessToken },
         })
         if (!res.ok) throw new Error('Failed')
@@ -114,14 +114,14 @@ export default function AdminBrandStats() {
                 </button>
                 <span style={{ fontWeight: 600, fontSize: '15px' }}>{b.brand}</span>
                 <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
-                  {b.E10_stations || b.B7_stations || 0} stations
+                  {b.stations_total} stations
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px' }}>
-                <span style={{ color: b.stale_rate_21d > 5 ? '#e74c3c' : b.stale_rate_21d > 2 ? '#f5a623' : 'var(--text3)' }}>
-                  {b.stale_rate_21d}% stale (21d+)
+                <span style={{ color: b.not_reporting_rate > 15 ? '#e74c3c' : b.not_reporting_rate > 5 ? '#f5a623' : 'var(--text3)' }}>
+                  {b.not_reporting} with no update in 21d+ ({b.not_reporting_rate}%)
                 </span>
-                <span style={{ color: 'var(--text3)' }}>{b.update_rate_7d}% fresh (7d)</span>
+                
               </div>
             </div>
 
@@ -159,20 +159,23 @@ export default function AdminBrandStats() {
               <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
                 {stationsLoading === b.brand && <div style={{ color: 'var(--text3)', fontSize: '13px' }}>Loading stations…</div>}
                 {stations[b.brand]?.length === 0 && stationsLoading !== b.brand && (
-                  <div style={{ color: 'var(--text3)', fontSize: '13px' }}>No stations stale past 14 days.</div>
+                  <div style={{ color: 'var(--text3)', fontSize: '13px' }}>No stations without an update in 21+ days.</div>
                 )}
                 {stations[b.brand]?.map(s => (
                   <div key={s.station_id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '13px', borderBottom: '1px solid var(--border)' }}>
                     <div>
                       <a href={`/stations/${s.station_id}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text)', fontWeight: 500 }}>{s.name}</a>
-                      <span style={{ color: 'var(--text3)' }}> · {s.postcode}</span>
+                      <span style={{ color: 'var(--text3)' }}> · {s.postcode}{s.phone ? ` · ${s.phone}` : ''}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                      {s.stale_fuels.map(f => (
-                        <span key={f.fuel_type} style={{ color: '#e74c3c', whiteSpace: 'nowrap' }}>
-                          {f.fuel_type}: {f.days_stale}d
-                        </span>
-                      ))}
+                    <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: '#e74c3c' }}>{s.days_since_update}d</span>
+                      <span style={{ color: 'var(--text3)' }}> · last {new Date(s.last_update).toLocaleDateString('en-GB')}</span>
+                      {(() => {
+                        const fuel = s.e10_vs_market != null ? 'E10' : 'B7'
+                        const g = s.e10_vs_market != null ? s.e10_vs_market : s.b7_vs_market
+                        if (g == null) return null
+                        return <span style={{ color: Math.abs(g) > 15 ? '#f5a623' : 'var(--text3)' }}> · {fuel} {g > 0 ? '+' : ''}{g}p vs market</span>
+                      })()}
                     </div>
                   </div>
                 ))}
