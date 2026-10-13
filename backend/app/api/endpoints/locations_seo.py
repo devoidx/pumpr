@@ -131,6 +131,7 @@ async def cheap_fuel_location(
                   AND ph.price_flagged = false
                   AND ph.source_updated_at > NOW() - INTERVAL '60 days'
                   AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+                  AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
                   AND s.latitude BETWEEN :lat_min AND :lat_max
                   AND s.longitude BETWEEN :lng_min AND :lng_max
                 ORDER BY ph.station_id, ph.price_pence ASC

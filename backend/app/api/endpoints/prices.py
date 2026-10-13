@@ -169,6 +169,7 @@ async def get_cheapest(
         WHERE s.latitude IS NOT NULL
           AND s.longitude IS NOT NULL
           AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+          AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
           {geo_filter}
           {brand_filter}
           AND lp.fuel_type = :fuel
@@ -241,6 +242,7 @@ async def get_cheapest(
               AND lp.fuel_type = :fuel
               AND lp.price_flagged = FALSE
               AND lp.source_updated_at > NOW() - INTERVAL '60 days'
+              AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
             GROUP BY s.county
         """), county_params)
         county_cheapest = {r.county: float(r.min_price) for r in cp_result.fetchall()}

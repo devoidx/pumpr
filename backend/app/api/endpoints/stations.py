@@ -226,7 +226,7 @@ async def _get_latest_prices(
                 SELECT lp.fuel_type, MIN(lp.price_pence) as min_price
                 FROM latest_prices lp
                 WHERE lp.station_id IN (
-                    SELECT id FROM stations WHERE county = :county
+                    SELECT id FROM stations WHERE county = :county AND (temporary_closure = FALSE OR temporary_closure IS NULL)
                 )
                 AND lp.price_flagged = FALSE
                 AND lp.source_updated_at > NOW() - INTERVAL '60 days'
