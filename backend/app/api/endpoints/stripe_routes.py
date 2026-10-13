@@ -56,7 +56,6 @@ async def create_checkout_session(
 
     session = stripe.checkout.Session.create(
         customer=customer_id,
-        payment_method_types=["card"],
         line_items=[{"price": body.price_id, "quantity": 1}],
         mode="subscription",
         success_url=f"{settings.app_base_url}/pro/success?session_id={{CHECKOUT_SESSION_ID}}",
@@ -80,7 +79,6 @@ async def create_checkout_session_public(
     # Stripe will collect the email — we pass it to the checkout
     # so if an existing customer exists, Stripe will reuse them
     session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         line_items=[{"price": body.price_id, "quantity": 1}],
         mode="subscription",
         success_url=f"{settings.app_base_url}/pro/success?session_id={{CHECKOUT_SESSION_ID}}",
