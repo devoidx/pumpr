@@ -171,10 +171,10 @@ export default function AdminBrandStats() {
                       <span style={{ color: '#e74c3c' }}>{s.days_since_update}d</span>
                       <span style={{ color: 'var(--text3)' }}> · last {new Date(s.last_update).toLocaleDateString('en-GB')}</span>
                       {(() => {
-                        const fuel = s.e10_vs_market != null ? 'E10' : 'B7'
-                        const g = s.e10_vs_market != null ? s.e10_vs_market : s.b7_vs_market
+                        const fuel = s.e10_vs_peers != null ? 'E10' : 'B7'
+                        const g = s.e10_vs_peers != null ? s.e10_vs_peers : s.b7_vs_peers
                         if (g == null) return null
-                        return <span style={{ color: Math.abs(g) > 15 ? '#f5a623' : 'var(--text3)' }}> · {fuel} {g > 0 ? '+' : ''}{g}p vs market</span>
+                        return <span style={{ color: Math.abs(g) > 8 ? '#f5a623' : 'var(--text3)' }}> · {fuel} {g > 0 ? '+' : ''}{g}p vs live peers</span>
                       })()}
                     </div>
                   </div>

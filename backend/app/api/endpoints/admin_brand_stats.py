@@ -46,18 +46,26 @@ async def get_brand_stale_stations(
     admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Stations under a brand whose freshest fuel is older than `days`, oldest first
-    (admin only). Fuels update independently, so a station only qualifies when nothing
-    at all has changed. Brand is matched on the same canonical name the league table
-    groups by. Closed stations, and stations the feed no longer returns (the sync
-    flags those as temporarily closed), are excluded.
+    """Stations under a brand whose freshest fuel is older than `days` (admin only).
+
+    Fuels update independently, so a station only qualifies when nothing at all has
+    changed. Each station's E10/B7 is compared with the median of live stations (updated
+    in the last 14 days) in the same brand, country and motorway/non-motorway group,
+    needing at least 3 such peers. Rows sort by the largest gap, so stations whose frozen
+    price differs from their peers come first; stations without enough peers come last,
+    oldest first. Closed stations, and stations the feed no longer returns (the sync flags
+    those as temporarily closed), are excluded.
     """
     result = await db.execute(
         text("""
             WITH st AS (
                 SELECT s.id, s.name, s.brand AS raw_brand, s.postcode, s.county, s.phone,
+                       COALESCE(s.country, '') AS country,
+                       COALESCE(s.is_motorway, FALSE) AS motorway,
                        COALESCE(b.display_name, s.brand) AS brand,
-                       MAX(lp.source_updated_at) AS freshest
+                       MAX(lp.source_updated_at) AS freshest,
+                       MAX(lp.price_pence) FILTER (WHERE lp.fuel_type = 'E10') AS e10,
+                       MAX(lp.price_pence) FILTER (WHERE lp.fuel_type = 'B7') AS b7
                 FROM latest_prices lp
                 JOIN stations s ON s.id = lp.station_id
                 LEFT JOIN LATERAL (
@@ -69,17 +77,23 @@ async def get_brand_stale_stations(
                 WHERE s.brand IS NOT NULL
                   AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
                   AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
-                GROUP BY s.id, s.name, s.brand, s.postcode, s.county, s.phone,
-                         COALESCE(b.display_name, s.brand)
+                GROUP BY s.id, s.name, s.brand, s.postcode, s.county, s.phone, s.country,
+                         s.is_motorway, COALESCE(b.display_name, s.brand)
+            ), peers AS (
+                SELECT country, motorway,
+                       COUNT(e10) AS n_e10,
+                       PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY e10) AS med_e10,
+                       COUNT(b7) AS n_b7,
+                       PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY b7) AS med_b7
+                FROM st
+                WHERE brand = :brand AND freshest > NOW() - INTERVAL '14 days'
+                GROUP BY country, motorway
             )
             SELECT st.id AS station_id, st.name, st.raw_brand, st.postcode, st.county, st.phone,
-                   st.freshest,
-                   EXTRACT(DAY FROM NOW() - st.freshest)::int AS days_since,
-                   (SELECT l.price_pence FROM latest_prices l
-                     WHERE l.station_id = st.id AND l.fuel_type = 'E10') AS e10,
-                   (SELECT l.price_pence FROM latest_prices l
-                     WHERE l.station_id = st.id AND l.fuel_type = 'B7') AS b7
+                   st.freshest, EXTRACT(DAY FROM NOW() - st.freshest)::int AS days_since,
+                   st.e10, st.b7, p.n_e10, p.med_e10, p.n_b7, p.med_b7
             FROM st
+            LEFT JOIN peers p ON p.country = st.country AND p.motorway = st.motorway
             WHERE st.brand = :brand
               AND st.freshest < NOW() - make_interval(days => :days)
             ORDER BY st.freshest ASC
@@ -88,25 +102,19 @@ async def get_brand_stale_stations(
     )
     rows = result.fetchall()
 
-    med = await db.execute(
-        text("""
-            SELECT fuel_type, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY price_pence) AS med
-            FROM latest_prices
-            WHERE fuel_type IN ('E10', 'B7')
-              AND price_flagged = false
-              AND source_updated_at > NOW() - INTERVAL '3 days'
-            GROUP BY fuel_type
-        """)
-    )
-    market = {r.fuel_type: float(r.med) for r in med.fetchall()}
+    min_peers = 3
 
-    def gap(price: float | None, fuel: str) -> float | None:
-        if price is None or fuel not in market:
+    def gap(price: float | None, med: float | None, n: int | None) -> float | None:
+        if price is None or med is None or n is None or n < min_peers:
             return None
-        return round(float(price) - market[fuel], 1)
+        return round(float(price) - float(med), 1)
 
-    stations = [
-        {
+    stations: list[dict] = []
+    for r in rows:
+        g10 = gap(r.e10, r.med_e10, r.n_e10)
+        g7 = gap(r.b7, r.med_b7, r.n_b7)
+        gaps = [abs(g) for g in (g10, g7) if g is not None]
+        stations.append({
             "station_id": r.station_id,
             "name": r.name,
             "brand": r.raw_brand,
@@ -116,17 +124,17 @@ async def get_brand_stale_stations(
             "last_update": r.freshest.isoformat() if r.freshest else None,
             "days_since_update": r.days_since,
             "e10": r.e10,
-            "e10_vs_market": gap(r.e10, "E10"),
+            "e10_vs_peers": g10,
             "b7": r.b7,
-            "b7_vs_market": gap(r.b7, "B7"),
-        }
-        for r in rows
-    ]
+            "b7_vs_peers": g7,
+            "worst_gap": max(gaps) if gaps else None,
+        })
+    stations.sort(key=lambda s: (s["worst_gap"] is None, -(s["worst_gap"] or 0.0), s["last_update"] or ""))
     return {
         "brand": brand,
         "days_threshold": days,
         "count": len(stations),
-        "market_median": market,
+        "sorted_by": "gap vs live peers (same brand, country, motorway/not), largest first; no peers last, oldest first",
         "stations": stations,
     }
 
