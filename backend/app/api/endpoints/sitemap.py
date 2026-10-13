@@ -24,7 +24,7 @@ CITIES = [
     "london", "manchester", "birmingham", "leeds", "glasgow", "liverpool",
     "edinburgh", "bristol", "sheffield", "newcastle", "nottingham", "cardiff",
     "leicester", "coventry", "bradford", "belfast", "wolverhampton", "plymouth",
-    "derby", "reading", "Southampton", "portsmouth", "exeter", "cambridge",
+    "derby", "reading", "southampton", "portsmouth", "exeter", "cambridge",
     "oxford", "york", "norwich", "swansea", "aberdeen", "dundee",
 ]
 

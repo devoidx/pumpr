@@ -184,7 +184,7 @@ def start_scheduler() -> None:
         scheduler.add_job(post_county_e10_job,      trigger=CronTrigger(hour=10, minute=0,  timezone="Europe/London"), id="post_county_e10",             replace_existing=True)
         scheduler.add_job(post_county_diesel_job,   trigger=CronTrigger(hour=10, minute=30, timezone="Europe/London"), id="post_county_diesel",          replace_existing=True)
         scheduler.add_job(refresh_threads_token_job, trigger=IntervalTrigger(days=45), id="refresh_threads_token", replace_existing=True)
-        scheduler.add_job(generate_weekly_blog_post_job, trigger=CronTrigger(day_of_week="tue", hour=9, minute=30, timezone="Europe/London"), id="weekly_blog_post", replace_existing=True)
+        scheduler.add_job(generate_weekly_blog_post_job, trigger=CronTrigger(day_of_week="tue", hour=11, minute=0, timezone="Europe/London"), id="weekly_blog_post", replace_existing=True)
         scheduler.add_job(check_blog_sources_job, trigger=CronTrigger(day_of_week="wed", hour=10, minute=0, timezone="Europe/London"), id="check_blog_sources", replace_existing=True)
         scheduler.add_job(monthly_spending_digest_job, trigger=CronTrigger(day=1, hour=8, minute=0, timezone="Europe/London"), id="monthly_spending_digest", replace_existing=True)
 
