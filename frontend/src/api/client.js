@@ -26,5 +26,3 @@ export const getEUNearby = (params) =>
   client.get('/api/v1/eu/nearby', { params })
 export const getEUCheapFuel = (country, city) =>
   client.get(`/api/v1/eu/cheap-fuel/${country}/${city}`)
-export const getDayPatterns = () =>
-  client.get('/api/v1/prices/day-patterns')

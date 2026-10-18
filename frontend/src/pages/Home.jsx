@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCheapest, getChargers, getDayPatterns } from '../api/client'
+import { getCheapest, getChargers } from '../api/client'
 import Map from '../components/Map'
 import StationCard from '../components/StationCard'
 import SkeletonCard from '../components/SkeletonCard'
@@ -87,7 +87,6 @@ export default function Home() {
   const [avgPrice, setAvgPrice] = useState(0)
   const [activeVehicle, setActiveVehicle] = useState(null)
   const [error, setError] = useState(null)
-  const [dayPatterns, setDayPatterns] = useState(null)
   const [selected, setSelected] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
   const navigate = useNavigate()
@@ -228,9 +227,6 @@ export default function Home() {
   }, [user, accessToken])
 
   useEffect(() => {
-    getDayPatterns()
-      .then(r => setDayPatterns(r.data.patterns))
-      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -366,22 +362,12 @@ export default function Home() {
         </div>
 
         {mode === 'fuel' && priceRange.min > 0 && (() => {
-          const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-          const smKey = 'false'
-          const pattern = dayPatterns?.[fuel]?.[smKey]
-          const patternTip = pattern ? (() => {
-            const entries = Object.entries(pattern).map(([dow, price]) => ({ dow: parseInt(dow), price, day: DAYS[parseInt(dow)] }))
-            const cheapest = entries.reduce((a, b) => b.price < a.price ? b : a)
-            const priciest = entries.reduce((a, b) => b.price > a.price ? b : a)
-            return `Typically cheapest: ${cheapest.day} · Most expensive: ${priciest.day}`
-          })() : null
           return (
             <div className="price-range-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
               <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
                 <span>{priceRange.min.toFixed(1)}p – {priceRange.max.toFixed(1)}p</span>
                 <span className="price-range-avg">avg {avgPrice.toFixed(1)}p</span>
               </div>
-              {patternTip && <span style={{ fontSize: '11px', color: 'var(--text3)', fontFamily: 'var(--font-mono)' }}>{patternTip}</span>}
             </div>
           )
         })()}
