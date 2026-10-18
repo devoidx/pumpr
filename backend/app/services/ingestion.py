@@ -312,7 +312,7 @@ def get_last_successful_poll_at() -> datetime | None:
 
 async def ingest_prices() -> int:
     """Fetch current prices from API and write to price_history. Returns count."""
-    global _last_price_poll_at
+    global _last_price_poll_at, _last_successful_poll_at
 
     # Use incremental fetch if we have a recent last poll (within 2 hours)
     # Fall back to full fetch on first run or after a long gap
@@ -400,7 +400,29 @@ async def ingest_prices() -> int:
             if unknown:
                 logger.warning(f"Filtered {unknown} price records for unknown stations")
                 records = [r for r in records if r.station_id in known_ids]
-        session.add_all(records)
+        # Only write history where the price changed. Full fetches (restart,
+        # >2h gap) otherwise duplicate every station/fuel into price_history.
+        history: list[PriceRecord] = records
+        if records:
+            cur = await session.execute(
+                text(
+                    "SELECT station_id, fuel_type, price_pence FROM latest_prices "
+                    "WHERE station_id = ANY(:ids)"
+                ),
+                {"ids": list({r.station_id for r in records})},
+            )
+            current = {
+                (row.station_id, row.fuel_type): round(float(row.price_pence), 2)
+                for row in cur
+            }
+            history = [
+                r for r in records
+                if current.get((r.station_id, r.fuel_type)) != round(r.price_pence, 2)
+            ]
+            skipped = len(records) - len(history)
+            if skipped:
+                logger.info(f"price_history: skipped {skipped} unchanged prices")
+        session.add_all(history)
         await session.commit()
 
         # Upsert into latest_prices for fast stats/query access
