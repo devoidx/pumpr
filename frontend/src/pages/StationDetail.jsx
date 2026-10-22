@@ -144,6 +144,14 @@ export default function StationDetail() {
               {station.temporary_closure && <span className="detail-tag detail-tag-closed">Temporarily Closed</span>}
             </div>
           </div>
+          {station.superseded_by && (
+            <div className="detail-superseded-banner" style={{ margin: '12px 0', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--amber)', background: 'rgba(245, 158, 11, 0.08)', fontSize: '13px', lineHeight: 1.5 }}>
+              <strong>This listing has been replaced.</strong> Prices shown here are out of date — this forecourt now reports under a new listing.{' '}
+              <a href={`/stations/${station.superseded_by.id}`} style={{ color: 'var(--amber)', fontWeight: 600 }}>
+                See current prices at {station.superseded_by.name} →
+              </a>
+            </div>
+          )}
           {openStatus !== null && (
             <div className={`detail-open-badge ${openStatus ? 'open' : 'closed'}`}>
               <span className="detail-open-dot" />

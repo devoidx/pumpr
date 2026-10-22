@@ -116,6 +116,12 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
     )
     contact_row = contact_result.fetchone()
 
+    successor = None
+    if station.superseded_by:
+        succ = await db.get(Station, station.superseded_by)
+        if succ:
+            successor = {"id": succ.id, "name": succ.name, "brand": succ.brand}
+
     open_now = is_open_now(station.opening_times)
     week_hours = get_week_hours(station.opening_times)
 
@@ -137,6 +143,7 @@ async def get_station(station_id: str, db: AsyncSession = Depends(get_db)) -> di
         "is_motorway": station.is_motorway or False,
         "is_supermarket": station.is_supermarket or False,
         "temporary_closure": station.temporary_closure or False,
+        "superseded_by": successor,
         "amenities": station.amenities or [],
         "fuel_types": station.fuel_types or [],
         "opening_times": station.opening_times,
