@@ -13,6 +13,7 @@ import EvDetail from './pages/EvDetail'
 import Home from './pages/Home'
 import Stats from './pages/Stats'
 import About from './pages/About'
+import FuelFinder from './pages/FuelFinder'
 import Privacy from './pages/Privacy'
 import VerifyEmailPage from './components/auth/VerifyEmailPage'
 import ResetPasswordPage from './components/auth/ResetPasswordPage'
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="/ev/:id" element={<EvDetail />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/about" element={<About />} />
+          <Route path="/fuel-finder" element={<FuelFinder />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/admin/feedback" element={<AdminFeedback />} />
@@ -99,7 +101,7 @@ export default function App() {
               ))}
             </div>
             <div style={{color:'var(--text3)'}}>
-              © {new Date().getFullYear()} Pumpr · <a href="/about" style={{color:'var(--text3)'}}>About</a> · <a href="/privacy" style={{color:'var(--text3)'}}>Privacy</a> · <a href="/blog" style={{color:'var(--text3)'}}>Insights</a> · <a href="/feedback" style={{color:'var(--text3)'}}>Feedback</a>
+              © {new Date().getFullYear()} Pumpr · <a href="/about" style={{color:'var(--text3)'}}>About</a> · <a href="/fuel-finder" style={{color:'var(--text3)'}}>Fuel Finder</a> · <a href="/privacy" style={{color:'var(--text3)'}}>Privacy</a> · <a href="/blog" style={{color:'var(--text3)'}}>Insights</a> · <a href="/feedback" style={{color:'var(--text3)'}}>Feedback</a>
             </div>
           </div>
         </footer>}

@@ -23,7 +23,11 @@ export default function Home() {
   const { user, accessToken } = useAuth()
   const brandLogos = useBrandLogos()
   const useDriving = user?.use_driving_distance && (user?.role === 'pro' || user?.role === 'admin')
-  useSEO({ path: '/' })
+  useSEO({
+    title: 'UK Fuel Finder — Cheapest Petrol & Diesel Prices',
+    description: 'Pumpr is a free UK Fuel Finder: compare live petrol and diesel prices at 8,000+ stations, updated every 30 minutes from the official GOV.UK scheme.',
+    path: '/',
+  })
 
   function vehicleFuelGroup(fuelType) {
     if (!fuelType) return null
@@ -252,6 +256,9 @@ export default function Home() {
 
   return (
     <>
+    <h1 style={{position:'absolute',width:1,height:1,overflow:'hidden',clip:'rect(0 0 0 0)',whiteSpace:'nowrap'}}>
+      UK Fuel Finder: live petrol and diesel prices near you
+    </h1>
     <div className={`home map-${mapView}`}>
       <div className={`panel ${mapView === "full" ? "panel-hidden" : ""}`}>
         <div className="panel-header">

@@ -17,6 +17,7 @@ STATIC_PAGES = [
     ("/blog", "weekly", "0.8"),
     ("/stats", "daily", "0.7"),
     ("/about", "monthly", "0.5"),
+    ("/fuel-finder", "monthly", "0.7"),
     ("/pro", "monthly", "0.6"),
     ("/intelligence", "daily", "0.7"),
 ]
