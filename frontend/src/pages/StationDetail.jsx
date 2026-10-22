@@ -53,6 +53,7 @@ export default function StationDetail() {
     title: station ? `${station.name} — Fuel Prices` : 'Station',
     description: station ? `Live fuel prices at ${station.name}${station.brand ? ' (' + station.brand + ')' : ''}, ${station.postcode || station.address || ''}. Updated every 30 minutes.` : undefined,
     path: `/stations/${id}`,
+    noindex: !!station?.superseded_by,
   })
   useEffect(() => { if (typeof umami !== 'undefined') umami.track('station-detail-viewed') }, [])
 
