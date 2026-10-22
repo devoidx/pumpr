@@ -45,7 +45,7 @@ async def list_stations(
     stmt = (
         select(Station)
         .where(
-            Station.permanent_closure.is_(False) | Station.permanent_closure.is_(None)
+            (Station.permanent_closure.is_(False) | Station.permanent_closure.is_(None)) & Station.superseded_by.is_(None)
         )
         .limit(limit)
     )
@@ -91,7 +91,7 @@ async def get_brands(db: AsyncSession = Depends(get_db)):
         SELECT UPPER(brand) as brand, COUNT(*) as count
         FROM stations
         WHERE brand IS NOT NULL AND brand != ''
-          AND (permanent_closure = FALSE OR permanent_closure IS NULL)
+          AND ((permanent_closure = FALSE OR permanent_closure IS NULL) AND superseded_by IS NULL)
         GROUP BY UPPER(brand)
         ORDER BY count DESC
     """))

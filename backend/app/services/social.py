@@ -154,7 +154,7 @@ async def _get_uk_averages() -> list[dict]:
             SELECT fuel_type, ROUND(AVG(price_pence)::numeric, 1) as avg_price
             FROM latest l
             JOIN stations s ON l.station_id = s.id
-            WHERE s.permanent_closure = FALSE
+            WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -181,7 +181,7 @@ async def _get_cheapest_uk(fuel: str) -> dict | None:
                 SELECT AVG(l.price_pence) as avg_price
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
-                WHERE s.permanent_closure = FALSE
+                WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -193,7 +193,7 @@ async def _get_cheapest_uk(fuel: str) -> dict | None:
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             CROSS JOIN national_avg
-            WHERE s.permanent_closure = FALSE
+            WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -230,7 +230,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
                 SELECT s.country, AVG(l.price_pence) as avg_price
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
-                WHERE s.permanent_closure = FALSE
+                WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -245,7 +245,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 JOIN national_avg na ON s.country = na.country
-                WHERE s.permanent_closure = FALSE
+                WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -261,7 +261,7 @@ async def _get_cheapest_by_country(fuel: str) -> list[dict]:
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.country = rm.region AND l.price_pence = rm.min_price
-            WHERE s.permanent_closure = FALSE
+            WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -422,7 +422,7 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
                 SELECT s.country, AVG(l.price_pence) as avg_price
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
-                WHERE s.permanent_closure = FALSE
+                WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -437,7 +437,7 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
                 FROM latest l
                 JOIN stations s ON l.station_id = s.id
                 JOIN national_avg na ON s.country = na.country
-                WHERE s.permanent_closure = FALSE
+                WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE
@@ -459,7 +459,7 @@ async def _get_cheapest_by_county_all(fuel: str) -> list[dict]:
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.county = rm.region AND l.price_pence = rm.min_price
-            WHERE s.permanent_closure = FALSE
+            WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
                   AND NOT EXISTS (
                       SELECT 1 FROM brands b
                       WHERE b.membership_required = TRUE

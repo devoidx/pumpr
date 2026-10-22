@@ -75,7 +75,7 @@ async def get_brand_stale_stations(
                     LIMIT 1
                 ) b ON true
                 WHERE s.brand IS NOT NULL
-                  AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+                  AND ((s.permanent_closure = FALSE OR s.permanent_closure IS NULL) AND s.superseded_by IS NULL)
                   AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
                 GROUP BY s.id, s.name, s.brand, s.postcode, s.county, s.phone, s.country,
                          s.is_motorway, COALESCE(b.display_name, s.brand)

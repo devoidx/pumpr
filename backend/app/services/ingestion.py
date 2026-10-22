@@ -460,3 +460,73 @@ def _parse_dt(value: str | None) -> datetime | None:
         return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
     except (ValueError, AttributeError):
         return None
+
+
+SUPERSEDED_MAX = 150
+
+SUPERSEDED_PAIRS_CTE = """
+WITH f AS (
+    SELECT s.id, replace(upper(coalesce(s.postcode, '')), ' ', '') AS pc,
+           s.latitude AS lat, s.longitude AS lng, coalesce(s.is_motorway, false) AS mway,
+           max(lp.source_updated_at) AS last_upd
+    FROM stations s JOIN latest_prices lp ON lp.station_id = s.id
+    WHERE (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+      AND s.latitude IS NOT NULL AND s.longitude IS NOT NULL
+    GROUP BY s.id
+),
+pairs AS (
+    SELECT DISTINCT ON (a.id) a.id AS stale_id, b.id AS successor_id
+    FROM f a JOIN f b ON b.id <> a.id
+      AND abs(a.lat - b.lat) < 0.001 AND abs(a.lng - b.lng) < 0.0015
+      AND ((b.pc = a.pc AND a.pc <> '')
+           OR (abs(a.lat - b.lat) < 0.0004 AND abs(a.lng - b.lng) < 0.0006))
+    WHERE NOT a.mway
+      AND a.last_upd < now() - interval '30 days'
+      AND b.last_upd > a.last_upd + interval '14 days'
+    ORDER BY a.id, b.last_upd DESC
+)
+"""
+
+
+async def mark_superseded_stations() -> int:
+    """Flag stale registrations replaced by a fresher one at the same forecourt.
+
+    Operator changes create a new Fuel Finder station ID and the old one is
+    rarely closed. Recomputed in full each run; the flag clears if an old
+    registration resumes reporting.
+    """
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            text(SUPERSEDED_PAIRS_CTE + "SELECT stale_id, successor_id FROM pairs")
+        )
+        pairs = {row.stale_id: row.successor_id for row in result}
+        if len(pairs) > SUPERSEDED_MAX:
+            logger.error(
+                f"Superseded stations: {len(pairs)} candidates exceeds limit "
+                f"{SUPERSEDED_MAX} - not applying"
+            )
+            return 0
+        stale_ids = list(pairs)
+        cleared = await session.execute(
+            text(
+                "UPDATE stations SET superseded_by = NULL, superseded_at = NULL "
+                "WHERE superseded_by IS NOT NULL AND NOT (id = ANY(CAST(:ids AS varchar[])))"
+            ),
+            {"ids": stale_ids},
+        )
+        updated = await session.execute(
+            text(
+                "UPDATE stations s SET superseded_by = p.succ, superseded_at = now() "
+                "FROM (SELECT unnest(CAST(:stale AS varchar[])) AS stale, "
+                "unnest(CAST(:succ AS varchar[])) AS succ) p "
+                "WHERE s.id = p.stale AND s.superseded_by IS DISTINCT FROM p.succ"
+            ),
+            {"stale": stale_ids, "succ": [pairs[i] for i in stale_ids]},
+        )
+        await session.commit()
+    logger.info(
+        f"Superseded stations: {len(pairs)} flagged "
+        f"({getattr(updated, 'rowcount', 0)} new/changed, "
+        f"{getattr(cleared, 'rowcount', 0)} cleared)"
+    )
+    return len(pairs)

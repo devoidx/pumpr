@@ -28,6 +28,8 @@ class Station(Base):
     is_supermarket: Mapped[bool] = mapped_column(Boolean, default=False)
     temporary_closure: Mapped[bool] = mapped_column(Boolean, default=False)
     permanent_closure: Mapped[bool] = mapped_column(Boolean, default=False)
+    superseded_by: Mapped[str | None] = mapped_column(String, nullable=True)
+    superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 

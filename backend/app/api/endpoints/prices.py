@@ -168,7 +168,7 @@ async def get_cheapest(
         ) prev ON true
         WHERE s.latitude IS NOT NULL
           AND s.longitude IS NOT NULL
-          AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+          AND ((s.permanent_closure = FALSE OR s.permanent_closure IS NULL) AND s.superseded_by IS NULL)
           AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
           {geo_filter}
           {brand_filter}
@@ -261,7 +261,7 @@ async def get_stats(db: AsyncSession = Depends(get_db)) -> list[StatsOut]:
         SELECT lp.fuel_type, lp.price_pence
         FROM latest_prices lp
         JOIN stations s ON lp.station_id = s.id
-        WHERE (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+        WHERE ((s.permanent_closure = FALSE OR s.permanent_closure IS NULL) AND s.superseded_by IS NULL)
           AND lp.price_flagged = FALSE
     """)
     result = await db.execute(sql)

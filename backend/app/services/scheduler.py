@@ -7,7 +7,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from app.core.config import settings
 from app.services.eu.ecb_client import upsert_ecb_rate
 from app.services.eu.ingest import ingest_france, ingest_germany, ingest_italy, ingest_spain
-from app.services.ingestion import ingest_prices, sync_stations
+from app.services.ingestion import ingest_prices, mark_superseded_stations, sync_stations
 from app.services.price_patterns import compute_price_day_patterns, compute_station_price_patterns
 from app.services.retention import apply_retention_policy
 from app.services.social import post_eu_promo
@@ -21,6 +21,7 @@ async def sync_stations_job() -> None:
     logger.info("Scheduler: syncing stations")
     try:
         await sync_stations()
+        await mark_superseded_stations()
         logger.info("Scheduler: station sync complete")
     except Exception as e:
         logger.error(f"Scheduler: station sync failed: {e}")

@@ -216,7 +216,7 @@ async def compute_market_intelligence() -> dict:
               AND lp.price_flagged = false
               AND lp.price_pence BETWEEN 50 AND 350
               AND s.brand IS NOT NULL
-              AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+              AND ((s.permanent_closure = FALSE OR s.permanent_closure IS NULL) AND s.superseded_by IS NULL)
             GROUP BY COALESCE(b.display_name, s.brand), lp.fuel_type
             HAVING COUNT(DISTINCT lp.station_id) >= 5
         """), {"fuels": ["E10", "B7"]})
@@ -453,7 +453,7 @@ async def compute_brand_stats() -> list[dict]:
               AND lp.price_flagged = false
               AND lp.price_pence BETWEEN 50 AND 350
               AND s.brand IS NOT NULL
-              AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+              AND ((s.permanent_closure = FALSE OR s.permanent_closure IS NULL) AND s.superseded_by IS NULL)
             GROUP BY COALESCE(b.display_name, s.brand), lp.fuel_type
             HAVING COUNT(DISTINCT lp.station_id) >= 5
         """), {"fuels": ["E10", "B7"]})
@@ -484,7 +484,7 @@ async def compute_brand_stats() -> list[dict]:
                     LIMIT 1
                 ) b ON true
                 WHERE s.brand IS NOT NULL
-                  AND (s.permanent_closure = FALSE OR s.permanent_closure IS NULL)
+                  AND ((s.permanent_closure = FALSE OR s.permanent_closure IS NULL) AND s.superseded_by IS NULL)
                   AND (s.temporary_closure = FALSE OR s.temporary_closure IS NULL)
                 GROUP BY s.id, COALESCE(b.display_name, s.brand)
             )

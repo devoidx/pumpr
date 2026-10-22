@@ -28,7 +28,7 @@ async def _get_regional_prices(db: AsyncSession, group_field: str, filter_sql: s
             COUNT(DISTINCT l.station_id) as station_count
         FROM latest l
         JOIN stations s ON l.station_id = s.id
-        WHERE s.permanent_closure = FALSE
+        WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
           AND s.{group_field} IS NOT NULL
           AND s.{group_field} != ''
           AND (l.price_flagged = FALSE OR l.price_flagged IS NULL)
@@ -68,7 +68,7 @@ async def _get_cheapest_per_region(db: AsyncSession, group_field: str, fuel: str
             SELECT s.{group_field} as region, MIN(l.price_pence) as min_price
             FROM latest l
             JOIN stations s ON l.station_id = s.id
-            WHERE s.permanent_closure = FALSE
+            WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
               AND s.{group_field} IS NOT NULL
               AND s.{group_field} != ''
               {filter_sql}
@@ -85,7 +85,7 @@ async def _get_cheapest_per_region(db: AsyncSession, group_field: str, fuel: str
             FROM latest l
             JOIN stations s ON l.station_id = s.id
             JOIN regional_min rm ON s.{group_field} = rm.region AND l.price_pence = rm.min_price
-            WHERE s.permanent_closure = FALSE
+            WHERE (s.permanent_closure = FALSE AND s.superseded_by IS NULL)
               AND s.{group_field} IS NOT NULL
               AND s.{group_field} != ''
               {filter_sql}
